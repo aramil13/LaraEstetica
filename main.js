@@ -2101,6 +2101,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                 ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
                                 <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
                             </div>
+                            <div style="display:flex;align-items:center;gap:12px;font-size:0.8rem;color:var(--text-secondary);margin-top:2px;">
+                                ${c.nif ? `<span><strong>NIF/CIF:</strong> ${c.nif}</span>` : ''}
+                                ${c.fiscal_address ? `<span><strong>Dir. fiscal:</strong> ${c.fiscal_address}</span>` : ''}
+                            </div>
                              ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
                              ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
                                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
@@ -2411,6 +2415,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const dateStr = (inv.created_at || new Date().toISOString()).substring(0, 16).replace('T', ' ');
         const clientName = inv.client_name || 'Consumidor final';
         const nifLine = inv.client_nif ? `<strong>NIF:</strong> ${inv.client_nif}` : '';
+        const clientRecord = State.clients.find(c => c.id === inv.client_id);
+        const addressLine = clientRecord && clientRecord.fiscal_address ? `<br><strong>Dirección fiscal:</strong> ${clientRecord.fiscal_address}` : '';
 
         if (isInvoice) {
             const lines = items.length === 0
@@ -2436,7 +2442,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         </div>
                     </div>
                     <div style="font-size:0.95rem;margin-bottom:1.5rem;">
-                        <strong>Cliente:</strong> ${clientName}${nifLine ? '<br>' + nifLine : ''}
+                        <strong>Cliente:</strong> ${clientName}${nifLine ? '<br>' + nifLine : ''}${addressLine}
                     </div>
                     <table style="width:100%;font-size:0.9rem;border-collapse:collapse;">
                         <thead>
@@ -2559,7 +2565,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         if (docFacturaSalon) docFacturaSalon.addEventListener('click', () => { State.tpv.docType = 'factura-salon'; tpvRenderCartPanel(); });
 
         const clientSel = document.getElementById('tpv-client');
-        if (clientSel) clientSel.addEventListener('change', e => { State.tpv.clientId = e.target.value; });
+        if (clientSel) clientSel.addEventListener('change', e => {
+            State.tpv.clientId = e.target.value;
+            const client = State.clients.find(c => c.id === e.target.value);
+            if (client && client.nif && State.tpv.docType === 'factura') {
+                State.tpv.clientNif = client.nif;
+                tpvRenderCartPanel();
+            }
+        });
         const salonClientSel = document.getElementById('tpv-salon-client');
         if (salonClientSel) salonClientSel.addEventListener('change', e => { State.tpv.salonId = e.target.value; });
         const nifInput = document.getElementById('tpv-nif');
@@ -4090,6 +4103,14 @@ window.addEventListener('message', async (event) => {
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
                 </div>
                 <div class="form-group">
+                    <label>NIF / CIF</label>
+                    <input type="text" class="form-control" name="nif" placeholder="12345678A" value="${isEdit ? (info.nif || '') : ''}">
+                </div>
+                <div class="form-group">
+                    <label>Dirección Fiscal</label>
+                    <input type="text" class="form-control" name="fiscal_address" placeholder="Calle, nº, CP, Ciudad" value="${isEdit ? (info.fiscal_address || '') : ''}">
+                </div>
+                <div class="form-group">
                     <label>Teléfono</label>
                     <input type="tel" class="form-control" name="phone" value="${isEdit ? info.phone : ''}">
                 </div>
@@ -4350,6 +4371,8 @@ window.addEventListener('message', async (event) => {
                     name: fd.get('name'), 
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
+                    fiscal_address: fd.get('fiscal_address'),
+                    nif: fd.get('nif'),
                     enviar_was: enviarWas,
                     whatsapp_template: enviarWas ? fd.get('whatsapp_template') : null,
                     observations: fd.get('observations')

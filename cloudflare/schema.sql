@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS clients (
   name TEXT NOT NULL,
   phone TEXT,
   email TEXT,
+  fiscal_address TEXT,
+  nif TEXT,
   enviar_was INTEGER DEFAULT 0,
   whatsapp_template TEXT,
   observations TEXT,
