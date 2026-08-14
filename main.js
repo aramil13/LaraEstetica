@@ -4106,6 +4106,7 @@ window.addEventListener('message', async (event) => {
                             }
                         } catch (e) {
                             console.error('Error saving diagnosis photo:', e);
+                            showToast('Error al guardar la foto del diagnóstico', 'error');
                         }
                     } catch (e) {
                         console.error('Error saving diagnosis photo:', e);

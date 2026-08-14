@@ -2,7 +2,7 @@ const JSON_HEADERS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-client-id, x-photo-id, x-file-name, x-photo-date, x-photo-type, x-notes, x-photo-hash',
 };
 
 function json(data, status = 200) {
