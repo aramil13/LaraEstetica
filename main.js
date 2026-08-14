@@ -2422,7 +2422,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const clientName = inv.client_name || 'Consumidor final';
         const nifLine = inv.client_nif ? `<strong>NIF:</strong> ${inv.client_nif}` : '';
         const clientRecord = State.clients.find(c => c.id === inv.client_id);
-        const addressLine = clientRecord && clientRecord.fiscal_address ? `<br><strong>Dirección fiscal:</strong> ${clientRecord.fiscal_address}` : '';
+        const salonRecord = State.salons.find(s => s.id === inv.client_id);
+        const fiscalRec = (inv.doc_type === 'factura-salon' ? salonRecord : null) || clientRecord;
+        const addressLine = fiscalRec && fiscalRec.fiscal_address ? `<br><strong>Dirección fiscal:</strong> ${fiscalRec.fiscal_address}` : '';
         const issuer = State.profile || {};
         const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
         const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
@@ -2528,8 +2530,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const payload = {
             doc_type: State.tpv.docType,
             client_id: isSalonInvoice ? (salon ? salon.id : null) : (clientId || null),
-            client_name: isSalonInvoice ? (salon ? salon.name : (State.profile?.full_name || 'Estética y Bienestar Lara')) : tpvClientName(clientId),
-            client_nif: isSalonInvoice ? null : (clientNif || null),
+            client_name: isSalonInvoice ? (salon ? (salon.business_name || salon.name) : (State.profile?.full_name || 'Estética y Bienestar Lara')) : tpvClientName(clientId),
+            client_nif: isSalonInvoice ? (salon && salon.nif ? salon.nif : null) : (clientNif || null),
             items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty })),
             base_amount: Math.round(totals.base * 100) / 100,
             commission_rate: Math.round(totals.commissionRate * 100) / 100,
@@ -3017,6 +3019,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                             ${s.address ? `<span>📍 ${s.address}</span>` : ''}
                             ${s.phone ? `<span>📱 ${s.phone}</span>` : ''}
                         </div>
+                        ${(s.business_name || s.nif || s.fiscal_address) ? `
+                        <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">
+                            ${s.business_name ? `<div>🏢 ${s.business_name}</div>` : ''}
+                            ${s.nif ? `<div>NIF: ${s.nif}</div>` : ''}
+                            ${s.fiscal_address ? `<div>📍 Fiscal: ${s.fiscal_address}</div>` : ''}
+                        </div>` : ''}
                     </div>
                     <div class="client-actions">
                         <button class="btn btn-sm btn-secondary edit-btn" data-id="${s.id}" data-type="salon" title="Editar">
@@ -3073,6 +3081,20 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     <label>Email</label>
                     <input type="email" class="form-control" name="email" value="${isEdit ? (info.email || '') : ''}" placeholder="salon@ejemplo.com">
                 </div>
+                <hr style="margin:1.25rem 0;border:none;border-top:1px solid var(--border-color);">
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Datos fiscales del salón. Se usarán en las facturas emitidas a nombre de este salón como cliente.</p>
+                <div class="form-group">
+                    <label>Nombre de la empresa / Autónomo</label>
+                    <input type="text" class="form-control" name="business_name" value="${isEdit ? (info.business_name || '') : ''}" placeholder="Razón social o nombre del titular">
+                </div>
+                <div class="form-group">
+                    <label>NIF / CIF</label>
+                    <input type="text" class="form-control" name="nif" value="${isEdit ? (info.nif || '') : ''}" placeholder="NIF o CIF del salón">
+                </div>
+                <div class="form-group">
+                    <label>Dirección fiscal</label>
+                    <input type="text" class="form-control" name="fiscal_address" value="${isEdit ? (info.fiscal_address || '') : ''}" placeholder="Calle, número, ciudad, CP">
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
@@ -3092,7 +3114,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     name: fd.get('name'),
                     address: fd.get('address'),
                     phone: fd.get('phone'),
-                    email: fd.get('email')
+                    email: fd.get('email'),
+                    business_name: fd.get('business_name'),
+                    nif: fd.get('nif'),
+                    fiscal_address: fd.get('fiscal_address')
                 };
 
                 let success;

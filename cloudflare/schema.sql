@@ -71,6 +71,9 @@ CREATE TABLE IF NOT EXISTS salons (
   address TEXT,
   phone TEXT,
   email TEXT,
+  business_name TEXT,
+  nif TEXT,
+  fiscal_address TEXT,
   user_email TEXT DEFAULT '',
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
