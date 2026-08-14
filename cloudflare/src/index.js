@@ -490,13 +490,15 @@ export default {
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       if (!b.items || !Array.isArray(b.items) || b.items.length === 0) return error('La factura debe tener al menos un servicio');
-      const docType = b.doc_type === 'factura' ? 'factura' : 'ticket';
+      const validDocTypes = ['ticket', 'factura', 'factura-salon'];
+      const docType = validDocTypes.includes(b.doc_type) ? b.doc_type : 'ticket';
       const base = Number(b.base_amount) || 0;
       const tax = Number(b.tax_amount) || 0;
       const retention = Number(b.retention_amount) || (base * 0.15);
       const total = Number(b.total_amount) || (base + tax - retention);
-      const last = await env.DB.prepare('SELECT MAX(number) AS maxNum FROM invoices WHERE user_email = ? AND doc_type = ?').bind(email, docType).first();
-      const nextNumber = (last && last.maxNum ? last.maxNum : 0) + 1;
+      const isInvoice = docType !== 'ticket';
+      const last = await env.DB.prepare('SELECT MAX(number) AS maxNum FROM invoices WHERE user_email = ? AND doc_type IN (\'factura\', \'factura-salon\')').bind(email).first();
+      const nextNumber = isInvoice ? ((last && last.maxNum ? last.maxNum : 0) + 1) : (await env.DB.prepare('SELECT MAX(number) AS maxNum FROM invoices WHERE user_email = ? AND doc_type = \'ticket\'').bind(email).first().then(r => (r && r.maxNum ? r.maxNum : 0) + 1));
       const id = randomHex(16);
       await env.DB.prepare(
         `INSERT INTO invoices (id, number, doc_type, client_id, client_name, client_nif, items, base_amount, tax_amount, retention_amount, total_amount, user_email)

@@ -2263,18 +2263,21 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 </tr>`).join('');
 
         const totals = tpvCartTotals();
-        const docTypeLabel = State.tpv.docType === 'factura' ? 'Factura' : 'Ticket';
+        const docTypeLabel = State.tpv.docType === 'ticket' ? 'Ticket' : (State.tpv.docType === 'factura-salon' ? 'Factura para Salón' : 'Factura para Cliente');
+        const showClient = State.tpv.docType !== 'factura-salon';
 
         return `
             <div class="data-card" style="padding:1.25rem;">
-                <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+                <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
                     <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket">Ticket</button>
-                    <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura para Cliente</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon">Factura para Salón</button>
                 </div>
+                ${showClient ? `
                 <div class="form-group">
                     <label>Cliente</label>
                     <select class="form-control" id="tpv-client">${clientOptions}</select>
-                </div>
+                </div>` : ''}
                 ${State.tpv.docType === 'factura' ? `
                 <div class="form-group">
                     <label>NIF del cliente</label>
@@ -2301,13 +2304,15 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         if (State.tpv.invoices.length === 0) {
             return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
         }
-        return State.tpv.invoices.map(inv => `
+        return State.tpv.invoices.map(inv => {
+            const isInvoice = inv.doc_type !== 'ticket';
+            return `
             <tr>
-                <td>${inv.doc_type === 'factura' ? 'F' : 'T'}-${String(inv.number).padStart(4, '0')}</td>
+                <td>${isInvoice ? 'F' : 'T'}-${String(inv.number).padStart(4, '0')}</td>
                 <td>${(inv.created_at || '').substring(0, 10)}</td>
                 <td>${inv.client_name || 'Consumidor final'}</td>
                 <td style="text-align:right">${tpvFormatMoney(inv.total_amount)}</td>
-                <td><span class="status-${inv.doc_type === 'factura' ? 'success' : 'info'}" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;">${inv.doc_type === 'factura' ? 'Factura' : 'Ticket'}</span></td>
+                <td><span class="status-${isInvoice ? 'success' : 'info'}" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;">${isInvoice ? 'Factura' : 'Ticket'}</span></td>
                 <td>
                     <div class="actions">
                         <button class="edit-btn" data-invoice-id="${inv.id}" title="Imprimir">
@@ -2318,7 +2323,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         </button>
                     </div>
                 </td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
     }
 
     function getTpvHistoryCard() {
@@ -2371,12 +2377,13 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
     function tpvBuildDocHtml(inv, isPreview) {
         const items = Array.isArray(inv.items) ? inv.items : [];
-        const num = (inv.doc_type === 'factura' ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
+        const isInvoice = inv.doc_type !== 'ticket';
+        const num = (isInvoice ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
         const dateStr = (inv.created_at || new Date().toISOString()).substring(0, 16).replace('T', ' ');
         const clientName = inv.client_name || 'Consumidor final';
         const nifLine = inv.client_nif ? `<strong>NIF:</strong> ${inv.client_nif}` : '';
 
-        if (inv.doc_type === 'factura') {
+        if (isInvoice) {
             const lines = items.length === 0
                 ? '<tr><td colspan="5" style="padding:0.6rem;color:#777;">—</td></tr>'
                 : items.map(i => `
@@ -2467,11 +2474,12 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const nifInput = document.getElementById('tpv-nif');
         const clientNif = nifInput ? nifInput.value.trim() : '';
         const totals = tpvCartTotals();
+        const isSalonInvoice = State.tpv.docType === 'factura-salon';
         const payload = {
             doc_type: State.tpv.docType,
-            client_id: clientId || null,
-            client_name: tpvClientName(clientId),
-            client_nif: clientNif || null,
+            client_id: isSalonInvoice ? null : (clientId || null),
+            client_name: isSalonInvoice ? 'Estética y Bienestar Lara' : tpvClientName(clientId),
+            client_nif: isSalonInvoice ? null : (clientNif || null),
             items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty })),
             base_amount: Math.round(totals.base * 100) / 100,
             tax_amount: Math.round(totals.tax * 100) / 100,
@@ -2504,7 +2512,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         setTimeout(() => {
             printArea.innerHTML = '';
             printArea.classList.remove('print-active');
-            showToast((doc.doc_type === 'factura' ? 'Factura' : 'Ticket') + ' emitida correctamente.');
+            showToast((doc.doc_type !== 'ticket' ? 'Factura' : 'Ticket') + ' emitida correctamente.');
             renderRoute();
         }, 300);
     }
@@ -2512,8 +2520,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     function tpvBindCartEvents() {
         const docTicket = document.getElementById('tpv-doc-ticket');
         const docFactura = document.getElementById('tpv-doc-factura');
+        const docFacturaSalon = document.getElementById('tpv-doc-factura-salon');
         if (docTicket) docTicket.addEventListener('click', () => { State.tpv.docType = 'ticket'; tpvRenderCartPanel(); });
         if (docFactura) docFactura.addEventListener('click', () => { State.tpv.docType = 'factura'; tpvRenderCartPanel(); });
+        if (docFacturaSalon) docFacturaSalon.addEventListener('click', () => { State.tpv.docType = 'factura-salon'; tpvRenderCartPanel(); });
 
         const clientSel = document.getElementById('tpv-client');
         if (clientSel) clientSel.addEventListener('change', e => { State.tpv.clientId = e.target.value; });
