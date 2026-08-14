@@ -565,6 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clientId: '',
             clientNif: '',
             commissionRate: 30,
+            salonId: '',
             invoices: []
         }
     };
@@ -2202,6 +2203,17 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         return c ? c.name : 'Consumidor final';
     }
 
+    function tpvSalonOptions() {
+        const salons = State.salons;
+        if (salons.length === 0) return '<option value="">— Sin salones —</option>';
+        if (!State.tpv.salonId || !salons.some(s => s.id === State.tpv.salonId)) State.tpv.salonId = salons[0].id;
+        return salons.map(s => `<option value="${s.id}"${s.id === State.tpv.salonId ? ' selected' : ''}>${s.name}</option>`).join('');
+    }
+
+    function tpvSelectedSalon() {
+        return State.salons.find(s => s.id === State.tpv.salonId) || null;
+    }
+
     function tpvCartTotals() {
         let base = 0;
         State.tpv.cart.forEach(item => {
@@ -2288,6 +2300,11 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div class="form-group">
                     <label>NIF del cliente</label>
                     <input type="text" class="form-control" id="tpv-nif" placeholder="NIF / CIF" value="${State.tpv.clientNif}">
+                </div>` : ''}
+                ${isSalonInvoice ? `
+                <div class="form-group">
+                    <label>Cliente (Salón)</label>
+                    <select class="form-control" id="tpv-salon-client">${tpvSalonOptions()}</select>
                 </div>` : ''}
                 ${isSalonInvoice ? `
                 <div class="form-group" style="margin-bottom:0.25rem;">
@@ -2488,10 +2505,11 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const clientNif = nifInput ? nifInput.value.trim() : '';
         const totals = tpvCartTotals();
         const isSalonInvoice = State.tpv.docType === 'factura-salon';
+        const salon = isSalonInvoice ? tpvSelectedSalon() : null;
         const payload = {
             doc_type: State.tpv.docType,
-            client_id: isSalonInvoice ? null : (clientId || null),
-            client_name: isSalonInvoice ? 'Estética y Bienestar Lara' : tpvClientName(clientId),
+            client_id: isSalonInvoice ? (salon ? salon.id : null) : (clientId || null),
+            client_name: isSalonInvoice ? (salon ? salon.name : 'Estética y Bienestar Lara') : tpvClientName(clientId),
             client_nif: isSalonInvoice ? null : (clientNif || null),
             items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty })),
             base_amount: Math.round(totals.base * 100) / 100,
@@ -2542,6 +2560,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         const clientSel = document.getElementById('tpv-client');
         if (clientSel) clientSel.addEventListener('change', e => { State.tpv.clientId = e.target.value; });
+        const salonClientSel = document.getElementById('tpv-salon-client');
+        if (salonClientSel) salonClientSel.addEventListener('change', e => { State.tpv.salonId = e.target.value; });
         const nifInput = document.getElementById('tpv-nif');
         if (nifInput) nifInput.addEventListener('input', e => { State.tpv.clientNif = e.target.value; });
         const commissionInput = document.getElementById('tpv-commission-rate');
