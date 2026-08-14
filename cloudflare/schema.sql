@@ -3,6 +3,9 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   salt TEXT NOT NULL,
+  full_name TEXT,
+  nif TEXT,
+  fiscal_address TEXT,
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 

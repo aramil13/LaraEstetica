@@ -308,6 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
         forgotPassword(email) { return this.request('/api/auth/forgot', { method: 'POST', body: { email } }); },
         resetPassword(email, code, newPassword) { return this.request('/api/auth/reset', { method: 'POST', body: { email, code, newPassword } }); },
         changePassword(currentPassword, newPassword) { return this.request('/api/auth/change-password', { method: 'POST', body: { currentPassword, newPassword } }); },
+        getProfile() { return this.request('/api/auth/profile'); },
+        updateProfile(data) { return this.request('/api/auth/profile', { method: 'PUT', body: data }); },
         getClients() { return this.request('/api/clients'); },
         addClient(data) { return this.request('/api/clients', { method: 'POST', body: data }); },
         updateClient(data) { return this.request('/api/clients/' + data.id, { method: 'PUT', body: data }); },
@@ -812,6 +814,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             State.clients = clientsData;
             State.services = servicesData;
+
+            if (State.session && !State.session.staff) {
+                try { State.profile = await api.getProfile(); } catch (e) { State.profile = {}; }
+            }
             // Map DB snake_case to JS camelCase for appointments
             State.appointments = appointmentsData.map(a => ({
                 id: a.id,
@@ -2417,6 +2423,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const nifLine = inv.client_nif ? `<strong>NIF:</strong> ${inv.client_nif}` : '';
         const clientRecord = State.clients.find(c => c.id === inv.client_id);
         const addressLine = clientRecord && clientRecord.fiscal_address ? `<br><strong>Dirección fiscal:</strong> ${clientRecord.fiscal_address}` : '';
+        const issuer = State.profile || {};
+        const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
+        const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
+        const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
 
         if (isInvoice) {
             const lines = items.length === 0
@@ -2432,8 +2442,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div class="invoice-a4">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:1rem;margin-bottom:1.5rem;">
                         <div>
-                            <div style="font-size:1.6rem;font-weight:800;">Estética y Bienestar Lara</div>
-                            <div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">Estética y bienestar</div>
+                            <div style="font-size:1.6rem;font-weight:800;">${issuerName}</div>
+                            ${issuerNif}
+                            ${issuerAddress}
                         </div>
                         <div style="text-align:right;font-size:0.95rem;">
                             <div style="font-size:1.3rem;font-weight:800;">FACTURA</div>
@@ -2479,7 +2490,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         return `
             <div class="ticket-print">
                 <div style="text-align:center;border-bottom:1px dashed #999;padding-bottom:0.5rem;margin-bottom:0.5rem;">
-                    <div style="font-size:1.1rem;font-weight:800;">Estética y Bienestar Lara</div>
+                    <div style="font-size:1.1rem;font-weight:800;">${issuerName}</div>
+                    ${issuerNif}
+                    ${issuerAddress}
                     <div style="font-size:0.8rem;color:#555;">TICKET</div>
                     <div style="font-size:0.8rem;color:#555;">Nº ${num}</div>
                     <div style="font-size:0.8rem;color:#555;">${dateStr}</div>
@@ -2515,7 +2528,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const payload = {
             doc_type: State.tpv.docType,
             client_id: isSalonInvoice ? (salon ? salon.id : null) : (clientId || null),
-            client_name: isSalonInvoice ? (salon ? salon.name : 'Estética y Bienestar Lara') : tpvClientName(clientId),
+            client_name: isSalonInvoice ? (salon ? salon.name : (State.profile?.full_name || 'Estética y Bienestar Lara')) : tpvClientName(clientId),
             client_nif: isSalonInvoice ? null : (clientNif || null),
             items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty })),
             base_amount: Math.round(totals.base * 100) / 100,
@@ -4453,6 +4466,11 @@ window.addEventListener('message', async (event) => {
     async function showSettingsForm() {
         let staffList = '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">No hay usuarios staff configurados.</p>';
         let takenSalonIds = [];
+        let profile = { full_name: '', nif: '', fiscal_address: '' };
+        const isStaffUser = !!(State.session && State.session.staff);
+        if (!isStaffUser) {
+            try { profile = await api.getProfile(); } catch (e) { profile = {}; }
+        }
         try {
             const accounts = await api.getStaff();
             takenSalonIds = accounts.map(a => a.salon_id).filter(Boolean);
@@ -4519,6 +4537,23 @@ window.addEventListener('message', async (event) => {
                 <div style="margin-top:1rem;font-size:0.8rem;color:var(--text-secondary);">
                     <strong>Nota:</strong> Los cambios en el staff se guardan automáticamente al añadir o eliminar.
                 </div>
+                ${isStaffUser ? '' : `
+                <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
+                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Datos Fiscales</h3>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Estos datos se usarán como emisor en tus facturas. Solo visibles para el administrador.</p>
+                <div class="form-group">
+                    <label>Nombre y apellidos</label>
+                    <input type="text" class="form-control" id="profile-full-name" value="${(profile.full_name || '').replace(/"/g, '&quot;')}" placeholder="Nombre del negocio o titular">
+                </div>
+                <div class="form-group">
+                    <label>NIF / CIF</label>
+                    <input type="text" class="form-control" id="profile-nif" value="${(profile.nif || '').replace(/"/g, '&quot;')}" placeholder="NIF o CIF del negocio">
+                </div>
+                <div class="form-group">
+                    <label>Dirección fiscal</label>
+                    <input type="text" class="form-control" id="profile-fiscal-address" value="${(profile.fiscal_address || '').replace(/"/g, '&quot;')}" placeholder="Calle, número, ciudad, CP">
+                </div>
+                <button type="button" class="btn btn-primary" id="btn-save-profile" style="margin-bottom:1rem;">Guardar Datos Fiscales</button>`}
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <h3 style="margin-bottom:1rem;font-size:1.1rem;">Cambiar Contraseña</h3>
                 <div class="form-group">
@@ -4566,6 +4601,31 @@ window.addEventListener('message', async (event) => {
 
                 showToast('Configuración actualizada correctamente.');
                 closeModal();
+            });
+
+            const btnProfile = document.getElementById('btn-save-profile');
+            if (btnProfile) btnProfile.addEventListener('click', async () => {
+                const data = {
+                    full_name: document.getElementById('profile-full-name').value.trim(),
+                    nif: document.getElementById('profile-nif').value.trim(),
+                    fiscal_address: document.getElementById('profile-fiscal-address').value.trim(),
+                };
+                if (!data.full_name && !data.nif && !data.fiscal_address) {
+                    showToast('Rellena al menos un campo.', 'error');
+                    return;
+                }
+                const btn = btnProfile;
+                btn.disabled = true;
+                btn.textContent = 'Guardando...';
+                try {
+                    await api.updateProfile(data);
+                    showToast('Datos fiscales actualizados.');
+                } catch (err) {
+                    showToast('Error: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Guardar Datos Fiscales';
+                }
             });
 
             document.getElementById('btn-change-password').addEventListener('click', async () => {

@@ -230,6 +230,23 @@ export default {
       return json({ email: auth.email, staff: auth.isStaff ? { name: auth.staffName, salonId: auth.staffSalonId } : null });
     }
 
+    if (path === '/api/auth/profile' && method === 'GET') {
+      const auth = await authenticate(env, request);
+      if (!auth) return error('No autorizado', 401);
+      const user = await env.DB.prepare('SELECT full_name, nif, fiscal_address FROM users WHERE email = ?').bind(auth.email).first();
+      return json({ full_name: user ? user.full_name || null : null, nif: user ? user.nif || null : null, fiscal_address: user ? user.fiscal_address || null : null });
+    }
+
+    if (path === '/api/auth/profile' && method === 'PUT') {
+      const auth = await authenticate(env, request);
+      if (!auth) return error('No autorizado', 401);
+      if (auth.isStaff) return error('No autorizado', 403);
+      const b = await readJson(request);
+      await env.DB.prepare('UPDATE users SET full_name = ?, nif = ?, fiscal_address = ? WHERE email = ?')
+        .bind(b.full_name || null, b.nif || null, b.fiscal_address || null, auth.email).run();
+      return json({ ok: true });
+    }
+
     if (path === '/api/auth/change-password' && method === 'POST') {
       const auth = await authenticate(env, request);
       if (!auth) return error('No autorizado', 401);
