@@ -86,6 +86,39 @@ export default {
       return json({ ok: true });
     }
 
+    /* ── Gestión de administradores ───────── */
+    if (path === '/api/auth/users' && method === 'GET') {
+      const email = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const { results } = await env.DB.prepare('SELECT email, created_at FROM users ORDER BY email').all();
+      return json(results);
+    }
+    if (path === '/api/auth/users' && method === 'POST') {
+      const email = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const b = await readJson(request);
+      if (!b.email || !b.password) return error('Email y contraseña requeridos');
+      if (b.password.length < 6) return error('La contraseña debe tener al menos 6 caracteres');
+      const exists = await env.DB.prepare('SELECT email FROM users WHERE email = ?').bind(b.email.toLowerCase()).first();
+      if (exists) return error('Ya existe un administrador con ese email', 409);
+      const salt = randomHex(16);
+      const hash = await hashPassword(b.password, salt);
+      await env.DB.prepare('INSERT INTO users (id, email, password_hash, salt) VALUES (?, ?, ?, ?)')
+        .bind(randomHex(16), b.email.toLowerCase(), hash, salt).run();
+      return json({ ok: true });
+    }
+    if (path.startsWith('/api/auth/users/') && method === 'DELETE') {
+      const email = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const target = decodeURIComponent(path.split('/')[4]).toLowerCase();
+      if (target === email) return error('No puedes eliminar tu propia cuenta', 400);
+      const row = await env.DB.prepare('SELECT email FROM users WHERE email = ?').bind(target).first();
+      if (!row) return error('Administrador no encontrado', 404);
+      await env.DB.prepare('DELETE FROM users WHERE email = ?').bind(target).run();
+      await env.DB.prepare('DELETE FROM sessions WHERE user_email = ?').bind(target).run();
+      return json({ ok: true });
+    }
+
     if (path === '/api/auth/login' && method === 'POST') {
       const { email, password } = await readJson(request);
       if (!email || !password) return error('Email y contraseña requeridos');
