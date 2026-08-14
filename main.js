@@ -3996,8 +3996,10 @@ window.addEventListener('message', async (event) => {
 
     async function showSettingsForm() {
         let staffList = '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">No hay usuarios staff configurados.</p>';
+        let takenSalonIds = [];
         try {
             const accounts = await api.getStaff();
+            takenSalonIds = accounts.map(a => a.salon_id).filter(Boolean);
             if (accounts.length > 0) {
                 staffList = accounts.map((acc, i) => `
             <div class="staff-entry" id="staff-entry-${encodeURIComponent(acc.name)}" data-staff-id="${encodeURIComponent(acc.name)}" data-staff-name="${acc.name}" data-staff-salon="${acc.salon_id || ''}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
@@ -4017,7 +4019,8 @@ window.addEventListener('message', async (event) => {
         }
 
         const hasSalons = State.salons && State.salons.length > 0;
-        const salonOptions = hasSalons ? State.salons.map(s => `<option value="${s.id}">${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
+        const freeSalons = hasSalons ? State.salons.filter(s => !takenSalonIds.includes(s.id)) : [];
+        const salonOptions = freeSalons.length > 0 ? freeSalons.map(s => `<option value="${s.id}">${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
 
         const html = `
             <form id="settings-form">
@@ -4032,7 +4035,7 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <h3 style="margin-bottom:1rem;font-size:1.1rem;">Acceso Staff</h3>
-                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Crea usuarios y contraseñas para que el staff pueda acceder. Cada usuario se asigna a un salón.</p>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Cada salón tiene un único usuario staff. Crea el usuario del salón que quieras gestionar y asígnalo a ese salón.</p>
                 
                 <div id="staff-list" style="margin-bottom:1rem;">
                     ${staffList}
@@ -4053,7 +4056,7 @@ window.addEventListener('message', async (event) => {
                         <select class="form-control" id="new-staff-salon">
                             ${salonOptions}
                         </select>
-                        ${!hasSalons ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">⚠️ Crea primero un salón en la pestaña Salones.</p>' : ''}
+                        ${!hasSalons ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">⚠️ Crea primero un salón en la pestaña Salones.</p>' : (freeSalons.length === 0 ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">⚠️ Todos tus salones ya tienen su usuario staff.</p>' : '')}
                     </div>
                     <button type="button" class="btn btn-primary" onclick="addStaffFromSettings()" style="margin-top:0.25rem;">Añadir Staff</button>
                 </div>
@@ -4151,6 +4154,10 @@ window.addEventListener('message', async (event) => {
         }
         if (password.length < 6) {
             showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
+            return;
+        }
+        if (!salonId) {
+            showToast('No hay salones libres. Cada salón ya tiene su usuario staff.', 'error');
             return;
         }
 

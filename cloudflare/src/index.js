@@ -120,7 +120,7 @@ export default {
       return json({ ok: true });
     }
 
-    /* ── Gestión de staff (solo admin) ─────── */
+    /* ── Gestión de staff (solo admin, estanco por admin y salón) ─── */
     if (path === '/api/auth/staff' && method === 'GET') {
       const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
@@ -133,21 +133,25 @@ export default {
       const b = await readJson(request);
       if (!b.name || !b.password) return error('Nombre y contraseña requeridos');
       if (b.password.length < 6) return error('La contraseña debe tener al menos 6 caracteres');
-      const exists = await env.DB.prepare('SELECT name FROM staff WHERE name = ?').bind(b.name.trim()).first();
-      if (exists) return error('Ya existe un usuario staff con ese nombre', 409);
+      if (!b.salonId) return error('Debes elegir un salón');
+      const salon = await env.DB.prepare('SELECT id, user_email FROM salons WHERE id = ?').bind(b.salonId).first();
+      if (!salon || salon.user_email !== email) return error('El salón no pertenece a tu cuenta', 403);
+      const existsName = await env.DB.prepare('SELECT name FROM staff WHERE name = ? AND admin_email = ?').bind(b.name.trim(), email).first();
+      if (existsName) return error('Ya existe un usuario staff con ese nombre', 409);
+      const existsSalon = await env.DB.prepare('SELECT id FROM staff WHERE salon_id = ?').bind(b.salonId).first();
+      if (existsSalon) return error('Ese salón ya tiene un usuario staff', 409);
       const salt = randomHex(16);
       const hash = await hashPassword(b.password, salt);
       await env.DB.prepare('INSERT INTO staff (id, name, password_hash, salt, salon_id, admin_email) VALUES (?, ?, ?, ?, ?, ?)')
-        .bind(randomHex(16), b.name.trim(), hash, salt, b.salonId || null, email).run();
+        .bind(randomHex(16), b.name.trim(), hash, salt, b.salonId, email).run();
       return json({ ok: true });
     }
     if (path.startsWith('/api/auth/staff/') && method === 'DELETE') {
       const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const name = decodeURIComponent(path.split('/')[4]);
-      const row = await env.DB.prepare('SELECT id, admin_email FROM staff WHERE name = ?').bind(name).first();
+      const row = await env.DB.prepare('SELECT id FROM staff WHERE name = ? AND admin_email = ?').bind(name, email).first();
       if (!row) return error('Usuario staff no encontrado', 404);
-      if (row.admin_email !== email) return error('No autorizado', 403);
       await env.DB.prepare('DELETE FROM staff WHERE id = ?').bind(row.id).run();
       return json({ ok: true });
     }
@@ -156,9 +160,19 @@ export default {
       if (!email) return error('No autorizado', 401);
       const name = decodeURIComponent(path.split('/')[4]);
       const b = await readJson(request);
-      const row = await env.DB.prepare('SELECT id, admin_email, password_hash, salt FROM staff WHERE name = ?').bind(name).first();
+      const row = await env.DB.prepare('SELECT id, password_hash, salt FROM staff WHERE name = ? AND admin_email = ?').bind(name, email).first();
       if (!row) return error('Usuario staff no encontrado', 404);
-      if (row.admin_email !== email) return error('No autorizado', 403);
+      if (b.salonId) {
+        const salon = await env.DB.prepare('SELECT id, user_email FROM salons WHERE id = ?').bind(b.salonId).first();
+        if (!salon || salon.user_email !== email) return error('El salón no pertenece a tu cuenta', 403);
+        const dupSalon = await env.DB.prepare('SELECT id FROM staff WHERE salon_id = ? AND id != ?').bind(b.salonId, row.id).first();
+        if (dupSalon) return error('Ese salón ya tiene un usuario staff', 409);
+      }
+      const newName = (b.newName || name).trim();
+      if (newName !== name) {
+        const dupName = await env.DB.prepare('SELECT id FROM staff WHERE name = ? AND admin_email = ? AND id != ?').bind(newName, email, row.id).first();
+        if (dupName) return error('Ya existe otro usuario staff con ese nombre', 409);
+      }
       let newHash = row.password_hash;
       let newSalt = row.salt;
       if (b.password) {
@@ -166,8 +180,9 @@ export default {
         newSalt = randomHex(16);
         newHash = await hashPassword(b.password, newSalt);
       }
+      const newSalonId = b.salonId || (await env.DB.prepare('SELECT salon_id FROM staff WHERE id = ?').bind(row.id).first()).salon_id;
       await env.DB.prepare('UPDATE staff SET name = ?, password_hash = ?, salt = ?, salon_id = ? WHERE id = ?')
-        .bind((b.newName || name).trim(), newHash, newSalt, b.salonId || null, row.id).run();
+        .bind(newName, newHash, newSalt, newSalonId, row.id).run();
       return json({ ok: true });
     }
 
@@ -188,10 +203,13 @@ export default {
     if (path === '/api/auth/staff-login' && method === 'POST') {
       const { name, password } = await readJson(request);
       if (!name || !password) return error('Nombre y contraseña requeridos');
-      const staff = await env.DB.prepare('SELECT * FROM staff WHERE name = ?').bind(name.trim()).first();
+      const { results } = await env.DB.prepare('SELECT * FROM staff WHERE name = ?').bind(name.trim()).all();
+      let staff = null;
+      for (const candidate of results) {
+        const hash = await hashPassword(password, candidate.salt);
+        if (hash === candidate.password_hash) { staff = candidate; break; }
+      }
       if (!staff) return error('Nombre o contraseña incorrectos', 401);
-      const hash = await hashPassword(password, staff.salt);
-      if (hash !== staff.password_hash) return error('Nombre o contraseña incorrectos', 401);
       const token = randomHex(32);
       const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       await env.DB.prepare('INSERT INTO sessions (token, user_email, is_staff, staff_name, staff_salon_id, expires_at) VALUES (?, ?, 1, ?, ?, ?)')

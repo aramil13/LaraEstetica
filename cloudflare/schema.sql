@@ -18,13 +18,15 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE TABLE IF NOT EXISTS staff (
   id TEXT PRIMARY KEY,
-  name TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   salt TEXT NOT NULL,
   salon_id TEXT,
   admin_email TEXT,
-  created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+  created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+  UNIQUE(name, admin_email)
 );
+CREATE INDEX IF NOT EXISTS idx_staff_admin_email ON staff(admin_email);
 
 CREATE TABLE IF NOT EXISTS password_resets (
   id TEXT PRIMARY KEY,
