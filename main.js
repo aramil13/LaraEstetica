@@ -521,48 +521,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (photoId) window.editClientPhoto(photoId, cid, '', '', '');
             return;
         }
-
-        // 6. Logout Buttons (Two-step)
-        const logoutTarget = e.target.closest('#btn-logout') || e.target.closest('.user-profile');
-        if (logoutTarget) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (logoutTarget.dataset.confirming === 'true') {
-                logoutTarget.disabled = true;
-                logoutTarget.innerHTML = '<span>Saliendo...</span>';
-                await api.logout();
-                setToken(null);
-                State.clients = [];
-                State.services = [];
-                State.appointments = [];
-            } else {
-                logoutTarget.dataset.confirming = 'true';
-                const originalHtml = logoutTarget.innerHTML;
-                if (logoutTarget.id === 'btn-logout') {
-                    logoutTarget.innerHTML = '<span>¿Salir?</span>';
-                    logoutTarget.style.width = 'auto';
-                    logoutTarget.style.padding = '0 8px';
-                } else {
-                    const emailSpan = logoutTarget.querySelector('.user-email');
-                    if (emailSpan) emailSpan.textContent = '¿Cerrar sesión?';
-                }
-                
-                setTimeout(() => {
-                    if (logoutTarget.dataset.confirming === 'true') {
-                        logoutTarget.dataset.confirming = 'false';
-                        logoutTarget.innerHTML = originalHtml;
-                        if (logoutTarget.id === 'btn-logout') {
-                            logoutTarget.style.width = '';
-                            logoutTarget.style.padding = '';
-                        } else {
-                            const emailSpan = logoutTarget.querySelector('.user-email');
-                            if (emailSpan) emailSpan.textContent = State.currentUserEmail;
-                        }
-                    }
-                }, 3000);
-            }
-            return;
-        }
     });
 
     /* ═══════════════════════════════════════
@@ -1266,6 +1224,14 @@ document.addEventListener('DOMContentLoaded', () => {
             State.clients = [];
             State.services = [];
             State.appointments = [];
+            staffName = null;
+            State.session = null;
+            document.querySelectorAll('.nav-item').forEach(item => { item.style.display = ''; });
+            const settingsBtn = document.getElementById('btn-settings');
+            if (settingsBtn) settingsBtn.style.display = '';
+            authScreen.style.display = 'flex';
+            appLayout.style.display = 'none';
+            resetAuthState();
         } else {
             target.dataset.confirming = 'true';
             const originalHtml = target.innerHTML;
