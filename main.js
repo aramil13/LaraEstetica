@@ -1881,7 +1881,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 if (appointmentPhotos.length > 0) {
                     photosHtml = '<div class="day-detail-photos" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
                     appointmentPhotos.forEach(p => {
-                        const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                        const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
                         const photoDate = p.photo_date || '';
                         photosHtml += `
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
@@ -2115,7 +2115,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                              ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
                                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
                                      ${State.clientPhotos[c.id].slice(0, 4).map(p => {
-                                         const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                                         const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
                                          return `<div style="position:relative;text-align:center">
                                              <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                              <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
@@ -4092,6 +4092,9 @@ window.addEventListener('message', async (event) => {
 
                             console.log('Diagnosis photo saved:', savedPhoto.photo_url);
                             showToast('Diagnóstico guardado en el historial del cliente');
+                            if (!State.clientPhotos) State.clientPhotos = {};
+                            if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
+                            State.clientPhotos[clientId].unshift(savedPhoto);
                             loadClientPhotos(clientId);
                             
                             // Notify diagnosis iframe that photo was saved
@@ -4890,7 +4893,7 @@ window.addEventListener('message', async (event) => {
                 let html = '';
                 // Existing photos
                 existingPhotos.forEach((p, idx) => {
-                    const photoType = (p.photo_type === 'after') ? 'Después' : 'Antes';
+                    const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
                     html += `
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--accent-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
