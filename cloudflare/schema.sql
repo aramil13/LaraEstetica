@@ -100,3 +100,19 @@ CREATE TABLE IF NOT EXISTS client_photos (
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_client_photos_client_id ON client_photos(client_id);
+
+CREATE TABLE IF NOT EXISTS invoices (
+  id TEXT PRIMARY KEY,
+  number INTEGER NOT NULL,
+  doc_type TEXT NOT NULL,
+  client_id TEXT,
+  client_name TEXT,
+  client_nif TEXT,
+  items TEXT NOT NULL,
+  base_amount REAL NOT NULL,
+  tax_amount REAL NOT NULL,
+  total_amount REAL NOT NULL,
+  user_email TEXT DEFAULT '',
+  created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_invoices_user_email ON invoices(user_email);

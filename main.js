@@ -326,6 +326,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAppointmentPhotos(id, photos) { return this.request('/api/appointments/' + id + '/photos', { method: 'PATCH', body: { photos } }); },
         deleteAppointment(id) { return this.request('/api/appointments/' + id, { method: 'DELETE' }); },
         markAppointmentReminded(id) { return this.request('/api/appointments/' + id + '/reminded', { method: 'PATCH' }); },
+        getInvoices() { return this.request('/api/invoices'); },
+        addInvoice(data) { return this.request('/api/invoices', { method: 'POST', body: data }); },
+        deleteInvoice(id) { return this.request('/api/invoices/' + id, { method: 'DELETE' }); },
         getPhotos(clientId) { return this.request('/api/photos' + (clientId ? '?clientId=' + encodeURIComponent(clientId) : '')); },
         uploadPhoto({ clientId, photoId, file, photoDate, photoType, notes, photoHash }) {
             return this.request('/api/photos/upload', {
@@ -554,6 +557,14 @@ document.addEventListener('DOMContentLoaded', () => {
         settings: {
             startTime: localStorage.getItem('nymara_start_time') || '09:00',
             endTime: localStorage.getItem('nymara_end_time') || '20:00'
+        },
+        // TPV
+        tpv: {
+            docType: 'ticket',
+            cart: [],
+            clientId: '',
+            clientNif: '',
+            invoices: []
         }
     };
 
@@ -1729,6 +1740,10 @@ document.addEventListener('DOMContentLoaded', () => {
             content = getClientsView();
         }
         else if (currentRoute === 'services') content = getServicesView();
+        else if (currentRoute === 'tpv') {
+            content = getTpvView();
+            tpvLoadInvoices();
+        }
         else if (currentRoute === 'monthly') content = getMonthlyView();
         else if (currentRoute === 'salons') content = getSalonsView();
         else if (currentRoute === 'whatsapp') content = getWhatsAppView();
@@ -2187,6 +2202,293 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 </button>
             </div>
             ${rows}`;
+    }
+
+    /* ═══════════════════════════════════════
+       TPV VIEW
+       ═══════════════════════════════════════ */
+    function tpvClientName(id) {
+        if (!id) return 'Consumidor final';
+        const c = State.clients.find(x => x.id === id);
+        return c ? c.name : 'Consumidor final';
+    }
+
+    function tpvCartTotals() {
+        let base = 0;
+        State.tpv.cart.forEach(item => {
+            const price = parseFloat(item.price) || 0;
+            base += price * item.qty;
+        });
+        const tax = base * 0.21;
+        return { base, tax, total: base + tax };
+    }
+
+    function tpvFormatMoney(v) {
+        return v.toFixed(2) + ' €';
+    }
+
+    function getTpvView() {
+        const isStaff = State.session && State.session.staff;
+        const services = State.services.filter(s => !isStaff || isStaffService(s.id));
+        const clientOptions = [
+            '<option value="">Consumidor final</option>'
+        ].concat(State.clients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
+
+        const cartRows = State.tpv.cart.length === 0
+            ? '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1rem;">El carrito está vacío. Añade servicios desde la derecha.</td></tr>'
+            : State.tpv.cart.map((item, i) => `
+                <tr>
+                    <td style="font-weight:600">${item.name}</td>
+                    <td style="text-align:center">
+                        <button type="button" class="tpv-qty-btn" data-act="dec" data-idx="${i}">−</button>
+                        <span style="margin:0 0.5rem;font-weight:600">${item.qty}</span>
+                        <button type="button" class="tpv-qty-btn" data-act="inc" data-idx="${i}">+</button>
+                    </td>
+                    <td style="text-align:right">${tpvFormatMoney((parseFloat(item.price) || 0) * item.qty)}</td>
+                    <td style="text-align:center"><button type="button" class="btn btn-danger btn-sm" data-act="remove" data-idx="${i}" style="padding:0.2rem 0.5rem;font-size:0.7rem;">✕</button></td>
+                </tr>`).join('');
+
+        const totals = tpvCartTotals();
+
+        const serviceGrid = services.length === 0
+            ? '<p style="color:var(--text-secondary);text-align:center;padding:1rem;">No hay servicios disponibles.</p>'
+            : `<div class="tpv-service-grid">${services.map(s => `
+                <button type="button" class="tpv-service-card" data-service-id="${s.id}">
+                    <span class="tpv-service-name">${s.name}</span>
+                    <span class="tpv-service-price">${tpvFormatMoney(parseFloat(s.price) || 0)}</span>
+                </button>`).join('')}</div>`;
+
+        const historyRows = State.tpv.invoices.length === 0
+            ? '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>'
+            : State.tpv.invoices.map(inv => `
+                <tr>
+                    <td>${inv.doc_type === 'factura' ? 'F' : 'T'}-${String(inv.number).padStart(4, '0')}</td>
+                    <td>${(inv.created_at || '').substring(0, 10)}</td>
+                    <td>${inv.client_name || 'Consumidor final'}</td>
+                    <td style="text-align:right">${tpvFormatMoney(inv.total_amount)}</td>
+                    <td><span class="status-${inv.doc_type === 'factura' ? 'success' : 'info'}" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;">${inv.doc_type === 'factura' ? 'Factura' : 'Ticket'}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="edit-btn" data-invoice-id="${inv.id}" title="Imprimir">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
+                            </button>
+                            <button class="delete-btn" data-invoice-id="${inv.id}" title="Eliminar">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+
+        const docTypeLabel = State.tpv.docType === 'factura' ? 'Factura simplificada' : 'Ticket';
+
+        return `
+            <div class="section-header">
+                <div><h1 class="section-title">TPV · Punto de Venta</h1><p style="color:var(--text-secondary)">Tickets y facturas simplificadas · <span class="cloudflare-badge">⚡ IVA 21%</span></p></div>
+            </div>
+            <div class="tpv-layout">
+                <div class="data-card" style="padding:1.25rem;">
+                    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+                        <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket">Ticket</button>
+                        <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <select class="form-control" id="tpv-client">${clientOptions}</select>
+                    </div>
+                    ${State.tpv.docType === 'factura' ? `
+                    <div class="form-group">
+                        <label>NIF del cliente</label>
+                        <input type="text" class="form-control" id="tpv-nif" placeholder="NIF / CIF" value="${State.tpv.clientNif}">
+                    </div>` : ''}
+                    <table class="table" style="margin-top:0.5rem;">
+                        <thead><tr><th>Servicio</th><th style="text-align:center">Cant.</th><th style="text-align:right">Importe</th><th></th></tr></thead>
+                        <tbody>${cartRows}</tbody>
+                    </table>
+                    <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.35rem;align-items:flex-end;font-size:0.95rem;">
+                        <div style="color:var(--text-secondary)">Base: <strong>${tpvFormatMoney(totals.base)}</strong></div>
+                        <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
+                        <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="tpv-emit" style="width:100%;margin-top:1rem;">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-4px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
+                        Emitir ${docTypeLabel}
+                    </button>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <div class="data-card" style="padding:1.25rem;">
+                        <h3 style="margin-bottom:0.75rem;font-size:1rem;">Servicios</h3>
+                        ${serviceGrid}
+                    </div>
+                    <div class="data-card" style="padding:1.25rem;">
+                        <h3 style="margin-bottom:0.75rem;font-size:1rem;">Historial</h3>
+                        <table class="table">
+                            <thead><tr><th>Nº</th><th>Fecha</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th></th></tr></thead>
+                            <tbody>${historyRows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function tpvAddService(serviceId) {
+        const service = State.services.find(s => s.id === serviceId);
+        if (!service) return;
+        const existing = State.tpv.cart.find(i => i.serviceId === serviceId);
+        if (existing) existing.qty++;
+        else State.tpv.cart.push({ serviceId, name: service.name, price: service.price, qty: 1 });
+        renderRoute();
+    }
+
+    function tpvRemoveFromCart(idx) {
+        State.tpv.cart.splice(idx, 1);
+        renderRoute();
+    }
+
+    async function tpvLoadInvoices() {
+        try {
+            State.tpv.invoices = await api.getInvoices();
+        } catch (err) {
+            State.tpv.invoices = [];
+        }
+        if (currentRoute === 'tpv') renderRoute();
+    }
+
+    function tpvBuildDocHtml(inv, isPreview) {
+        const items = Array.isArray(inv.items) ? inv.items : [];
+        const lines = items.length === 0
+            ? '<tr><td colspan="3" style="padding:0.5rem;color:var(--text-secondary);">—</td></tr>'
+            : items.map(i => `
+                <tr>
+                    <td style="padding:0.25rem 0.5rem;">${i.name}</td>
+                    <td style="padding:0.25rem 0.5rem;text-align:center;">${i.qty}</td>
+                    <td style="padding:0.25rem 0.5rem;text-align:right;">${tpvFormatMoney((parseFloat(i.price) || 0) * i.qty)}</td>
+                </tr>`).join('');
+        const num = (inv.doc_type === 'factura' ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
+        return `
+            <div class="ticket-print">
+                <div style="text-align:center;border-bottom:1px dashed #999;padding-bottom:0.5rem;margin-bottom:0.5rem;">
+                    <div style="font-size:1.1rem;font-weight:800;">Estética y Bienestar Lara</div>
+                    <div style="font-size:0.8rem;color:#555;">${inv.doc_type === 'factura' ? 'FACTURA SIMPLIFICADA' : 'TICKET'}</div>
+                    <div style="font-size:0.8rem;color:#555;">Nº ${num}</div>
+                    <div style="font-size:0.8rem;color:#555;">${(inv.created_at || new Date().toISOString()).substring(0, 16).replace('T', ' ')}</div>
+                </div>
+                <div style="font-size:0.85rem;margin-bottom:0.5rem;">
+                    <strong>Cliente:</strong> ${inv.client_name || 'Consumidor final'}${inv.client_nif ? '<br><strong>NIF:</strong> ' + inv.client_nif : ''}
+                </div>
+                <table style="width:100%;font-size:0.85rem;border-collapse:collapse;">
+                    <thead><tr><th style="text-align:left;border-bottom:1px solid #999;">Servicio</th><th style="border-bottom:1px solid #999;">Cant.</th><th style="border-bottom:1px solid #999;text-align:right;">Importe</th></tr></thead>
+                    <tbody>${lines}</tbody>
+                </table>
+                <div style="margin-top:0.5rem;font-size:0.85rem;text-align:right;">
+                    <div>Base: <strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
+                    <div>IVA (21%): <strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
+                    <div style="font-size:1rem;font-weight:800;">TOTAL: ${tpvFormatMoney(inv.total_amount)}</div>
+                </div>
+                <div style="margin-top:0.75rem;text-align:center;font-size:0.8rem;color:#555;">¡Gracias por su visita!</div>
+            </div>`;
+    }
+
+    async function tpvEmit() {
+        if (State.tpv.cart.length === 0) {
+            showToast('El carrito está vacío.', 'error');
+            return;
+        }
+        const clientId = document.getElementById('tpv-client') ? document.getElementById('tpv-client').value : '';
+        const nifInput = document.getElementById('tpv-nif');
+        const clientNif = nifInput ? nifInput.value.trim() : '';
+        const totals = tpvCartTotals();
+        const payload = {
+            doc_type: State.tpv.docType,
+            client_id: clientId || null,
+            client_name: tpvClientName(clientId),
+            client_nif: clientNif || null,
+            items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty })),
+            base_amount: Math.round(totals.base * 100) / 100,
+            tax_amount: Math.round(totals.tax * 100) / 100,
+            total_amount: Math.round(totals.total * 100) / 100
+        };
+        try {
+            const created = await api.addInvoice(payload);
+            const doc = {
+                ...payload,
+                id: created.id,
+                number: created.number,
+                doc_type: created.doc_type,
+                created_at: new Date().toISOString()
+            };
+            State.tpv.cart = [];
+            State.tpv.invoices.unshift(doc);
+            await tpvPrintDoc(doc);
+        } catch (err) {
+            showToast('Error al emitir: ' + (err.message || 'error'), 'error');
+        }
+    }
+
+    async function tpvPrintDoc(doc) {
+        const printArea = document.getElementById('print-area');
+        if (!printArea) return;
+        printArea.innerHTML = tpvBuildDocHtml(doc, false);
+        printArea.classList.add('print-active');
+        window.print();
+        setTimeout(() => {
+            printArea.innerHTML = '';
+            printArea.classList.remove('print-active');
+            showToast((doc.doc_type === 'factura' ? 'Factura' : 'Ticket') + ' emitida correctamente.');
+            renderRoute();
+        }, 300);
+    }
+
+    function tpvBindEvents() {
+        const docTicket = document.getElementById('tpv-doc-ticket');
+        const docFactura = document.getElementById('tpv-doc-factura');
+        if (docTicket) docTicket.addEventListener('click', () => { State.tpv.docType = 'ticket'; renderRoute(); });
+        if (docFactura) docFactura.addEventListener('click', () => { State.tpv.docType = 'factura'; renderRoute(); });
+
+        const clientSel = document.getElementById('tpv-client');
+        if (clientSel) clientSel.addEventListener('change', e => { State.tpv.clientId = e.target.value; });
+        const nifInput = document.getElementById('tpv-nif');
+        if (nifInput) nifInput.addEventListener('input', e => { State.tpv.clientNif = e.target.value; });
+
+        document.querySelectorAll('.tpv-service-card').forEach(btn => {
+            btn.addEventListener('click', () => tpvAddService(btn.dataset.serviceId));
+        });
+        document.querySelectorAll('.tpv-qty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.idx, 10);
+                const item = State.tpv.cart[idx];
+                if (!item) return;
+                if (btn.dataset.act === 'inc') item.qty++;
+                else if (btn.dataset.act === 'dec') { item.qty--; if (item.qty <= 0) State.tpv.cart.splice(idx, 1); }
+                renderRoute();
+            });
+        });
+        document.querySelectorAll('[data-act="remove"]').forEach(btn => {
+            btn.addEventListener('click', () => tpvRemoveFromCart(parseInt(btn.dataset.idx, 10)));
+        });
+
+        const emitBtn = document.getElementById('tpv-emit');
+        if (emitBtn) emitBtn.addEventListener('click', tpvEmit);
+
+        document.querySelectorAll('[data-invoice-id]').forEach(btn => {
+            btn.addEventListener('click', async e => {
+                const invId = btn.dataset.invoiceId;
+                if (btn.classList.contains('delete-btn')) {
+                    if (!confirm('¿Eliminar este documento del historial?')) return;
+                    try {
+                        await api.deleteInvoice(invId);
+                        State.tpv.invoices = State.tpv.invoices.filter(i => i.id !== invId);
+                        renderRoute();
+                        showToast('Documento eliminado.');
+                    } catch (err) {
+                        showToast('Error: ' + (err.message || 'error'), 'error');
+                    }
+                } else {
+                    const inv = State.tpv.invoices.find(i => i.id === invId);
+                    if (inv) await tpvPrintDoc(inv);
+                }
+            });
+        });
     }
 
     /* ═══════════════════════════════════════
@@ -2662,6 +2964,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
         const btnAddService = document.getElementById('btn-add-service');
         if (btnAddService) btnAddService.addEventListener('click', () => showServiceForm());
+
+        // TPV
+        tpvBindEvents();
 
         // Salons
         const btnAddSalon = document.getElementById('btn-add-salon');

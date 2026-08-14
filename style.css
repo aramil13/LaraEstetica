@@ -2289,4 +2289,98 @@ textarea.form-control {
     }
 }
 
+/* ═══════════════════════════════════════
+   TPV
+   ═══════════════════════════════════════ */
+.tpv-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 5fr) minmax(360px, 7fr);
+    gap: 1rem;
+    align-items: start;
+}
+.tpv-service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.6rem;
+    max-height: 320px;
+    overflow-y: auto;
+}
+.tpv-service-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+    font-family: inherit;
+}
+.tpv-service-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.tpv-service-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+}
+.tpv-service-price {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.tpv-qty-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+.tpv-qty-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+/* ═══════════════════════════════════════
+   PRINT
+   ═══════════════════════════════════════ */
+#print-area {
+    display: none;
+}
+#print-area.print-active {
+    display: none;
+}
+.ticket-print {
+    width: 76mm;
+    font-family: 'Courier New', Courier, monospace;
+    color: #000;
+    background: #fff;
+}
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #print-area,
+    #print-area * {
+        visibility: visible !important;
+    }
+    #print-area {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 76mm;
+    }
+}
+
 

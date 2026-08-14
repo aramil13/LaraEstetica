@@ -478,6 +478,43 @@ export default {
       return json({ ok: true });
     }
 
+    /* ── Facturación / TPV ─────────────────── */
+    if (path === '/api/invoices' && method === 'GET') {
+      const { email } = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const { results } = await env.DB.prepare('SELECT id, number, doc_type, client_id, client_name, client_nif, items, base_amount, tax_amount, total_amount, created_at FROM invoices WHERE user_email = ? ORDER BY number DESC').bind(email).all();
+      return json(results.map(r => ({ ...r, items: JSON.parse(r.items || '[]') })));
+    }
+    if (path === '/api/invoices' && method === 'POST') {
+      const { email } = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const b = await readJson(request);
+      if (!b.items || !Array.isArray(b.items) || b.items.length === 0) return error('La factura debe tener al menos un servicio');
+      const docType = b.doc_type === 'factura' ? 'factura' : 'ticket';
+      const base = Number(b.base_amount) || 0;
+      const tax = Number(b.tax_amount) || 0;
+      const total = Number(b.total_amount) || (base + tax);
+      const last = await env.DB.prepare('SELECT MAX(number) AS maxNum FROM invoices WHERE user_email = ? AND doc_type = ?').bind(email, docType).first();
+      const nextNumber = (last && last.maxNum ? last.maxNum : 0) + 1;
+      const id = randomHex(16);
+      await env.DB.prepare(
+        `INSERT INTO invoices (id, number, doc_type, client_id, client_name, client_nif, items, base_amount, tax_amount, total_amount, user_email)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        id, nextNumber, docType, b.client_id || null, b.client_name || 'Consumidor final',
+        b.client_nif || null, JSON.stringify(b.items), base, tax, total, email
+      ).run();
+      return json({ id, number: nextNumber, doc_type: docType });
+    }
+    if (path.startsWith('/api/invoices/') && method === 'DELETE') {
+      const { email } = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const id = path.split('/')[3];
+      const r = await env.DB.prepare('DELETE FROM invoices WHERE id = ? AND user_email = ?').bind(id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
+      return json({ ok: true });
+    }
+
     /* ── Fotos ─────────────────────────────── */
     // Servir imagen desde R2 (público para <img>)
     const photoServe = path.match(/^\/api\/photos\/([^/]+)\/(.+)$/);
