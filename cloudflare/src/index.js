@@ -49,9 +49,10 @@ async function authenticate(env, request) {
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (!token) return null;
   const row = await env.DB.prepare(
-    'SELECT user_email FROM sessions WHERE token = ? AND expires_at > ?'
+    'SELECT user_email, is_staff, staff_name, staff_salon_id FROM sessions WHERE token = ? AND expires_at > ?'
   ).bind(token, new Date().toISOString()).first();
-  return row ? row.user_email : null;
+  if (!row) return null;
+  return { email: row.user_email, isStaff: !!row.is_staff, staffName: row.staff_name, staffSalonId: row.staff_salon_id };
 }
 
 const MIME_BY_EXT = {
@@ -88,13 +89,13 @@ export default {
 
     /* ── Gestión de administradores ───────── */
     if (path === '/api/auth/users' && method === 'GET') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const { results } = await env.DB.prepare('SELECT email, created_at FROM users ORDER BY email').all();
       return json(results);
     }
     if (path === '/api/auth/users' && method === 'POST') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       if (!b.email || !b.password) return error('Email y contraseña requeridos');
@@ -108,7 +109,7 @@ export default {
       return json({ ok: true });
     }
     if (path.startsWith('/api/auth/users/') && method === 'DELETE') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const target = decodeURIComponent(path.split('/')[4]).toLowerCase();
       if (target === email) return error('No puedes eliminar tu propia cuenta', 400);
@@ -116,6 +117,57 @@ export default {
       if (!row) return error('Administrador no encontrado', 404);
       await env.DB.prepare('DELETE FROM users WHERE email = ?').bind(target).run();
       await env.DB.prepare('DELETE FROM sessions WHERE user_email = ?').bind(target).run();
+      return json({ ok: true });
+    }
+
+    /* ── Gestión de staff (solo admin) ─────── */
+    if (path === '/api/auth/staff' && method === 'GET') {
+      const { email } = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const { results } = await env.DB.prepare('SELECT id, name, salon_id, admin_email FROM staff WHERE admin_email = ? ORDER BY name').bind(email).all();
+      return json(results);
+    }
+    if (path === '/api/auth/staff' && method === 'POST') {
+      const { email } = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const b = await readJson(request);
+      if (!b.name || !b.password) return error('Nombre y contraseña requeridos');
+      if (b.password.length < 6) return error('La contraseña debe tener al menos 6 caracteres');
+      const exists = await env.DB.prepare('SELECT name FROM staff WHERE name = ?').bind(b.name.trim()).first();
+      if (exists) return error('Ya existe un usuario staff con ese nombre', 409);
+      const salt = randomHex(16);
+      const hash = await hashPassword(b.password, salt);
+      await env.DB.prepare('INSERT INTO staff (id, name, password_hash, salt, salon_id, admin_email) VALUES (?, ?, ?, ?, ?, ?)')
+        .bind(randomHex(16), b.name.trim(), hash, salt, b.salonId || null, email).run();
+      return json({ ok: true });
+    }
+    if (path.startsWith('/api/auth/staff/') && method === 'DELETE') {
+      const { email } = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const name = decodeURIComponent(path.split('/')[4]);
+      const row = await env.DB.prepare('SELECT id, admin_email FROM staff WHERE name = ?').bind(name).first();
+      if (!row) return error('Usuario staff no encontrado', 404);
+      if (row.admin_email !== email) return error('No autorizado', 403);
+      await env.DB.prepare('DELETE FROM staff WHERE id = ?').bind(row.id).run();
+      return json({ ok: true });
+    }
+    if (path.startsWith('/api/auth/staff/') && method === 'PUT') {
+      const { email } = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const name = decodeURIComponent(path.split('/')[4]);
+      const b = await readJson(request);
+      const row = await env.DB.prepare('SELECT id, admin_email, password_hash, salt FROM staff WHERE name = ?').bind(name).first();
+      if (!row) return error('Usuario staff no encontrado', 404);
+      if (row.admin_email !== email) return error('No autorizado', 403);
+      let newHash = row.password_hash;
+      let newSalt = row.salt;
+      if (b.password) {
+        if (b.password.length < 6) return error('La contraseña debe tener al menos 6 caracteres');
+        newSalt = randomHex(16);
+        newHash = await hashPassword(b.password, newSalt);
+      }
+      await env.DB.prepare('UPDATE staff SET name = ?, password_hash = ?, salt = ?, salon_id = ? WHERE id = ?')
+        .bind((b.newName || name).trim(), newHash, newSalt, b.salonId || null, row.id).run();
       return json({ ok: true });
     }
 
@@ -128,9 +180,23 @@ export default {
       if (hash !== user.password_hash) return error('Credenciales incorrectas', 401);
       const token = randomHex(32);
       const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      await env.DB.prepare('INSERT INTO sessions (token, user_email, expires_at) VALUES (?, ?, ?)')
+      await env.DB.prepare('INSERT INTO sessions (token, user_email, is_staff, staff_name, staff_salon_id, expires_at) VALUES (?, ?, 0, NULL, NULL, ?)')
         .bind(token, user.email, expires).run();
       return json({ token, email: user.email });
+    }
+
+    if (path === '/api/auth/staff-login' && method === 'POST') {
+      const { name, password } = await readJson(request);
+      if (!name || !password) return error('Nombre y contraseña requeridos');
+      const staff = await env.DB.prepare('SELECT * FROM staff WHERE name = ?').bind(name.trim()).first();
+      if (!staff) return error('Nombre o contraseña incorrectos', 401);
+      const hash = await hashPassword(password, staff.salt);
+      if (hash !== staff.password_hash) return error('Nombre o contraseña incorrectos', 401);
+      const token = randomHex(32);
+      const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      await env.DB.prepare('INSERT INTO sessions (token, user_email, is_staff, staff_name, staff_salon_id, expires_at) VALUES (?, ?, 1, ?, ?, ?)')
+        .bind(token, staff.admin_email, staff.name, staff.salon_id, expires).run();
+      return json({ token, email: staff.admin_email, staff: { name: staff.name, salonId: staff.salon_id } });
     }
 
     if (path === '/api/auth/logout' && method === 'POST') {
@@ -141,9 +207,24 @@ export default {
     }
 
     if (path === '/api/auth/session' && method === 'GET') {
-      const email = await authenticate(env, request);
-      if (!email) return error('No autorizado', 401);
-      return json({ email });
+      const auth = await authenticate(env, request);
+      if (!auth) return error('No autorizado', 401);
+      return json({ email: auth.email, staff: auth.isStaff ? { name: auth.staffName, salonId: auth.staffSalonId } : null });
+    }
+
+    if (path === '/api/auth/change-password' && method === 'POST') {
+      const auth = await authenticate(env, request);
+      if (!auth) return error('No autorizado', 401);
+      if (auth.isStaff) return error('No autorizado', 403);
+      const { currentPassword, newPassword } = await readJson(request);
+      const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(auth.email).first();
+      const hash = await hashPassword(currentPassword || '', user.salt);
+      if (hash !== user.password_hash) return error('La contraseña actual no es correcta', 401);
+      if (!newPassword || newPassword.length < 6) return error('La contraseña debe tener al menos 6 caracteres');
+      const salt = randomHex(16);
+      const newHash = await hashPassword(newPassword, salt);
+      await env.DB.prepare('UPDATE users SET password_hash = ?, salt = ? WHERE id = ?').bind(newHash, salt, user.id).run();
+      return json({ ok: true });
     }
 
     if (path === '/api/auth/forgot' && method === 'POST') {
@@ -208,29 +289,15 @@ export default {
       return json({ ok: true });
     }
 
-    if (path === '/api/auth/change-password' && method === 'POST') {
-      const email = await authenticate(env, request);
-      if (!email) return error('No autorizado', 401);
-      const { currentPassword, newPassword } = await readJson(request);
-      const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
-      const hash = await hashPassword(currentPassword || '', user.salt);
-      if (hash !== user.password_hash) return error('La contraseña actual no es correcta', 401);
-      if (!newPassword || newPassword.length < 6) return error('La contraseña debe tener al menos 6 caracteres');
-      const salt = randomHex(16);
-      const newHash = await hashPassword(newPassword, salt);
-      await env.DB.prepare('UPDATE users SET password_hash = ?, salt = ? WHERE id = ?').bind(newHash, salt, user.id).run();
-      return json({ ok: true });
-    }
-
     /* ── Clientes ──────────────────────────── */
     if (path === '/api/clients' && method === 'GET') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const { results } = await env.DB.prepare('SELECT * FROM clients WHERE user_email = ? ORDER BY name').bind(email).all();
       return json(results);
     }
     if (path === '/api/clients' && method === 'POST') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       const id = b.id || randomHex(16);
@@ -242,7 +309,7 @@ export default {
       return json({ id, ...b, enviar_was: enviar === 1 });
     }
     if (path.startsWith('/api/clients/') && method === 'PUT') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
@@ -254,7 +321,7 @@ export default {
       return json({ ok: true });
     }
     if (path.startsWith('/api/clients/') && method === 'DELETE') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const r = await env.DB.prepare('DELETE FROM clients WHERE id = ? AND user_email = ?').bind(id, email).run();
@@ -264,13 +331,13 @@ export default {
 
     /* ── Servicios ─────────────────────────── */
     if (path === '/api/services' && method === 'GET') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const { results } = await env.DB.prepare('SELECT * FROM services WHERE user_email = ? ORDER BY name').bind(email).all();
       return json(results);
     }
     if (path === '/api/services' && method === 'POST') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       const id = b.id || randomHex(16);
@@ -279,7 +346,7 @@ export default {
       return json({ id, ...b });
     }
     if (path.startsWith('/api/services/') && method === 'PUT') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
@@ -289,7 +356,7 @@ export default {
       return json({ ok: true });
     }
     if (path.startsWith('/api/services/') && method === 'DELETE') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const r = await env.DB.prepare('DELETE FROM services WHERE id = ? AND user_email = ?').bind(id, email).run();
@@ -299,13 +366,13 @@ export default {
 
     /* ── Salones ───────────────────────────── */
     if (path === '/api/salons' && method === 'GET') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const { results } = await env.DB.prepare('SELECT * FROM salons WHERE user_email = ? ORDER BY name').bind(email).all();
       return json(results);
     }
     if (path === '/api/salons' && method === 'POST') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       const id = b.id || randomHex(16);
@@ -314,7 +381,7 @@ export default {
       return json({ id, name: b.name, address: b.address || null, phone: b.phone || null, email: b.email || null, user_email: b.user_email || email });
     }
     if (path.startsWith('/api/salons/') && method === 'PUT') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
@@ -324,7 +391,7 @@ export default {
       return json({ ok: true });
     }
     if (path.startsWith('/api/salons/') && method === 'DELETE') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const r = await env.DB.prepare('DELETE FROM salons WHERE id = ? AND user_email = ?').bind(id, email).run();
@@ -334,14 +401,14 @@ export default {
 
     /* ── Citas ─────────────────────────────── */
     if (path === '/api/appointments' && method === 'GET') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const { results } = await env.DB.prepare('SELECT * FROM appointments WHERE user_email = ? ORDER BY date, time').bind(email).all();
       const rows = results.map(r => ({ ...r, appointment_photos: JSON.parse(r.appointment_photos || '[]') }));
       return json(rows);
     }
     if (path === '/api/appointments' && method === 'POST') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       const id = b.id || randomHex(16);
@@ -356,7 +423,7 @@ export default {
       return json({ id });
     }
     if (path.startsWith('/api/appointments/') && method === 'PUT') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
@@ -367,7 +434,7 @@ export default {
       return json({ ok: true });
     }
     if (path.startsWith('/api/appointments/') && method === 'PATCH') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const parts = path.split('/');
       const id = parts[3];
@@ -385,7 +452,7 @@ export default {
       return error('Ruta no encontrada', 404);
     }
     if (path.startsWith('/api/appointments/') && method === 'DELETE') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const r = await env.DB.prepare('DELETE FROM appointments WHERE id = ? AND user_email = ?').bind(id, email).run();
@@ -407,7 +474,7 @@ export default {
     }
 
     if (path === '/api/photos' && method === 'GET') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const clientId = url.searchParams.get('clientId');
       let rows;
@@ -422,7 +489,7 @@ export default {
     }
 
     if (path === '/api/photos/upload' && method === 'POST') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const clientId = request.headers.get('x-client-id');
       const photoId = request.headers.get('x-photo-id') || randomHex(16);
@@ -453,7 +520,7 @@ export default {
     }
 
     if (path.startsWith('/api/photos/') && method === 'PUT') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
@@ -464,7 +531,7 @@ export default {
     }
 
     if (path.startsWith('/api/photos/') && method === 'DELETE') {
-      const email = await authenticate(env, request);
+      const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const row = await env.DB.prepare('SELECT * FROM client_photos WHERE id = ? AND user_email = ?').bind(id, email).first();

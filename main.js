@@ -298,6 +298,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return res.json();
         },
         login(email, password) { return this.request('/api/auth/login', { method: 'POST', body: { email, password } }); },
+        staffLogin(name, password) { return this.request('/api/auth/staff-login', { method: 'POST', body: { name, password } }); },
+        getStaff() { return this.request('/api/auth/staff'); },
+        addStaff(data) { return this.request('/api/auth/staff', { method: 'POST', body: data }); },
+        updateStaff(name, data) { return this.request('/api/auth/staff/' + encodeURIComponent(name), { method: 'PUT', body: data }); },
+        deleteStaff(name) { return this.request('/api/auth/staff/' + encodeURIComponent(name), { method: 'DELETE' }); },
         logout() { return this.request('/api/auth/logout', { method: 'POST' }); },
         getSession() { return this.request('/api/auth/session'); },
         forgotPassword(email) { return this.request('/api/auth/forgot', { method: 'POST', body: { email } }); },
@@ -638,24 +643,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return getStaffServiceIds().includes(id);
     }
 
-    function getStaffAccounts() {
-        try { return JSON.parse(localStorage.getItem('nymara_staff_accounts') || '[]'); }
-        catch { return []; }
-    }
-
-    function saveStaffAccount(account) {
-        const accounts = getStaffAccounts();
-        const idx = accounts.findIndex(a => a.id === account.id);
-        if (idx >= 0) accounts[idx] = account;
-        else accounts.push(account);
-        localStorage.setItem('nymara_staff_accounts', JSON.stringify(accounts));
-    }
-
-    function deleteStaffAccount(id) {
-        const accounts = getStaffAccounts().filter(a => a.id !== id);
-        localStorage.setItem('nymara_staff_accounts', JSON.stringify(accounts));
-    }
-
     /* ═══════════════════════════════════════
        HELPERS
        ═══════════════════════════════════════ */
@@ -867,23 +854,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check existing session
     async function checkSession() {
-        // Check for staff session first
-        const staffEmail = localStorage.getItem('nymara_staff_session_email');
-        const staffNameVal = localStorage.getItem('nymara_staff_name');
-        const staffSalonId = localStorage.getItem('nymara_staff_salon_id');
-        if (staffEmail && staffNameVal && staffSalonId) {
-            const accounts = getStaffAccounts();
-            const account = accounts.find(a => a.name === staffNameVal && a.salonId === staffSalonId);
-            if (account) {
-                handleStaffSession(account);
-                return;
-            }
-        }
-
-        // Check existing API session
+        // Check existing API session (admin o staff)
         try {
             const data = await api.getSession();
-            handleSessionUpdate({ email: data.email });
+            if (data.staff) {
+                handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email });
+            } else {
+                handleSessionUpdate({ email: data.email });
+            }
         } catch (err) {
             console.error('Error checking session:', err);
             handleSessionUpdate(null);
@@ -997,14 +975,8 @@ document.addEventListener('DOMContentLoaded', () => {
             authAdminFields.style.display = 'none';
             authStaffFields.style.display = 'block';
             btnForgotPassword.style.display = 'none';
-            const accounts = getStaffAccounts();
-            if (accounts.length > 0) {
-                authFormTitle.textContent = 'Acceso Staff';
-                authFormSubtitle.textContent = 'Introduce tu nombre y contraseña';
-            } else {
-                authFormTitle.textContent = 'Staff no configurado';
-                authFormSubtitle.textContent = 'El administrador debe configurar el acceso staff en Ajustes';
-            }
+            authFormTitle.textContent = 'Acceso Staff';
+            authFormSubtitle.textContent = 'Introduce tu nombre y contraseña';
             authSubmitText.textContent = 'Entrar como Staff';
         }
         authError.style.display = 'none';
@@ -1081,16 +1053,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (authMode === 'staff') {
                 const name = document.getElementById('auth-staff-name').value.trim();
                 const staffPwd = document.getElementById('auth-staff-password').value;
-                const accounts = getStaffAccounts();
-
-                if (accounts.length === 0) {
-                    authError.textContent = 'El administrador no ha configurado el acceso staff. Ve a Ajustes > Configuración.';
-                    authError.style.display = 'block';
-                    authSubmitText.style.opacity = '1';
-                    authSpinner.style.display = 'none';
-                    btn.disabled = false;
-                    return;
-                }
 
                 if (!name) {
                     authError.textContent = 'Introduce tu nombre';
@@ -1100,10 +1062,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.disabled = false;
                     return;
                 }
-
-                const account = accounts.find(a => a.name === name && a.password === staffPwd);
-                if (!account) {
-                    authError.textContent = 'Nombre o contraseña incorrectos';
+                if (!staffPwd) {
+                    authError.textContent = 'Introduce tu contraseña';
                     authError.style.display = 'block';
                     authSubmitText.style.opacity = '1';
                     authSpinner.style.display = 'none';
@@ -1111,9 +1071,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                staffName = name;
-                localStorage.setItem('nymara_staff_name', name);
-                handleStaffSession(account);
+                try {
+                    const data = await api.staffLogin(name, staffPwd);
+                    setToken(data.token);
+                    staffName = data.staff.name;
+                    handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email });
+                } catch (err) {
+                    console.error('Staff Auth Error:', err);
+                    authError.textContent = err.message || 'Nombre o contraseña incorrectos';
+                    authError.style.display = 'block';
+                    authSubmitText.style.opacity = '1';
+                    authSpinner.style.display = 'none';
+                    btn.disabled = false;
+                }
             } else {
                 try {
                     const email = document.getElementById('auth-email').value;
@@ -1149,17 +1119,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function handleStaffSession(account) {
-        const adminEmail = account.adminEmail || localStorage.getItem('nymara_staff_admin_email') || '';
-        State.session = { staff: true, user: { email: adminEmail }, staffAccountId: account.id };
+        const adminEmail = account.adminEmail || State.currentUserEmail || '';
+        State.session = { staff: true, email: adminEmail, staffName: account.name };
         State.currentUserEmail = adminEmail;
         State.currentUserColor = getUserColor(adminEmail);
-        State.activeSalonId = account.salonId;
-        localStorage.setItem('nymara_agenda_salon', account.salonId);
+        if (account.salonId) {
+            State.activeSalonId = account.salonId;
+            localStorage.setItem('nymara_agenda_salon', account.salonId);
+        }
         staffName = account.name;
-
-        localStorage.setItem('nymara_staff_session_email', adminEmail);
-        localStorage.setItem('nymara_staff_name', account.name);
-        localStorage.setItem('nymara_staff_salon_id', account.salonId);
 
         authScreen.style.display = 'none';
         appLayout.style.display = 'flex';
@@ -1205,8 +1173,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 State.clients = [];
                 State.services = [];
                 State.appointments = [];
-                localStorage.removeItem('nymara_staff_session_email');
-                localStorage.removeItem('nymara_staff_name');
+                try { await api.logout(); } catch (e) { console.error('Error al cerrar sesión staff:', e); }
+                setToken(null);
                 // Restore all nav items
                 document.querySelectorAll('.nav-item').forEach(item => { item.style.display = ''; });
                 const settingsBtn = document.getElementById('btn-settings');
@@ -4026,20 +3994,27 @@ window.addEventListener('message', async (event) => {
         });
     }
 
-    function showSettingsForm() {
-        const accounts = getStaffAccounts();
-        const staffList = accounts.length > 0 ? accounts.map((acc, i) => `
-            <div class="staff-entry" id="staff-entry-${acc.id}" data-staff-id="${acc.id}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
+    async function showSettingsForm() {
+        let staffList = '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">No hay usuarios staff configurados.</p>';
+        try {
+            const accounts = await api.getStaff();
+            if (accounts.length > 0) {
+                staffList = accounts.map((acc, i) => `
+            <div class="staff-entry" id="staff-entry-${encodeURIComponent(acc.name)}" data-staff-id="${encodeURIComponent(acc.name)}" data-staff-name="${acc.name}" data-staff-salon="${acc.salon_id || ''}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
                     <strong style="font-size:0.95rem;">${acc.name}</strong>
                     <div style="display:flex;gap:0.5rem;">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="editStaffAccount('${acc.id}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Editar</button>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="removeStaffAccount('${acc.id}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Eliminar</button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="editStaffAccount('${encodeURIComponent(acc.name)}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Editar</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeStaffAccount('${encodeURIComponent(acc.name)}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Eliminar</button>
                     </div>
                 </div>
-                <div style="font-size:0.85rem;color:var(--text-secondary);">Salón: ${State.salons.find(s => s.id === acc.salonId)?.name || '—'}</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);">Salón: ${State.salons.find(s => s.id === acc.salon_id)?.name || '—'}</div>
             </div>
-        `).join('') : '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">No hay usuarios staff configurados.</p>';
+        `).join('');
+            }
+        } catch (err) {
+            staffList = '<p style="font-size:0.85rem;color:var(--accent-warning);margin-bottom:1rem;">No se pudieron cargar los usuarios staff: ' + (err.message || 'error') + '</p>';
+        }
 
         const hasSalons = State.salons && State.salons.length > 0;
         const salonOptions = hasSalons ? State.salons.map(s => `<option value="${s.id}">${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
@@ -4165,7 +4140,7 @@ window.addEventListener('message', async (event) => {
         });
     }
 
-    window.addStaffFromSettings = function() {
+    window.addStaffFromSettings = async function() {
         const name = document.getElementById('new-staff-name').value.trim();
         const password = document.getElementById('new-staff-password').value.trim();
         const salonId = document.getElementById('new-staff-salon').value;
@@ -4174,94 +4149,76 @@ window.addEventListener('message', async (event) => {
             showToast('Debes introducir nombre y contraseña.', 'error');
             return;
         }
-
-        const accounts = getStaffAccounts();
-        if (accounts.some(a => a.name === name)) {
-            showToast('Ya existe un usuario staff con ese nombre.', 'error');
+        if (password.length < 6) {
+            showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
             return;
         }
 
-        // Save the admin email alongside staff accounts
-        const adminEmail = State.currentUserEmail || '';
-        localStorage.setItem('nymara_staff_admin_email', adminEmail);
-
-        saveStaffAccount({
-            id: generateId(),
-            name,
-            password,
-            salonId,
-            adminEmail
-        });
-
-        showToast('Usuario staff añadido correctamente.');
-        showSettingsForm();
+        try {
+            await api.addStaff({ name, password, salonId });
+            showToast('Usuario staff añadido correctamente.');
+            showSettingsForm();
+        } catch (err) {
+            showToast('Error: ' + (err.message || 'no se pudo añadir'), 'error');
+        }
     };
 
-    window.removeStaffAccount = function(id) {
+    window.removeStaffAccount = async function(name) {
         if (!confirm('¿Eliminar este usuario staff?')) return;
-        deleteStaffAccount(id);
-        showToast('Usuario staff eliminado.');
-        showSettingsForm();
+        try {
+            await api.deleteStaff(decodeURIComponent(name));
+            showToast('Usuario staff eliminado.');
+            showSettingsForm();
+        } catch (err) {
+            showToast('Error: ' + (err.message || 'no se pudo eliminar'), 'error');
+        }
     };
 
-    window.editStaffAccount = function(id) {
-        const accounts = getStaffAccounts();
-        const account = accounts.find(a => a.id === id);
-        if (!account) return;
-
-        const entry = document.getElementById('staff-entry-' + id);
+    window.editStaffAccount = function(name) {
+        const entry = document.getElementById('staff-entry-' + name);
         if (!entry) return;
 
         const hasSalons = State.salons && State.salons.length > 0;
-        const salonOptions = hasSalons ? State.salons.map(s => `<option value="${s.id}"${s.id === account.salonId ? ' selected' : ''}>${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
+        const salonOptions = hasSalons ? State.salons.map(s => `<option value="${s.id}"${s.id === entry.dataset.staffSalon ? ' selected' : ''}>${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
 
         entry.innerHTML = `
             <div style="background:var(--bg-dark);border-radius:var(--radius-md);padding:1rem;">
                 <div class="form-group">
                     <label>Nombre</label>
-                    <input type="text" class="form-control" id="edit-staff-name-${id}" value="${account.name}">
+                    <input type="text" class="form-control" id="edit-staff-name-${name}" value="${entry.dataset.staffName}">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
-                    <input type="text" class="form-control" id="edit-staff-password-${id}" value="${account.password}">
+                    <input type="text" class="form-control" id="edit-staff-password-${name}" placeholder="Nueva contraseña (mín. 6 caracteres)">
                 </div>
                 <div class="form-group">
                     <label>Salón</label>
-                    <select class="form-control" id="edit-staff-salon-${id}">${salonOptions}</select>
+                    <select class="form-control" id="edit-staff-salon-${name}">${salonOptions}</select>
                 </div>
                 <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
-                    <button type="button" class="btn btn-primary btn-sm" onclick="saveStaffEdit('${id}')">Guardar</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="saveStaffEdit('${name}')">Guardar</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="showSettingsForm()">Cancelar</button>
                 </div>
             </div>
         `;
     };
 
-    window.saveStaffEdit = function(id) {
-        const name = document.getElementById('edit-staff-name-' + id).value.trim();
-        const password = document.getElementById('edit-staff-password-' + id).value.trim();
-        const salonId = document.getElementById('edit-staff-salon-' + id).value;
+    window.saveStaffEdit = async function(name) {
+        const newName = document.getElementById('edit-staff-name-' + name).value.trim();
+        const password = document.getElementById('edit-staff-password-' + name).value.trim();
+        const salonId = document.getElementById('edit-staff-salon-' + name).value;
 
-        if (!name || !password) {
-            showToast('El nombre y la contraseña son obligatorios.', 'error');
+        if (!newName) {
+            showToast('El nombre es obligatorio.', 'error');
             return;
         }
 
-        const accounts = getStaffAccounts();
-        const existing = accounts.find(a => a.name === name && a.id !== id);
-        if (existing) {
-            showToast('Ya existe otro usuario staff con ese nombre.', 'error');
-            return;
-        }
-
-        const account = accounts.find(a => a.id === id);
-        if (account) {
-            account.name = name;
-            account.password = password;
-            account.salonId = salonId;
-            saveStaffAccount(account);
+        try {
+            await api.updateStaff(decodeURIComponent(name), { newName, password, salonId });
             showToast('Usuario staff actualizado.');
             showSettingsForm();
+        } catch (err) {
+            showToast('Error: ' + (err.message || 'no se pudo actualizar'), 'error');
         }
     };
 

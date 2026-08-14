@@ -9,8 +9,21 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
   user_email TEXT NOT NULL,
+  is_staff INTEGER DEFAULT 0,
+  staff_name TEXT,
+  staff_salon_id TEXT,
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   expires_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS staff (
+  id TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  salt TEXT NOT NULL,
+  salon_id TEXT,
+  admin_email TEXT,
+  created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 
 CREATE TABLE IF NOT EXISTS password_resets (
