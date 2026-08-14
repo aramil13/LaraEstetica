@@ -4086,12 +4086,12 @@ window.addEventListener('message', async (event) => {
                                 photoId,
                                 file: photoFile,
                                 photoDate: new Date().toISOString().split('T')[0],
-                                photoType: 'before',
+                                photoType: 'diagnosis',
                                 notes
                             });
 
                             console.log('Diagnosis photo saved:', savedPhoto.photo_url);
-                            showToast('✓ Foto de diagnóstico guardada');
+                            showToast('Diagnóstico guardado en el historial del cliente');
                             loadClientPhotos(clientId);
                             
                             // Notify diagnosis iframe that photo was saved
@@ -5113,42 +5113,6 @@ window.addEventListener('message', async (event) => {
         const salon = State.salons.find(s => s.id === id);
         if (salon && typeof showSalonForm === 'function') showSalonForm(salon);
     };
-
-    /* ═══════════════════════════════════════
-       DIAGNOSIS AUTO-SYNC
-       ═══════════════════════════════════════ */
-    window.addEventListener('message', async e => {
-        if (e.data && e.data.type === 'diagnosis_photo') {
-            const clientId = sessionStorage.getItem('nymara_diagnosis_client_id');
-            const { photoData, results } = e.data;
-            
-            if (clientId && photoData) {
-                console.log('Diagnosis message received. Syncing photo for client:', clientId);
-                try {
-                    // Convert base64 to blob
-                    const base64Data = photoData.split(',')[1];
-                    const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(r => r.blob());
-
-                    const photoId = generateId();
-                    const photoFile = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
-                    await api.uploadPhoto({
-                        clientId,
-                        photoId,
-                        file: photoFile,
-                        photoDate: toLocalDateStr(new Date()),
-                        photoType: 'diagnosis',
-                        notes: ''
-                    });
-
-                    showToast('Diagnóstico guardado en el historial del cliente');
-                    loadClientPhotos(clientId);
-                } catch (err) {
-                    console.error('Error syncing diagnosis photo:', err);
-                    showToast('Error al guardar el diagnóstico en el historial', 'error');
-                }
-            }
-        }
-    });
 
     /* ═══════════════════════════════════════
        INIT — Check session to start
