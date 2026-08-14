@@ -275,15 +275,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ═══════════════════════════════════════
-       SUPABASE CLIENT
+       API CLIENT (Cloudflare Worker)
        ═══════════════════════════════════════ */
-    const SUPABASE_URL = 'https://wqbrappajbrzanpymwtx.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_rxdHNZAUSQw-C8-BvzX4rA_9qH6GeL9';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        auth: {
-            persistSession: false
-        }
-    });
+    const API_URL = 'https://lara-estetica-api.agenda-estetica.workers.dev';
+
+    function getToken() { return localStorage.getItem('nymara_session_token'); }
+    function setToken(t) { if (t) localStorage.setItem('nymara_session_token', t); else localStorage.removeItem('nymara_session_token'); }
+
+    const api = {
+        async request(path, { method = 'GET', body, headers = {}, raw = false } = {}) {
+            const h = { ...headers };
+            if (body && !raw) h['Content-Type'] = 'application/json';
+            const token = getToken();
+            if (token) h['Authorization'] = 'Bearer ' + token;
+            const res = await fetch(API_URL + path, { method, headers: h, body: raw ? body : (body ? JSON.stringify(body) : undefined) });
+            if (!res.ok) {
+                let msg = 'Error (' + res.status + ')';
+                try { const j = await res.json(); msg = j.error || msg; } catch (e) {}
+                throw new Error(msg);
+            }
+            if (res.status === 204) return null;
+            return res.json();
+        },
+        login(email, password) { return this.request('/api/auth/login', { method: 'POST', body: { email, password } }); },
+        logout() { return this.request('/api/auth/logout', { method: 'POST' }); },
+        getSession() { return this.request('/api/auth/session'); },
+        forgotPassword(email) { return this.request('/api/auth/forgot', { method: 'POST', body: { email } }); },
+        resetPassword(email, code, newPassword) { return this.request('/api/auth/reset', { method: 'POST', body: { email, code, newPassword } }); },
+        changePassword(currentPassword, newPassword) { return this.request('/api/auth/change-password', { method: 'POST', body: { currentPassword, newPassword } }); },
+        getClients() { return this.request('/api/clients'); },
+        addClient(data) { return this.request('/api/clients', { method: 'POST', body: data }); },
+        updateClient(data) { return this.request('/api/clients/' + data.id, { method: 'PUT', body: data }); },
+        deleteClient(id) { return this.request('/api/clients/' + id, { method: 'DELETE' }); },
+        getServices() { return this.request('/api/services'); },
+        addService(data) { return this.request('/api/services', { method: 'POST', body: data }); },
+        updateService(data) { return this.request('/api/services/' + data.id, { method: 'PUT', body: data }); },
+        deleteService(id) { return this.request('/api/services/' + id, { method: 'DELETE' }); },
+        getSalons() { return this.request('/api/salons'); },
+        addSalon(data) { return this.request('/api/salons', { method: 'POST', body: data }); },
+        updateSalon(data) { return this.request('/api/salons/' + data.id, { method: 'PUT', body: data }); },
+        deleteSalon(id) { return this.request('/api/salons/' + id, { method: 'DELETE' }); },
+        getAppointments() { return this.request('/api/appointments'); },
+        addAppointment(row) { return this.request('/api/appointments', { method: 'POST', body: row }); },
+        updateAppointment(id, row) { return this.request('/api/appointments/' + id, { method: 'PUT', body: row }); },
+        updateAppointmentPhotos(id, photos) { return this.request('/api/appointments/' + id + '/photos', { method: 'PATCH', body: { photos } }); },
+        deleteAppointment(id) { return this.request('/api/appointments/' + id, { method: 'DELETE' }); },
+        markAppointmentReminded(id) { return this.request('/api/appointments/' + id + '/reminded', { method: 'PATCH' }); },
+        getPhotos(clientId) { return this.request('/api/photos' + (clientId ? '?clientId=' + encodeURIComponent(clientId) : '')); },
+        uploadPhoto({ clientId, photoId, file, photoDate, photoType, notes, photoHash }) {
+            return this.request('/api/photos/upload', {
+                method: 'POST',
+                raw: true,
+                body: file,
+                headers: {
+                    'x-client-id': clientId,
+                    'x-photo-id': photoId,
+                    'x-file-name': file.name,
+                    'x-photo-date': photoDate || '',
+                    'x-photo-type': photoType || 'before',
+                    'x-notes': notes || '',
+                    'x-photo-hash': photoHash || '',
+                },
+            });
+        },
+        updatePhoto(id, data) { return this.request('/api/photos/' + id, { method: 'PUT', body: data }); },
+        deletePhoto(id) { return this.request('/api/photos/' + id, { method: 'DELETE' }); },
+    };
 
     /* ═══════════════════════════════════════
        GLOBAL EVENT DELEGATION
@@ -376,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (apt && apt.appointmentPhotos) {
                         const photoToDelete = apt.appointmentPhotos.find(p => p.id === photoId);
                         apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
-                        await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
+                        await api.updateAppointmentPhotos(aptId, apt.appointmentPhotos);
                         
                         if (photoToDelete && photoToDelete.clientPhotoId) {
                             await deleteClientPhoto(photoToDelete.clientPhotoId);
@@ -473,7 +530,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (logoutTarget.dataset.confirming === 'true') {
                 logoutTarget.disabled = true;
                 logoutTarget.innerHTML = '<span>Saliendo...</span>';
-                await supabase.auth.signOut();
+                await api.logout();
+                setToken(null);
                 State.clients = [];
                 State.services = [];
                 State.appointments = [];
@@ -578,6 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let authMode = 'admin';
     let isRecoveryMode = false;
     let staffName = null;
+    let resetEmail = '';
 
     function getStaffAptIds() {
         try { return JSON.parse(localStorage.getItem('nymara_staff_apt_ids') || '[]'); }
@@ -766,34 +825,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ═══════════════════════════════════════
-       SUPABASE DATA OPERATIONS
+       API DATA OPERATIONS
        ═══════════════════════════════════════ */
 
-    /** Loads all data from Supabase into our local State cache */
+    /** Loads all data from the API into our local State cache */
     async function loadAllData() {
         State.isLoading = true;
         renderRoute();
 
         try {
-            const [clientsRes, servicesRes, appointmentsRes, salonsRes] = await Promise.all([
-                supabase.from('clients').select('*').order('name'),
-                supabase.from('services').select('*').order('name'),
-                supabase.from('appointments').select('*').order('date').order('time'),
-                supabase.from('salons').select('*').or(`user_email.eq.${State.currentUserEmail},user_email.is.null`).order('name')
+            const [clientsData, servicesData, appointmentsData, salonsData] = await Promise.all([
+                api.getClients(),
+                api.getServices(),
+                api.getAppointments(),
+                api.getSalons()
             ]);
 
-            if (clientsRes.error) throw clientsRes.error;
-            if (servicesRes.error) throw servicesRes.error;
-            if (appointmentsRes.error) throw appointmentsRes.error;
-            if (salonsRes.error) {
-                console.warn('Error cargando salones:', salonsRes.error.message);
-                State.salons = [];
-            } else {
-                State.salons = salonsRes.data || [];
-                if (State.salons.length === 0) {
-                    const { data: allSalons } = await supabase.from('salons').select('*').order('name');
-                    if (allSalons && allSalons.length > 0) State.salons = allSalons;
-                }
+            State.salons = salonsData || [];
+            if (State.salons.length === 0) {
+                const allSalons = await api.getSalons();
+                if (allSalons && allSalons.length > 0) State.salons = allSalons;
             }
 
             // Validar que activeSalonId siga siendo un salón existente
@@ -802,10 +853,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('nymara_agenda_salon', 'all');
             }
 
-            State.clients = clientsRes.data;
-            State.services = servicesRes.data;
+            State.clients = clientsData;
+            State.services = servicesData;
             // Map DB snake_case to JS camelCase for appointments
-            State.appointments = appointmentsRes.data.map(a => ({
+            State.appointments = appointmentsData.map(a => ({
                 id: a.id,
                 clientId: a.client_id,
                 serviceId: a.service_id,
@@ -823,7 +874,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadAllClientPhotos();
 
             } catch (err) {
-            console.error('Error loading data from Supabase:', err);
+            console.error('Error loading data:', err);
             showToast('Error al cargar datos: ' + (err.message || err), 'error');
         } finally {
             State.isLoading = false;
@@ -871,25 +922,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Listen for auth changes
-        supabase.auth.onAuthStateChange(async (event, newSession) => {
-            if (event === 'PASSWORD_RECOVERY') {
-                isRecoveryMode = true;
-                authScreen.style.display = 'flex';
-                appLayout.style.display = 'none';
-                showNewPasswordForm();
-                return;
-            }
-            handleSessionUpdate(newSession);
-        });
-
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-            console.error('Error checking session:', error);
+        // Check existing API session
+        try {
+            const data = await api.getSession();
+            handleSessionUpdate({ email: data.email });
+        } catch (err) {
+            console.error('Error checking session:', err);
             handleSessionUpdate(null);
-            return;
         }
-        handleSessionUpdate(session);
     }
 
 
@@ -898,11 +938,10 @@ document.addEventListener('DOMContentLoaded', () => {
         State.session = session;
         if (session) {
             if (session.staff) return;
-            if (isRecoveryMode) return;
             authScreen.style.display = 'none';
             appLayout.style.display = 'flex';
             
-            const email = session.user.email;
+            const email = session.email;
             State.currentUserEmail = email;
             State.currentUserColor = getUserColor(email);
             if (userEmailEl) userEmailEl.textContent = email;
@@ -952,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authResetEmailGroup.style.display = 'block';
         authResetPasswordGroup.style.display = 'none';
         authResetTitle.textContent = 'Restablecer Contraseña';
-        authResetSubtitle.textContent = 'Te enviaremos un enlace para restablecer tu contraseña';
+        authResetSubtitle.textContent = 'Te enviaremos un código de 6 dígitos a tu correo';
     }
 
     function showResetForm() {
@@ -963,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authResetEmailGroup.style.display = 'block';
         authResetPasswordGroup.style.display = 'none';
         authResetTitle.textContent = 'Restablecer Contraseña';
-        authResetSubtitle.textContent = 'Te enviaremos un enlace para restablecer tu contraseña';
+        authResetSubtitle.textContent = 'Te enviaremos un código de 6 dígitos a tu correo';
         document.getElementById('auth-reset-email').value = '';
     }
 
@@ -1027,12 +1066,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('auth-reset-spinner').style.display = 'block';
         authResetError.style.display = 'none';
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
-            if (error) throw error;
+            await api.forgotPassword(email);
+            resetEmail = email;
             authResetSuccess.style.display = 'block';
             authResetEmailGroup.style.display = 'none';
+            authResetPasswordGroup.style.display = 'block';
+            authResetTitle.textContent = 'Código de verificación';
+            authResetSubtitle.textContent = 'Te hemos enviado un código a tu correo. Introdúcelo junto con tu nueva contraseña.';
         } catch (err) {
-            authResetError.textContent = err.message || 'Error al enviar el enlace';
+            authResetError.textContent = err.message || 'Error al enviar el código';
             authResetError.style.display = 'block';
         } finally {
             btnSendReset.disabled = false;
@@ -1042,17 +1084,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (btnUpdatePassword) btnUpdatePassword.addEventListener('click', async () => {
+        const code = document.getElementById('auth-reset-code').value.trim();
         const pwd = document.getElementById('auth-reset-new-password').value;
+        if (!code) { authResetError.textContent = 'Introduce el código de verificación'; authResetError.style.display = 'block'; return; }
         if (!pwd || pwd.length < 6) { authResetError.textContent = 'La contraseña debe tener al menos 6 caracteres'; authResetError.style.display = 'block'; return; }
         btnUpdatePassword.disabled = true;
         document.getElementById('auth-update-btn-text').style.opacity = '0';
         document.getElementById('auth-update-spinner').style.display = 'block';
         authResetError.style.display = 'none';
         try {
-            const { error } = await supabase.auth.updateUser({ password: pwd });
-            if (error && !error.message?.toLowerCase().includes('different from the old')) throw error;
+            await api.resetPassword(resetEmail || document.getElementById('auth-reset-email').value.trim(), code, pwd);
             showToast('Contraseña actualizada correctamente.');
-            isRecoveryMode = false;
+            resetEmail = '';
             State.session = null;
             showLoginForm();
             setAuthMode('admin');
@@ -1117,8 +1160,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const email = document.getElementById('auth-email').value;
                     const password = document.getElementById('auth-password').value;
-                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
+                    const data = await api.login(email, password);
+                    setToken(data.token);
+                    handleSessionUpdate({ email: data.email });
                 } catch (err) {
                     console.error('Auth Error:', err);
                     authError.textContent = err.message || 'Error en la autenticación';
@@ -1217,7 +1261,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            await supabase.auth.signOut();
+            await api.logout();
+            setToken(null);
             State.clients = [];
             State.services = [];
             State.appointments = [];
@@ -1262,12 +1307,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function addClient(data) {
         data.user_email = State.currentUserEmail;
-        const { error } = await supabase.from('clients').insert([data]);
-        if (error) { showToast('Error al añadir cliente: ' + error.message, 'error'); return false; }
-        State.clients.push(data);
-        if (State.session?.staff) addStaffClientId(data.id);
-        showToast('Cliente añadido correctamente');
-        return true;
+        try {
+            const created = await api.addClient(data);
+            State.clients.push(created);
+            if (State.session?.staff) addStaffClientId(created.id);
+            showToast('Cliente añadido correctamente');
+            return true;
+        } catch (err) {
+            showToast('Error al añadir cliente: ' + err.message, 'error');
+            return false;
+        }
     }
 
     async function calculateFileHash(file) {
@@ -1279,52 +1328,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function uploadClientPhoto(file, clientId, photoDate, photoType, photoNotes, caspaLevel = null, seboLevel = null, eritemaLevel = null) {
         console.log('uploadClientPhoto called:', { clientId, photoDate, photoType });
-        const fileExt = file.name.split('.').pop();
         const photoId = generateId();
-        const fileName = `${clientId}/${photoId}.${fileExt}`;
         const photoHash = await calculateFileHash(file);
         
-        const { data, error } = await supabase.storage
-            .from('client-photos')
-            .upload(fileName, file);
-
-        if (error) {
-            showToast('Error al subir foto: ' + error.message, 'error');
-            console.error('Storage upload error:', error);
+        try {
+            const photoRecord = await api.uploadPhoto({
+                clientId,
+                photoId,
+                file,
+                photoDate,
+                photoType,
+                notes: photoNotes,
+                photoHash
+            });
+            console.log('Photo inserted successfully!');
+            return photoRecord;
+        } catch (err) {
+            showToast('Error al subir foto: ' + err.message, 'error');
+            console.error('Upload error:', err);
             return null;
         }
-
-        const { data: { publicUrl } } = supabase.storage
-            .from('client-photos')
-            .getPublicUrl(fileName);
-        
-        const photoRecord = {
-            id: photoId,
-            client_id: clientId,
-            photo_url: publicUrl,
-            photo_date: photoDate,
-            photo_type: photoType,
-            notes: photoNotes,
-            photo_hash: photoHash,
-            user_email: State.currentUserEmail,
-            created_at: new Date().toISOString()
-        };
-        
-        console.log('Inserting photo record:', photoRecord);
-        const { error: insertError } = await supabase.from('client_photos').insert(photoRecord);
-        if (insertError) {
-            console.error('Database insert error details:', JSON.stringify(insertError, null, 2));
-            showToast('Error al guardar foto en BD: ' + insertError.message, 'error');
-            return null;
-        }
-        console.log('Photo inserted successfully!');
-        return photoRecord;
     }
 
     async function deleteClientPhoto(photoId, clientId) {
         try {
-            const { error } = await supabase.from('client_photos').delete().eq('id', photoId);
-            if (error) throw error;
+            await api.deletePhoto(photoId);
             
             if (State.clientPhotos[clientId]) {
                 State.clientPhotos[clientId] = State.clientPhotos[clientId].filter(p => p.id !== photoId);
@@ -1340,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updateClientPhoto(photoId, clientId, updates) {
-        await supabase.from('client_photos').update(updates).eq('id', photoId);
+        await api.updatePhoto(photoId, updates);
         
         if (State.clientPhotos[clientId]) {
             const idx = State.clientPhotos[clientId].findIndex(p => p.id === photoId);
@@ -1357,14 +1385,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('loadClientPhotos called for client:', clientId);
         console.log('State.clients sample:', State.clients.slice(0,2).map(c => ({ id: c.id, name: c.name })));
         try {
-            const { data, error } = await supabase
-                .from('client_photos')
-                .select('*')
-                .eq('client_id', clientId)
-                .order('created_at', { ascending: false });
-            
-            console.log('loadClientPhotos result:', { data, error, clientId });
-            if (error) throw error;
+            const data = await api.getPhotos(clientId);
+            console.log('loadClientPhotos result:', { data, clientId });
             return data || [];
         } catch (e) {
             console.warn('Error loading photos:', e);
@@ -1374,12 +1396,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadAllClientPhotos() {
         try {
-            const { data, error } = await supabase
-                .from('client_photos')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            if (error) throw error;
+            const data = await api.getPhotos();
             
             State.clientPhotos = {};
             if (data) {
@@ -1398,58 +1415,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updateClient(data) {
-        const { error } = await supabase.from('clients').update({ 
-            name: data.name, 
-            phone: data.phone, 
-            email: data.email,
-            enviar_was: data.enviar_was,
-            whatsapp_template: data.whatsapp_template,
-            observations: data.observations 
-        }).eq('id', data.id);
-        if (error) { 
-            console.error('Supabase update error:', error);
-            showToast('Error al actualizar: ' + error.message, 'error'); 
-            return false; 
+        try {
+            await api.updateClient(data);
+            State.clients = State.clients.map(c => c.id === data.id ? data : c);
+            showToast('Cliente actualizado correctamente');
+            return true;
+        } catch (err) {
+            console.error('Update client error:', err);
+            showToast('Error al actualizar: ' + err.message, 'error');
+            return false;
         }
-        State.clients = State.clients.map(c => c.id === data.id ? data : c);
-        showToast('Cliente actualizado correctamente');
-        return true;
     }
 
     async function deleteClient(id) {
-        const { error } = await supabase.from('clients').delete().eq('id', id);
-        if (error) { showToast('Error al eliminar cliente: ' + error.message, 'error'); return false; }
-        State.clients = State.clients.filter(c => c.id !== id);
-        showToast('Cliente eliminado');
-        return true;
+        try {
+            await api.deleteClient(id);
+            State.clients = State.clients.filter(c => c.id !== id);
+            showToast('Cliente eliminado');
+            return true;
+        } catch (err) {
+            showToast('Error al eliminar cliente: ' + err.message, 'error');
+            return false;
+        }
     }
 
     // ── Services CRUD ──
 
     async function addService(data) {
         data.user_email = State.currentUserEmail;
-        const { error } = await supabase.from('services').insert([data]);
-        if (error) { showToast('Error al añadir servicio: ' + error.message, 'error'); return false; }
-        State.services.push(data);
-        if (State.session?.staff) addStaffServiceId(data.id);
-        showToast('Servicio añadido correctamente');
-        return true;
+        try {
+            const created = await api.addService(data);
+            State.services.push(created);
+            if (State.session?.staff) addStaffServiceId(created.id);
+            showToast('Servicio añadido correctamente');
+            return true;
+        } catch (err) {
+            showToast('Error al añadir servicio: ' + err.message, 'error');
+            return false;
+        }
     }
 
     async function updateService(data) {
-        const { error } = await supabase.from('services').update({ name: data.name, duration: data.duration, price: data.price }).eq('id', data.id);
-        if (error) { showToast('Error al actualizar servicio: ' + error.message, 'error'); return false; }
-        State.services = State.services.map(s => s.id === data.id ? data : s);
-        showToast('Servicio actualizado correctamente');
-        return true;
+        try {
+            await api.updateService(data);
+            State.services = State.services.map(s => s.id === data.id ? data : s);
+            showToast('Servicio actualizado correctamente');
+            return true;
+        } catch (err) {
+            showToast('Error al actualizar servicio: ' + err.message, 'error');
+            return false;
+        }
     }
 
     async function deleteService(id) {
-        const { error } = await supabase.from('services').delete().eq('id', id);
-        if (error) { showToast('Error al eliminar servicio: ' + error.message, 'error'); return false; }
-        State.services = State.services.filter(s => s.id !== id);
-        showToast('Servicio eliminado');
-        return true;
+        try {
+            await api.deleteService(id);
+            State.services = State.services.filter(s => s.id !== id);
+            showToast('Servicio eliminado');
+            return true;
+        } catch (err) {
+            showToast('Error al eliminar servicio: ' + err.message, 'error');
+            return false;
+        }
     }
 
     // ── Salons CRUD ──
@@ -1457,57 +1484,45 @@ document.addEventListener('DOMContentLoaded', () => {
     async function addSalon(data) {
         data.user_email = State.currentUserEmail;
         console.log('Adding salon:', data);
-        const { data: result, error } = await supabase.from('salons').insert([{
-            id: data.id,
-            name: data.name,
-            address: data.address || null,
-            phone: data.phone || null,
-            email: data.email || null,
-            user_email: data.user_email
-        }]).select().single();
-        
-        if (error) { 
-            console.error('Error adding salon:', error);
-            showToast('Error al añadir salón: ' + error.message, 'error'); 
-            return false; 
+        try {
+            const result = await api.addSalon(data);
+            console.log('Salon added:', result);
+            State.salons.push(result);
+            showToast('Salón añadido correctamente');
+            return true;
+        } catch (err) {
+            console.error('Error adding salon:', err);
+            showToast('Error al añadir salón: ' + err.message, 'error');
+            return false;
         }
-        console.log('Salon added:', result);
-        State.salons.push(result || data);
-        showToast('Salón añadido correctamente');
-        return true;
     }
 
     async function updateSalon(data) {
         console.log('Updating salon:', data);
-        const { error } = await supabase.from('salons').update({
-            name: data.name,
-            address: data.address || null,
-            phone: data.phone || null,
-            email: data.email || null,
-            user_email: State.currentUserEmail
-        }).eq('id', data.id);
-        
-        if (error) { 
-            console.error('Error updating salon:', error);
-            showToast('Error al actualizar salón: ' + error.message, 'error'); 
-            return false; 
+        try {
+            await api.updateSalon(data);
+            State.salons = State.salons.map(s => s.id === data.id ? data : s);
+            showToast('Salón actualizado correctamente');
+            return true;
+        } catch (err) {
+            console.error('Error updating salon:', err);
+            showToast('Error al actualizar salón: ' + err.message, 'error');
+            return false;
         }
-        State.salons = State.salons.map(s => s.id === data.id ? data : s);
-        showToast('Salón actualizado correctamente');
-        return true;
     }
 
     async function deleteSalon(id) {
         console.log('Deleting salon:', id);
-        const { error } = await supabase.from('salons').delete().eq('id', id);
-        if (error) { 
-            console.error('Error deleting salon:', error);
-            showToast('Error al eliminar salón: ' + error.message, 'error'); 
-            return false; 
+        try {
+            await api.deleteSalon(id);
+            State.salons = State.salons.filter(s => s.id !== id);
+            showToast('Salón eliminado');
+            return true;
+        } catch (err) {
+            console.error('Error deleting salon:', err);
+            showToast('Error al eliminar salón: ' + err.message, 'error');
+            return false;
         }
-        State.salons = State.salons.filter(s => s.id !== id);
-        showToast('Salón eliminado');
-        return true;
     }
 
     // ── Appointments CRUD ──
@@ -1526,11 +1541,12 @@ document.addEventListener('DOMContentLoaded', () => {
             is_staff_appointment: !!State.session?.staff,
         };
         if (data.salonId) dbRow.salon_id = data.salonId;
-        const { error } = await supabase.from('appointments').insert([dbRow]);
-        if (error) { 
-            console.error('Insert error details:', JSON.stringify({ dbRow, error }, null, 2));
-            showToast('Error al agendar cita: ' + error.message + (error.details ? ' (' + error.details + ')' : ''), 'error'); 
-            return false; 
+        try {
+            await api.addAppointment(dbRow);
+        } catch (err) {
+            console.error('Insert error details:', JSON.stringify({ dbRow, error: err }, null, 2));
+            showToast('Error al agendar cita: ' + err.message, 'error');
+            return false;
         }
         State.appointments.push(data);
         console.log('State.appointments length after push:', State.appointments.length, 'ClientId:', data.clientId, 'Date:', data.date);
@@ -1548,11 +1564,12 @@ document.addEventListener('DOMContentLoaded', () => {
             appointment_photos: data.appointmentPhotos || [],
         };
         if (data.salonId) dbRow.salon_id = data.salonId;
-        const { error } = await supabase.from('appointments').update(dbRow).eq('id', id);
-        if (error) { 
-            console.error('Update error details:', JSON.stringify({ dbRow, error }, null, 2));
-            showToast('Error al actualizar cita: ' + error.message + (error.details ? ' (' + error.details + ')' : ''), 'error'); 
-            return false; 
+        try {
+            await api.updateAppointment(id, dbRow);
+        } catch (err) {
+            console.error('Update error details:', JSON.stringify({ dbRow, error: err }, null, 2));
+            showToast('Error al actualizar cita: ' + err.message, 'error');
+            return false;
         }
         const idx = State.appointments.findIndex(a => a.id === id);
         if (idx !== -1) State.appointments[idx] = { ...State.appointments[idx], ...data };
@@ -1562,7 +1579,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.editClientPhoto = async function(photoId, clientId, currentDate, currentNotes, currentType) {
         // Obtener la foto actual para extraer valores de diagnóstico
-        const { data: photoData } = await supabase.from('client_photos').select('*').eq('id', photoId).single();
+        const photoData = (State.clientPhotos?.[clientId] || []).find(p => p.id === photoId) || {};
         
         // Extraer valores de diagnóstico de las notas o usar valores por defecto
         let caspaVal = 0, seboVal = 5, eritemaVal = 0;
@@ -1659,15 +1676,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         apt.appointmentPhotos[photoIdx].photo_type = newType;
                         apt.appointmentPhotos[photoIdx].photo_date = newDate;
                         apt.appointmentPhotos[photoIdx].notes = newNotes;
-                        await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
+                        await api.updateAppointmentPhotos(aptId, apt.appointmentPhotos);
                         
                         // Sync with client_photos if clientPhotoId exists
                         if (apt.appointmentPhotos[photoIdx].clientPhotoId) {
-                            await supabase.from('client_photos').update({
-                                photo_type: newType,
-                                photo_date: newDate,
-                                notes: `Cita ${apt.date}: ${newNotes}`
-                            }).eq('id', apt.appointmentPhotos[photoIdx].clientPhotoId);
+                            try {
+                                await api.updatePhoto(apt.appointmentPhotos[photoIdx].clientPhotoId, {
+                                    photo_type: newType,
+                                    photo_date: newDate,
+                                    notes: `Cita ${apt.date}: ${newNotes}`
+                                });
+                            } catch (err) {
+                                console.error('Error syncing client photo:', err);
+                            }
                         }
 
                         closeModal();
@@ -1681,12 +1702,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function markAppointmentReminded(id) {
         try {
-            const { error } = await supabase.from('appointments').update({ whatsapp_sent: true }).eq('id', id);
-            if (error) { 
-                console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', error);
-            }
+            await api.markAppointmentReminded(id);
         } catch (err) {
-            console.error('Excepción al actualizar whatsapp_sent:', err);
+            console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', err);
         }
         const apt = State.appointments.find(a => a.id === id);
         if (apt) apt.whatsappSent = true;
@@ -1694,8 +1712,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteAppointment(id) {
-        const { error } = await supabase.from('appointments').delete().eq('id', id);
-        if (error) { showToast('Error al cancelar cita: ' + error.message, 'error'); return false; }
+        try {
+            await api.deleteAppointment(id);
+        } catch (err) {
+            showToast('Error al cancelar cita: ' + err.message, 'error');
+            return false;
+        }
         State.appointments = State.appointments.filter(a => a.id !== id);
         showToast('Cita cancelada');
         return true;
@@ -2057,7 +2079,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Agenda</h1>
-                    <p style="color:var(--text-secondary)">Calendario de citas · <span class="supabase-badge">⚡ Supabase</span></p>
+                    <p style="color:var(--text-secondary)">Calendario de citas · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
                 </div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
                     ${!State.session?.staff ? `
@@ -2172,7 +2194,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="supabase-badge">⚡ Supabase</span></p></div>
+                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
                 <button class="btn btn-primary" id="btn-add-client">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                     Añadir Cliente
@@ -2224,7 +2246,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Catálogo de servicios · <span class="supabase-badge">⚡ Supabase</span></p></div>
+                <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Catálogo de servicios · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
                 <button class="btn btn-primary" id="btn-add-service">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                     Añadir Servicio
@@ -2315,7 +2337,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Listado Diario</h1>
-                    <p style="color:var(--text-secondary)">Detalle de citas por día · <span class="supabase-badge">⚡ Supabase</span></p>
+                    <p style="color:var(--text-secondary)">Detalle de citas por día · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
                 </div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
                     <button class="btn btn-primary" id="btn-print-daily">
@@ -2417,7 +2439,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Recordatorios WhatsApp</h1>
-                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="supabase-badge">⚡ Automático</span></p>
+                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="cloudflare-badge">⚡ Automático</span></p>
                 </div>
             </div>
             <div class="data-card" style="padding:3rem;text-align:center;">
@@ -2431,7 +2453,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Recordatorios WhatsApp</h1>
-                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="supabase-badge">⚡ Automático</span></p>
+                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="cloudflare-badge">⚡ Automático</span></p>
                 </div>
             </div>
 
@@ -2507,7 +2529,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Diagnóstico Capilar</h1>
-                    <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="supabase-badge">⚡ IA Vision</span></p>
+                    <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="cloudflare-badge">⚡ IA Vision</span></p>
                 </div>
              </div>
              
@@ -2582,7 +2604,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 <div class="section-header">
                     <div>
                         <h1 class="section-title">Salones</h1>
-                        <p style="color:var(--text-secondary)">Gestiona tus salones · <span class="supabase-badge">⚡ Supabase</span></p>
+                        <p style="color:var(--text-secondary)">Gestiona tus salones · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
                     </div>
                     <button class="btn btn-primary" id="btn-add-salon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
@@ -2622,7 +2644,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Salones</h1>
-                    <p style="color:var(--text-secondary)">Gestiona tus salones · <span class="supabase-badge">⚡ Supabase</span></p>
+                    <p style="color:var(--text-secondary)">Gestiona tus salones · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
                 </div>
                 <button class="btn btn-primary" id="btn-add-salon">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
@@ -2958,7 +2980,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     if (apt && apt.appointmentPhotos) {
                         const photoToDelete = apt.appointmentPhotos.find(p => p.id === photoId);
                         apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
-                        await supabase.from('appointments').update({ appointment_photos: apt.appointmentPhotos }).eq('id', aptId);
+                        await api.updateAppointmentPhotos(aptId, apt.appointmentPhotos);
                         
                         if (photoToDelete && photoToDelete.clientPhotoId) {
                             await deleteClientPhoto(photoToDelete.clientPhotoId);
@@ -3632,35 +3654,28 @@ window.addEventListener('message', async (event) => {
                         for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
                         const blob = new Blob([bytes], { type: 'image/jpeg' });
                         
-                        const fileName = `${clientId}/diagnosis_${Date.now()}.jpg`;
-                        const { data, error } = await supabase.storage
-                            .from('client-photos')
-                            .upload(fileName, blob);
-                        
-                        if (error) {
-                            console.error('Error uploading diagnosis photo:', error);
-                        } else {
-                            const { data: { publicUrl } } = supabase.storage
-                                .from('client-photos')
-                                .getPublicUrl(fileName);
-                            
-                            const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                                return v.toString(16);
+                        const photoId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                            const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        });
+
+                        const notes = `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`;
+
+                        try {
+                            const photoFile = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                            const savedPhoto = await api.uploadPhoto({
+                                clientId,
+                                photoId,
+                                file: photoFile,
+                                photoDate: new Date().toISOString().split('T')[0],
+                                photoType: 'before',
+                                notes
                             });
-                            
-                            await supabase.from('client_photos').insert({
-                                id: photoId,
-                                client_id: clientId,
-                                photo_url: publicUrl,
-                                photo_date: new Date().toISOString().split('T')[0],
-                                photo_type: 'antes',
-                                notes: `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`
-                            });
-                            
-                            console.log('Diagnosis photo saved:', publicUrl);
+
+                            console.log('Diagnosis photo saved:', savedPhoto.photo_url);
                             showToast('✓ Foto de diagnóstico guardada');
-                              
+                            loadClientPhotos(clientId);
+                            
                             // Notify diagnosis iframe that photo was saved
                             const diagnosisFrame = document.querySelector('iframe[src*="diagnosis"]');
                             if (diagnosisFrame) {
@@ -3668,6 +3683,8 @@ window.addEventListener('message', async (event) => {
                                     type: 'diagnosis_photo_saved'
                                 }, '*');
                             }
+                        } catch (e) {
+                            console.error('Error saving diagnosis photo:', e);
                         }
                     } catch (e) {
                         console.error('Error saving diagnosis photo:', e);
@@ -4105,6 +4122,15 @@ window.addEventListener('message', async (event) => {
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <h3 style="margin-bottom:1rem;font-size:1.1rem;">Cambiar Contraseña</h3>
                 <div class="form-group">
+                    <label>Contraseña actual</label>
+                    <div class="auth-input-wrapper">
+                        <input type="password" class="form-control auth-input" id="current-password-input" placeholder="••••••••" autocomplete="current-password">
+                        <button type="button" class="password-toggle" data-toggle="current-password-input" tabindex="-1" aria-label="Mostrar contraseña">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>Nueva contraseña</label>
                     <div class="auth-input-wrapper">
                         <input type="password" class="form-control auth-input" id="change-password-input" placeholder="••••••••" minlength="6">
@@ -4144,7 +4170,13 @@ window.addEventListener('message', async (event) => {
 
             document.getElementById('btn-change-password').addEventListener('click', async () => {
                 const pwdInput = document.getElementById('change-password-input');
+                const currentPwdInput = document.getElementById('current-password-input');
+                const currentPassword = currentPwdInput.value;
                 const newPassword = pwdInput.value.trim();
+                if (!currentPassword) {
+                    showToast('Introduce tu contraseña actual.', 'error');
+                    return;
+                }
                 if (!newPassword || newPassword.length < 6) {
                     showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
                     return;
@@ -4153,10 +4185,10 @@ window.addEventListener('message', async (event) => {
                 btn.disabled = true;
                 btn.textContent = 'Actualizando...';
                 try {
-                    const { error } = await supabase.auth.updateUser({ password: newPassword });
-if (error && !error.message?.toLowerCase().includes('different from the old')) throw error;
+                    await api.changePassword(currentPassword, newPassword);
                     showToast('Contraseña actualizada correctamente.');
                     pwdInput.value = '';
+                    currentPwdInput.value = '';
                 } catch (err) {
                     showToast('Error: ' + err.message, 'error');
                 } finally {
@@ -4539,43 +4571,32 @@ if (error && !error.message?.toLowerCase().includes('different from the old')) t
                 if (pendingFiles.length > 0) {
                     submitBtn.textContent = 'Subiendo fotos…';
                     for (const pf of pendingFiles) {
+                        const clientPhotoId = generateId();
+                        let savedPhoto;
                         try {
-                            const fileName = `appointments/${appointmentId}/${Date.now()}_${pf.file.name}`;
-                            const { data: uploadData, error: uploadError } = await supabase.storage
-                                .from('client-photos')
-                                .upload(fileName, pf.file);
-                            
-                            if (uploadError) throw uploadError;
-                            
-                            const { data: { publicUrl } } = supabase.storage
-                                .from('client-photos')
-                                .getPublicUrl(fileName);
-                            
-                            const clientPhotoId = generateId();
-                            const photoRecord = {
-                                id: generateId(),
-                                clientPhotoId: clientPhotoId, // Store the reference
-                                photo_url: publicUrl,
-                                photo_date: toLocalDateStr(new Date()),
-                                photo_type: pf.type || 'before',
-                                notes: pf.notes || ''
-                            };
-                            data.appointmentPhotos.push(photoRecord);
-
-                            // TAMBIÉN subir a la base de datos del cliente (client_photos)
-                            await supabase.from('client_photos').insert({
-                                id: clientPhotoId,
-                                client_id: data.clientId,
-                                photo_url: publicUrl,
-                                photo_date: photoRecord.photo_date,
-                                photo_type: photoRecord.photo_type,
-                                notes: `Cita ${data.date}: ${photoRecord.notes}`,
-                                user_email: State.currentUserEmail
+                            savedPhoto = await api.uploadPhoto({
+                                clientId: data.clientId,
+                                photoId: clientPhotoId,
+                                file: pf.file,
+                                photoDate: toLocalDateStr(new Date()),
+                                photoType: pf.type || 'before',
+                                notes: `Cita ${data.date}: ${pf.notes || ''}`
                             });
                         } catch (err) {
                             console.error('Error uploading photo:', err);
                             showToast('Error al subir una de las fotos', 'error');
+                            continue;
                         }
+
+                        const photoRecord = {
+                            id: savedPhoto.id,
+                            clientPhotoId: savedPhoto.id, // Store the reference
+                            photo_url: savedPhoto.photo_url,
+                            photo_date: savedPhoto.photo_date,
+                            photo_type: savedPhoto.photo_type,
+                            notes: pf.notes || ''
+                        };
+                        data.appointmentPhotos.push(photoRecord);
                     }
                 }
 
@@ -4636,30 +4657,20 @@ if (error && !error.message?.toLowerCase().includes('different from the old')) t
                     // Convert base64 to blob
                     const base64Data = photoData.split(',')[1];
                     const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(r => r.blob());
-                    
-                    const fileName = `diagnosis/${clientId}/${Date.now()}.jpg`;
-                    const { data: uploadData, error: uploadError } = await supabase.storage
-                        .from('client-photos')
-                        .upload(fileName, blob);
-                        
-                    if (uploadError) throw uploadError;
-                    
-                    const { data: { publicUrl } } = supabase.storage
-                        .from('client-photos')
-                        .getPublicUrl(fileName);
-                        
-                    // Insert into client_photos
-                    await supabase.from('client_photos').insert({
-                        id: generateId(),
-                        client_id: clientId,
-                        photo_url: publicUrl,
-                        photo_date: toLocalDateStr(new Date()),
-                        photo_type: 'diagnosis',
-                        notes: '', // Notas vacías como pidió el usuario
-                        user_email: State.currentUserEmail
+
+                    const photoId = generateId();
+                    const photoFile = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    await api.uploadPhoto({
+                        clientId,
+                        photoId,
+                        file: photoFile,
+                        photoDate: toLocalDateStr(new Date()),
+                        photoType: 'diagnosis',
+                        notes: ''
                     });
-                    
+
                     showToast('Diagnóstico guardado en el historial del cliente');
+                    loadClientPhotos(clientId);
                 } catch (err) {
                     console.error('Error syncing diagnosis photo:', err);
                     showToast('Error al guardar el diagnóstico en el historial', 'error');

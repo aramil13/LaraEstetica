@@ -961,16 +961,16 @@ textarea.form-control {
     text-transform: uppercase;
 }
 
-/* ── Supabase Badge ── */
-.supabase-badge {
+/* ── Tech Badge ── */
+.cloudflare-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
     font-size: 0.7rem;
     font-weight: 700;
-    color: #3ecf8e;
-    background: rgba(62, 207, 142, 0.1);
-    border: 1px solid rgba(62, 207, 142, 0.25);
+    color: #f6821f;
+    background: rgba(246, 130, 31, 0.1);
+    border: 1px solid rgba(246, 130, 31, 0.25);
     padding: 0.15rem 0.6rem;
     border-radius: var(--radius-full);
     letter-spacing: 0.03em;

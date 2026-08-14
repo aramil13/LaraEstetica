@@ -1,0 +1,16 @@
+name = "lara-estetica-api"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lara-estetica"
+database_id = "e1f7b073-4e2c-43ea-bea3-9a60cf64455d"
+
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "lara-estetica-photos"
+
+[vars]
+APP_URL = "https://aramil13.github.io/LaraEstetica/"
+RESEND_FROM = "Lara Estética <onboarding@resend.dev>"

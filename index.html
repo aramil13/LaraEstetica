@@ -95,7 +95,7 @@
             <!-- Password Reset Section -->
             <div id="auth-reset-section" style="display:none">
                 <h2 id="auth-reset-title">Restablecer Contraseña</h2>
-                <p class="auth-subtitle" id="auth-reset-subtitle">Te enviaremos un enlace para restablecer tu contraseña</p>
+                <p class="auth-subtitle" id="auth-reset-subtitle">Te enviaremos un código de 6 dígitos a tu correo</p>
                 <div id="auth-reset-error" class="auth-error" style="display:none"></div>
                 <div id="auth-reset-success" style="display:none;color:var(--success-color, #10b981);text-align:center;padding:1rem 0;font-size:0.9rem;">✓ Revisa tu correo electrónico</div>
                 <div id="auth-reset-email-group">
@@ -106,11 +106,17 @@
                         </div>
                     </div>
                     <button type="button" class="btn btn-primary auth-submit" id="btn-send-reset" style="width:100%;">
-                        <span id="auth-reset-btn-text">Enviar enlace</span>
+                        <span id="auth-reset-btn-text">Enviar código</span>
                         <div class="auth-spinner" id="auth-reset-spinner" style="display:none"></div>
                     </button>
                 </div>
                 <div id="auth-reset-password-group" style="display:none">
+                    <div class="form-group">
+                        <label>Código de verificación</label>
+                        <div class="auth-input-wrapper">
+                            <input type="text" class="form-control auth-input" id="auth-reset-code" placeholder="123456" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Nueva contraseña</label>
                         <div class="auth-input-wrapper">
@@ -204,7 +210,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="main.js?v=20250509"></script>
+    <script src="main.js?v=20250814"></script>
 </body>
 </html>
