@@ -477,19 +477,19 @@
             const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
             const avgGray = grays.reduce((a, b) => a + b, 0) / n;
 
-            // Filtro de Color: Solo tonos piel/cabello (predominancia cálida)
-            const isBiological = (rAvg > gAvg) && (rAvg > bAvg - 5) && (rAvg > 30);
+            // Filtro de Color (relajado): acepta fotos reales incluso sin tono cálido dominante
+            const isBiological = (rAvg > 20) && (gAvg > 15) && (bAvg > 10) && (rAvg + gAvg + bAvg) > 60;
             if (!isBiological) return false;
 
-            // Filtro de Uniformidad: Rechazar capturas/planos
+            // Filtro de Uniformidad: Rechazar solo capturas/planos completamente uniformes
             let variance = 0;
             for (let i = 0; i < n; i++) {
                 variance += (grays[i] - avgGray) * (grays[i] - avgGray);
             }
             variance /= n;
-            if (variance < 150) return false; 
+            if (variance < 25) return false;
 
-            // Filtro de Textura: Requiere bordes microscópicos
+            // Filtro de Textura (relajado): exige algo de detalle pero tolera fotos microscópicas
             let edges = 0;
             for (let y = 0; y < size - 1; y++) {
                 for (let x = 0; x < size - 1; x++) {
@@ -499,7 +499,7 @@
                 }
             }
             const edgeDensity = edges / (size * size);
-            if (edgeDensity < 0.02 || edgeDensity > 0.35) return false;
+            if (edgeDensity < 0.005 || edgeDensity > 0.5) return false;
 
             return true;
         }
