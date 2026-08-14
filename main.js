@@ -2208,7 +2208,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             base += price * item.qty;
         });
         const tax = base * 0.21;
-        return { base, tax, total: base + tax };
+        const retention = base * 0.15;
+        return { base, tax, retention, total: base + tax - retention };
     }
 
     function tpvFormatMoney(v) {
@@ -2286,6 +2287,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.35rem;align-items:flex-end;font-size:0.95rem;">
                     <div style="color:var(--text-secondary)">Base: <strong>${tpvFormatMoney(totals.base)}</strong></div>
                     <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
+                    <div style="color:var(--text-secondary)">Retención (15%): <strong style="color:var(--danger)">−${tpvFormatMoney(totals.retention)}</strong></div>
                     <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
                 </div>
                 <button type="button" class="btn btn-primary" id="tpv-emit" style="width:100%;margin-top:1rem;">
@@ -2396,6 +2398,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div style="margin-top:0.5rem;font-size:0.85rem;text-align:right;">
                     <div>Base: <strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
                     <div>IVA (21%): <strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
+                    <div>Retención (15%): <strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>
                     <div style="font-size:1rem;font-weight:800;">TOTAL: ${tpvFormatMoney(inv.total_amount)}</div>
                 </div>
                 <div style="margin-top:0.75rem;text-align:center;font-size:0.8rem;color:#555;">¡Gracias por su visita!</div>
@@ -2419,6 +2422,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty })),
             base_amount: Math.round(totals.base * 100) / 100,
             tax_amount: Math.round(totals.tax * 100) / 100,
+            retention_amount: Math.round(totals.retention * 100) / 100,
             total_amount: Math.round(totals.total * 100) / 100
         };
         try {
