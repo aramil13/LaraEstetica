@@ -564,6 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cart: [],
             clientId: '',
             clientNif: '',
+            commissionRate: 30,
             invoices: []
         }
     };
@@ -2207,9 +2208,13 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             const price = parseFloat(item.price) || 0;
             base += price * item.qty;
         });
-        const tax = base * 0.21;
-        const retention = base * 0.15;
-        return { base, tax, retention, total: base + tax - retention };
+        const isSalonInvoice = State.tpv.docType === 'factura-salon';
+        const rate = isSalonInvoice ? (parseFloat(State.tpv.commissionRate) || 0) : 0;
+        const commission = isSalonInvoice ? base * rate / 100 : 0;
+        const taxable = base - commission;
+        const tax = taxable * 0.21;
+        const retention = taxable * 0.15;
+        return { base, commission, commissionRate: rate, tax, retention, total: taxable + tax - retention };
     }
 
     function tpvFormatMoney(v) {
@@ -2263,7 +2268,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 </tr>`).join('');
 
         const totals = tpvCartTotals();
-        const docTypeLabel = State.tpv.docType === 'ticket' ? 'Ticket' : (State.tpv.docType === 'factura-salon' ? 'Factura para Salón' : 'Factura para Cliente');
+        const isSalonInvoice = State.tpv.docType === 'factura-salon';
+        const docTypeLabel = State.tpv.docType === 'ticket' ? 'Ticket' : (isSalonInvoice ? 'Factura del Salón' : 'Factura para Cliente');
         const showClient = State.tpv.docType !== 'factura-salon';
 
         return `
@@ -2271,7 +2277,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
                     <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket">Ticket</button>
                     <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura para Cliente</button>
-                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon">Factura para Salón</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon">Factura del Salón</button>
                 </div>
                 ${showClient ? `
                 <div class="form-group">
@@ -2283,12 +2289,18 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <label>NIF del cliente</label>
                     <input type="text" class="form-control" id="tpv-nif" placeholder="NIF / CIF" value="${State.tpv.clientNif}">
                 </div>` : ''}
+                ${isSalonInvoice ? `
+                <div class="form-group" style="margin-bottom:0.25rem;">
+                    <label>Comisión por los Servicios (%)</label>
+                    <input type="number" class="form-control" id="tpv-commission-rate" min="0" max="100" step="0.5" value="${State.tpv.commissionRate}">
+                </div>` : ''}
                 <table class="table" style="margin-top:0.5rem;">
                     <thead><tr><th>Servicio</th><th style="text-align:center">Cant.</th><th style="text-align:right">Importe</th><th></th></tr></thead>
                     <tbody>${cartRows}</tbody>
                 </table>
                 <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.35rem;align-items:flex-end;font-size:0.95rem;">
                     <div style="color:var(--text-secondary)">Base: <strong>${tpvFormatMoney(totals.base)}</strong></div>
+                    ${isSalonInvoice ? `<div style="color:var(--text-secondary)">Comisión por los Servicios (${totals.commissionRate}%): <strong style="color:var(--danger)">−${tpvFormatMoney(totals.commission)}</strong></div>` : ''}
                     <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
                     <div style="color:var(--text-secondary)">Retención (15%): <strong style="color:var(--danger)">−${tpvFormatMoney(totals.retention)}</strong></div>
                     <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
@@ -2422,8 +2434,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     </table>
                     <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
                         <div style="width:280px;">
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base</span><strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
+                    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base</span><strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
+                    ${inv.doc_type === 'factura-salon' ? `<div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los Servicios (${inv.commission_rate || 30}%)</span><strong>−${tpvFormatMoney(inv.commission_amount || 0)}</strong></div>` : ''}
+                    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
                             <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>
                             <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(inv.total_amount)}</span></div>
                         </div>
@@ -2482,6 +2495,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             client_nif: isSalonInvoice ? null : (clientNif || null),
             items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty })),
             base_amount: Math.round(totals.base * 100) / 100,
+            commission_rate: Math.round(totals.commissionRate * 100) / 100,
+            commission_amount: Math.round(totals.commission * 100) / 100,
             tax_amount: Math.round(totals.tax * 100) / 100,
             retention_amount: Math.round(totals.retention * 100) / 100,
             total_amount: Math.round(totals.total * 100) / 100
@@ -2529,6 +2544,12 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         if (clientSel) clientSel.addEventListener('change', e => { State.tpv.clientId = e.target.value; });
         const nifInput = document.getElementById('tpv-nif');
         if (nifInput) nifInput.addEventListener('input', e => { State.tpv.clientNif = e.target.value; });
+        const commissionInput = document.getElementById('tpv-commission-rate');
+        if (commissionInput) commissionInput.addEventListener('input', e => {
+            const v = parseFloat(e.target.value);
+            State.tpv.commissionRate = isNaN(v) ? 0 : v;
+            tpvRenderCartPanel();
+        });
 
         document.querySelectorAll('.tpv-qty-btn').forEach(btn => {
             btn.addEventListener('click', () => {

@@ -112,6 +112,8 @@ CREATE TABLE IF NOT EXISTS invoices (
   base_amount REAL NOT NULL,
   tax_amount REAL NOT NULL,
   retention_amount REAL NOT NULL DEFAULT 0,
+  commission_rate REAL NOT NULL DEFAULT 0,
+  commission_amount REAL NOT NULL DEFAULT 0,
   total_amount REAL NOT NULL,
   user_email TEXT DEFAULT '',
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
