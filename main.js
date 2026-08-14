@@ -1363,7 +1363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="form-group">
                     <label>Fecha</label>
-                    <input type="date" class="form-control" id="edit-client-photo-date" value="${currentDate}">
+                    <div class="form-control" id="edit-client-photo-date" style="background:rgba(0,0,0,0.03);color:var(--text-secondary);cursor:default">${currentDate || '—'}</div>
                 </div>
                 <div class="form-group">
                     <label>Notas</label>
@@ -1378,17 +1378,23 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('edit-client-photo-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const newType = document.getElementById('edit-client-photo-type').value;
-                const newDate = document.getElementById('edit-client-photo-date').value;
+                const dateDiv = document.getElementById('edit-client-photo-date');
+                const newDate = dateDiv.textContent.trim() === '—' ? null : dateDiv.textContent.trim();
                 const newNotes = document.getElementById('edit-client-photo-notes').value;
                 
-                await updateClientPhoto(photoId, clientId, { 
-                    photo_type: newType, 
-                    photo_date: newDate, 
-                    notes: newNotes || ''
-                });
-                closeModal();
-                showToast('Foto actualizada');
-                renderRoute();
+                try {
+                    await updateClientPhoto(photoId, clientId, { 
+                        photo_type: newType, 
+                        photo_date: newDate, 
+                        notes: newNotes || ''
+                    });
+                    closeModal();
+                    showToast('Foto actualizada');
+                    renderRoute();
+                } catch (err) {
+                    console.error('Error al guardar foto:', err);
+                    showToast('Error al guardar foto: ' + (err.message || err), 'error');
+                }
             });
         });
     }
@@ -1405,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="form-group">
                     <label>Fecha</label>
-                    <input type="date" class="form-control" id="edit-apt-photo-date" value="${currentDate}">
+                    <div class="form-control" id="edit-apt-photo-date" style="background:rgba(0,0,0,0.03);color:var(--text-secondary);cursor:default">${currentDate || '—'}</div>
                 </div>
                 <div class="form-group">
                     <label>Notas</label>
@@ -1420,7 +1426,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('edit-apt-photo-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const newType = document.getElementById('edit-apt-photo-type').value;
-                const newDate = document.getElementById('edit-apt-photo-date').value;
+                const newDateDiv = document.getElementById('edit-apt-photo-date');
+                const newDate = newDateDiv.textContent.trim() === '—' ? null : newDateDiv.textContent.trim();
                 const newNotes = document.getElementById('edit-apt-photo-notes').value;
                 
                 const apt = State.appointments.find(a => a.id === aptId);
@@ -1448,7 +1455,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         closeModal();
                         showToast('Foto actualizada');
                         renderRoute();
+                    } else {
+                        showToast('Foto no encontrada', 'error');
                     }
+                } else {
+                    showToast('Cita no encontrada', 'error');
                 }
             });
         });
@@ -3452,7 +3463,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             e.stopPropagation();
             const photoId = clientEditBtn.dataset.photoId;
             const cid = window.currentModalClientId;
-            if (photoId) window.editClientPhoto(photoId, cid, '', '', '');
+            if (photoId) {
+                const photoData = (State.clientPhotos?.[cid] || []).find(p => p.id === photoId) || {};
+                window.editClientPhoto(photoId, cid, photoData.photo_date || '', photoData.notes || '', photoData.photo_type || 'before');
+            }
             return;
         }
     });
@@ -4776,7 +4790,7 @@ window.addEventListener('message', async (event) => {
                         Añadir Foto
                     </button>
                     ${isEdit ? `
-                    <button type="button" class="btn btn-sm btn-secondary compare-btn" data-apt-id="${info.id}" id="btn-compare-apt-photos" style="margin-left:8px;display:inline-flex">Antes / Después</button>
+                    <button type="button" class="btn btn-sm btn-secondary compare-btn" data-apt-id="${apt.id}" id="btn-compare-apt-photos" style="margin-left:8px;display:inline-flex">Antes / Después</button>
                     ` : ''}
                     <input type="file" id="apt-photo-input" accept="image/*" style="display:none">
                 </div>
