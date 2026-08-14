@@ -1555,6 +1555,53 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => (modalBody.innerHTML = ''), 300);
     }
 
+    function openBeforeAfterCompare(photos, title = 'Comparativa Antes / Después') {
+        const list = Array.isArray(photos) ? photos : [];
+        const before = list.filter(p => p.photo_type !== 'after' && p.photo_type !== 'diagnosis');
+        const after = list.filter(p => p.photo_type === 'after');
+        const diagnosis = list.filter(p => p.photo_type === 'diagnosis');
+
+        const colHtml = (items, label, color) => {
+            if (!items.length) {
+                return `
+                    <div style="flex:1;min-width:0">
+                        <h3 style="text-align:center;font-size:1rem;font-weight:700;margin-bottom:0.75rem;color:${color}">${label}</h3>
+                        <div style="border:1px dashed var(--border-color);border-radius:8px;padding:2rem;text-align:center;color:var(--text-secondary);font-size:0.85rem">Sin fotos de "${label}"</div>
+                    </div>`;
+            }
+            const imgs = items.map(p => {
+                const d = p.photo_date || '';
+                return `
+                    <div style="text-align:center;margin-bottom:0.75rem">
+                        <img src="${p.photo_url}" alt="${label}" style="width:100%;max-height:240px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ${color}" onclick="openModal('${label}','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                        ${d ? `<div style="font-size:0.7rem;color:var(--text-secondary);margin-top:0.25rem">${d}</div>` : ''}
+                    </div>`;
+            }).join('');
+            return `
+                <div style="flex:1;min-width:0">
+                    <h3 style="text-align:center;font-size:1rem;font-weight:700;margin-bottom:0.75rem;color:${color}">${label} (${items.length})</h3>
+                    ${imgs}
+                </div>`;
+        };
+
+        const extra = diagnosis.length ? `
+            <hr style="margin:1.25rem 0;border:none;border-top:1px solid var(--border-color)">
+            <h3 style="text-align:center;font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;color:var(--text-secondary)">Diagnóstico (${diagnosis.length})</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+                ${diagnosis.map(p => `
+                    <img src="${p.photo_url}" alt="Diagnóstico" style="width:90px;height:90px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Diagnóstico','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
+                `).join('')}
+            </div>` : '';
+
+        openModal(title, `
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;align-items:flex-start">
+                ${colHtml(before, 'Antes', '#38bdf8')}
+                ${colHtml(after, 'Después', '#34d399')}
+            </div>
+            ${extra}
+        `);
+    }
+
     btnCloseModal.addEventListener('click', closeModal);
 
     // Track where mousedown started to prevent accidental closes
@@ -1727,6 +1774,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 const appointmentPhotos = apt.appointmentPhotos || [];
                 let photosHtml = '';
                 if (appointmentPhotos.length > 0) {
+                    const hasBefore = appointmentPhotos.some(p => p.photo_type !== 'after' && p.photo_type !== 'diagnosis');
+                    const hasAfter = appointmentPhotos.some(p => p.photo_type === 'after');
                     photosHtml = '<div class="day-detail-photos" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
                     appointmentPhotos.forEach(p => {
                         const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
@@ -1743,6 +1792,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             </div>`;
                     });
                     photosHtml += '</div>';
+                    if (hasBefore && hasAfter) {
+                        photosHtml += `<button type="button" class="btn btn-sm btn-secondary compare-btn" data-apt-id="${apt.id}" style="margin-top:8px;">Antes / Después</button>`;
+                    }
                 }
                  
                 detailHtml += `
@@ -1971,6 +2023,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                          </div>`;
                                      }).join('')}
                                      ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === '${c.id}'))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
+                                     ${State.clientPhotos[c.id].some(p => p.photo_type !== 'after' && p.photo_type !== 'diagnosis') && State.clientPhotos[c.id].some(p => p.photo_type === 'after') ? `
+                                     <button type="button" class="btn btn-sm btn-secondary compare-btn" data-client-id="${c.id}" style="align-self:center;">Antes / Después</button>` : ''}
                                  </div>
                              ` : ''}
                          </div>
@@ -3315,6 +3369,24 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             return;
         }
 
+        // 3c. Compare Before/After photos
+        const compareBtn = e.target.closest('.compare-btn');
+        if (compareBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const aptId = compareBtn.dataset.aptId;
+            const clientId = compareBtn.dataset.clientId;
+            let photos = [];
+            if (aptId) {
+                const apt = State.appointments.find(a => a.id === aptId);
+                photos = apt?.appointmentPhotos || [];
+            } else if (clientId) {
+                photos = (State.clientPhotos && State.clientPhotos[clientId]) || [];
+            }
+            openBeforeAfterCompare(photos);
+            return;
+        }
+
         // 4. Edit Buttons - Clients, Services, Salons, Appointments
         const editBtn = e.target.closest('.edit-btn') || e.target.closest('.edit-apt-btn');
         if (editBtn) {
@@ -4044,6 +4116,7 @@ window.addEventListener('message', async (event) => {
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                             Añadir Foto
                         </button>
+                        <button type="button" class="btn btn-sm btn-secondary compare-btn" data-client-id="${isEdit ? info.id : ''}" id="btn-compare-client-photos" style="${isEdit ? '' : 'display:none'}">Antes / Después</button>
                     </div>
                     <input type="file" id="client-photo-input" accept="image/*" style="display:none">
                 </div>
@@ -4722,6 +4795,9 @@ window.addEventListener('message', async (event) => {
                         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Añadir Foto
                     </button>
+                    ${isEdit ? `
+                    <button type="button" class="btn btn-sm btn-secondary compare-btn" data-apt-id="${info.id}" id="btn-compare-apt-photos" style="margin-left:8px;display:inline-flex">Antes / Después</button>
+                    ` : ''}
                     <input type="file" id="apt-photo-input" accept="image/*" style="display:none">
                 </div>
                 
@@ -4949,6 +5025,9 @@ window.addEventListener('message', async (event) => {
     }
 
     window.showAppointmentForm = showAppointmentForm;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.openBeforeAfterCompare = openBeforeAfterCompare;
 
     window.editAppointment = function(id) {
         const apt = State.appointments.find(a => a.id === id);
