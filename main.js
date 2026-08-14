@@ -2269,7 +2269,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         const totals = tpvCartTotals();
         const isSalonInvoice = State.tpv.docType === 'factura-salon';
-        const docTypeLabel = State.tpv.docType === 'ticket' ? 'Ticket' : (isSalonInvoice ? 'Factura del Salón' : 'Factura para Cliente');
+        const docTypeLabel = State.tpv.docType === 'ticket' ? 'Ticket' : (isSalonInvoice ? 'Factura para el Salón' : 'Factura para Cliente');
         const showClient = State.tpv.docType !== 'factura-salon';
 
         return `
@@ -2277,7 +2277,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
                     <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket">Ticket</button>
                     <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura para Cliente</button>
-                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon">Factura del Salón</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon">Factura para el Salón</button>
                 </div>
                 ${showClient ? `
                 <div class="form-group">
