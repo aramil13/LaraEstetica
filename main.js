@@ -1027,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('auth-reset-spinner').style.display = 'block';
         authResetError.style.display = 'none';
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+            const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
             if (error) throw error;
             authResetSuccess.style.display = 'block';
             authResetEmailGroup.style.display = 'none';
