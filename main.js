@@ -1678,6 +1678,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navItems.forEach(item => {
             item.classList.toggle('active', item.dataset.target === route);
         });
+        if (route === 'tpv') tpvLoadInvoices();
         renderRoute();
     }
 
@@ -1740,10 +1741,7 @@ document.addEventListener('DOMContentLoaded', () => {
             content = getClientsView();
         }
         else if (currentRoute === 'services') content = getServicesView();
-        else if (currentRoute === 'tpv') {
-            content = getTpvView();
-            tpvLoadInvoices();
-        }
+        else if (currentRoute === 'tpv') content = getTpvView();
         else if (currentRoute === 'monthly') content = getMonthlyView();
         else if (currentRoute === 'salons') content = getSalonsView();
         else if (currentRoute === 'whatsapp') content = getWhatsAppView();
@@ -2230,6 +2228,31 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     function getTpvView() {
         const isStaff = State.session && State.session.staff;
         const services = State.services.filter(s => !isStaff || isStaffService(s.id));
+        const serviceGrid = services.length === 0
+            ? '<p style="color:var(--text-secondary);text-align:center;padding:1rem;">No hay servicios disponibles.</p>'
+            : `<div class="tpv-service-grid">${services.map(s => `
+                <button type="button" class="tpv-service-card" data-service-id="${s.id}">
+                    <span class="tpv-service-name">${s.name}</span>
+                    <span class="tpv-service-price">${tpvFormatMoney(parseFloat(s.price) || 0)}</span>
+                </button>`).join('')}</div>`;
+
+        return `
+            <div class="section-header">
+                <div><h1 class="section-title">TPV · Punto de Venta</h1><p style="color:var(--text-secondary)">Tickets y facturas simplificadas · <span class="cloudflare-badge">⚡ IVA 21%</span></p></div>
+            </div>
+            <div class="tpv-layout">
+                <div id="tpv-cart-panel">${getTpvCartPanel()}</div>
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <div class="data-card" style="padding:1.25rem;">
+                        <h3 style="margin-bottom:0.75rem;font-size:1rem;">Servicios</h3>
+                        ${serviceGrid}
+                    </div>
+                    ${getTpvHistoryCard()}
+                </div>
+            </div>`;
+    }
+
+    function getTpvCartPanel() {
         const clientOptions = [
             '<option value="">Consumidor final</option>'
         ].concat(State.clients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
@@ -2249,86 +2272,86 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 </tr>`).join('');
 
         const totals = tpvCartTotals();
-
-        const serviceGrid = services.length === 0
-            ? '<p style="color:var(--text-secondary);text-align:center;padding:1rem;">No hay servicios disponibles.</p>'
-            : `<div class="tpv-service-grid">${services.map(s => `
-                <button type="button" class="tpv-service-card" data-service-id="${s.id}">
-                    <span class="tpv-service-name">${s.name}</span>
-                    <span class="tpv-service-price">${tpvFormatMoney(parseFloat(s.price) || 0)}</span>
-                </button>`).join('')}</div>`;
-
-        const historyRows = State.tpv.invoices.length === 0
-            ? '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>'
-            : State.tpv.invoices.map(inv => `
-                <tr>
-                    <td>${inv.doc_type === 'factura' ? 'F' : 'T'}-${String(inv.number).padStart(4, '0')}</td>
-                    <td>${(inv.created_at || '').substring(0, 10)}</td>
-                    <td>${inv.client_name || 'Consumidor final'}</td>
-                    <td style="text-align:right">${tpvFormatMoney(inv.total_amount)}</td>
-                    <td><span class="status-${inv.doc_type === 'factura' ? 'success' : 'info'}" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;">${inv.doc_type === 'factura' ? 'Factura' : 'Ticket'}</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="edit-btn" data-invoice-id="${inv.id}" title="Imprimir">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
-                            </button>
-                            <button class="delete-btn" data-invoice-id="${inv.id}" title="Eliminar">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </td>
-                </tr>`).join('');
-
         const docTypeLabel = State.tpv.docType === 'factura' ? 'Factura simplificada' : 'Ticket';
 
         return `
-            <div class="section-header">
-                <div><h1 class="section-title">TPV · Punto de Venta</h1><p style="color:var(--text-secondary)">Tickets y facturas simplificadas · <span class="cloudflare-badge">⚡ IVA 21%</span></p></div>
-            </div>
-            <div class="tpv-layout">
-                <div class="data-card" style="padding:1.25rem;">
-                    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
-                        <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket">Ticket</button>
-                        <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura</button>
-                    </div>
-                    <div class="form-group">
-                        <label>Cliente</label>
-                        <select class="form-control" id="tpv-client">${clientOptions}</select>
-                    </div>
-                    ${State.tpv.docType === 'factura' ? `
-                    <div class="form-group">
-                        <label>NIF del cliente</label>
-                        <input type="text" class="form-control" id="tpv-nif" placeholder="NIF / CIF" value="${State.tpv.clientNif}">
-                    </div>` : ''}
-                    <table class="table" style="margin-top:0.5rem;">
-                        <thead><tr><th>Servicio</th><th style="text-align:center">Cant.</th><th style="text-align:right">Importe</th><th></th></tr></thead>
-                        <tbody>${cartRows}</tbody>
-                    </table>
-                    <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.35rem;align-items:flex-end;font-size:0.95rem;">
-                        <div style="color:var(--text-secondary)">Base: <strong>${tpvFormatMoney(totals.base)}</strong></div>
-                        <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
-                        <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
-                    </div>
-                    <button type="button" class="btn btn-primary" id="tpv-emit" style="width:100%;margin-top:1rem;">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-4px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
-                        Emitir ${docTypeLabel}
-                    </button>
+            <div class="data-card" style="padding:1.25rem;">
+                <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+                    <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket">Ticket</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura</button>
                 </div>
-
-                <div style="display:flex;flex-direction:column;gap:1rem;">
-                    <div class="data-card" style="padding:1.25rem;">
-                        <h3 style="margin-bottom:0.75rem;font-size:1rem;">Servicios</h3>
-                        ${serviceGrid}
-                    </div>
-                    <div class="data-card" style="padding:1.25rem;">
-                        <h3 style="margin-bottom:0.75rem;font-size:1rem;">Historial</h3>
-                        <table class="table">
-                            <thead><tr><th>Nº</th><th>Fecha</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th></th></tr></thead>
-                            <tbody>${historyRows}</tbody>
-                        </table>
-                    </div>
+                <div class="form-group">
+                    <label>Cliente</label>
+                    <select class="form-control" id="tpv-client">${clientOptions}</select>
                 </div>
+                ${State.tpv.docType === 'factura' ? `
+                <div class="form-group">
+                    <label>NIF del cliente</label>
+                    <input type="text" class="form-control" id="tpv-nif" placeholder="NIF / CIF" value="${State.tpv.clientNif}">
+                </div>` : ''}
+                <table class="table" style="margin-top:0.5rem;">
+                    <thead><tr><th>Servicio</th><th style="text-align:center">Cant.</th><th style="text-align:right">Importe</th><th></th></tr></thead>
+                    <tbody>${cartRows}</tbody>
+                </table>
+                <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.35rem;align-items:flex-end;font-size:0.95rem;">
+                    <div style="color:var(--text-secondary)">Base: <strong>${tpvFormatMoney(totals.base)}</strong></div>
+                    <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
+                    <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
+                </div>
+                <button type="button" class="btn btn-primary" id="tpv-emit" style="width:100%;margin-top:1rem;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-4px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
+                    Emitir ${docTypeLabel}
+                </button>
             </div>`;
+    }
+
+    function tpvHistoryRows() {
+        if (State.tpv.invoices.length === 0) {
+            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
+        }
+        return State.tpv.invoices.map(inv => `
+            <tr>
+                <td>${inv.doc_type === 'factura' ? 'F' : 'T'}-${String(inv.number).padStart(4, '0')}</td>
+                <td>${(inv.created_at || '').substring(0, 10)}</td>
+                <td>${inv.client_name || 'Consumidor final'}</td>
+                <td style="text-align:right">${tpvFormatMoney(inv.total_amount)}</td>
+                <td><span class="status-${inv.doc_type === 'factura' ? 'success' : 'info'}" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;">${inv.doc_type === 'factura' ? 'Factura' : 'Ticket'}</span></td>
+                <td>
+                    <div class="actions">
+                        <button class="edit-btn" data-invoice-id="${inv.id}" title="Imprimir">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
+                        </button>
+                        <button class="delete-btn" data-invoice-id="${inv.id}" title="Eliminar">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>`).join('');
+    }
+
+    function getTpvHistoryCard() {
+        return `
+            <div class="data-card" style="padding:1.25rem;">
+                <h3 style="margin-bottom:0.75rem;font-size:1rem;">Historial</h3>
+                <table class="table">
+                    <thead><tr><th>Nº</th><th>Fecha</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th></th></tr></thead>
+                    <tbody id="tpv-history-body">${tpvHistoryRows()}</tbody>
+                </table>
+            </div>`;
+    }
+
+    function tpvRenderCartPanel() {
+        const panel = document.getElementById('tpv-cart-panel');
+        if (!panel) return;
+        panel.innerHTML = getTpvCartPanel();
+        tpvBindCartEvents();
+    }
+
+    function tpvRenderHistory() {
+        const tbody = document.getElementById('tpv-history-body');
+        if (!tbody) return;
+        tbody.innerHTML = tpvHistoryRows();
+        tpvBindHistoryEvents();
     }
 
     function tpvAddService(serviceId) {
@@ -2337,12 +2360,12 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const existing = State.tpv.cart.find(i => i.serviceId === serviceId);
         if (existing) existing.qty++;
         else State.tpv.cart.push({ serviceId, name: service.name, price: service.price, qty: 1 });
-        renderRoute();
+        tpvRenderCartPanel();
     }
 
     function tpvRemoveFromCart(idx) {
         State.tpv.cart.splice(idx, 1);
-        renderRoute();
+        tpvRenderCartPanel();
     }
 
     async function tpvLoadInvoices() {
@@ -2351,7 +2374,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         } catch (err) {
             State.tpv.invoices = [];
         }
-        if (currentRoute === 'tpv') renderRoute();
+        tpvRenderHistory();
     }
 
     function tpvBuildDocHtml(inv, isPreview) {
@@ -2439,20 +2462,17 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         }, 300);
     }
 
-    function tpvBindEvents() {
+    function tpvBindCartEvents() {
         const docTicket = document.getElementById('tpv-doc-ticket');
         const docFactura = document.getElementById('tpv-doc-factura');
-        if (docTicket) docTicket.addEventListener('click', () => { State.tpv.docType = 'ticket'; renderRoute(); });
-        if (docFactura) docFactura.addEventListener('click', () => { State.tpv.docType = 'factura'; renderRoute(); });
+        if (docTicket) docTicket.addEventListener('click', () => { State.tpv.docType = 'ticket'; tpvRenderCartPanel(); });
+        if (docFactura) docFactura.addEventListener('click', () => { State.tpv.docType = 'factura'; tpvRenderCartPanel(); });
 
         const clientSel = document.getElementById('tpv-client');
         if (clientSel) clientSel.addEventListener('change', e => { State.tpv.clientId = e.target.value; });
         const nifInput = document.getElementById('tpv-nif');
         if (nifInput) nifInput.addEventListener('input', e => { State.tpv.clientNif = e.target.value; });
 
-        document.querySelectorAll('.tpv-service-card').forEach(btn => {
-            btn.addEventListener('click', () => tpvAddService(btn.dataset.serviceId));
-        });
         document.querySelectorAll('.tpv-qty-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const idx = parseInt(btn.dataset.idx, 10);
@@ -2460,7 +2480,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 if (!item) return;
                 if (btn.dataset.act === 'inc') item.qty++;
                 else if (btn.dataset.act === 'dec') { item.qty--; if (item.qty <= 0) State.tpv.cart.splice(idx, 1); }
-                renderRoute();
+                tpvRenderCartPanel();
             });
         });
         document.querySelectorAll('[data-act="remove"]').forEach(btn => {
@@ -2469,7 +2489,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         const emitBtn = document.getElementById('tpv-emit');
         if (emitBtn) emitBtn.addEventListener('click', tpvEmit);
+    }
 
+    function tpvBindHistoryEvents() {
         document.querySelectorAll('[data-invoice-id]').forEach(btn => {
             btn.addEventListener('click', async e => {
                 const invId = btn.dataset.invoiceId;
@@ -2478,7 +2500,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     try {
                         await api.deleteInvoice(invId);
                         State.tpv.invoices = State.tpv.invoices.filter(i => i.id !== invId);
-                        renderRoute();
+                        tpvRenderHistory();
                         showToast('Documento eliminado.');
                     } catch (err) {
                         showToast('Error: ' + (err.message || 'error'), 'error');
@@ -2489,6 +2511,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 }
             });
         });
+    }
+
+    function tpvBindEvents() {
+        document.querySelectorAll('.tpv-service-card').forEach(btn => {
+            btn.addEventListener('click', () => tpvAddService(btn.dataset.serviceId));
+        });
+        tpvBindCartEvents();
+        tpvBindHistoryEvents();
     }
 
     /* ═══════════════════════════════════════
