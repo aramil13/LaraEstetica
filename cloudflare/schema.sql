@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   appointment_photos TEXT DEFAULT '[]',
   is_staff_appointment INTEGER DEFAULT 0,
   whatsapp_sent INTEGER DEFAULT 0,
+  whatsapp_sent_count INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_appointments_user_email ON appointments(user_email);

@@ -481,7 +481,7 @@ export default {
         return json({ ok: true });
       }
       if (sub === 'reminded') {
-        await env.DB.prepare('UPDATE appointments SET whatsapp_sent = 1 WHERE id = ? AND user_email = ?').bind(id, email).run();
+        await env.DB.prepare('UPDATE appointments SET whatsapp_sent_count = whatsapp_sent_count + 1 WHERE id = ? AND user_email = ?').bind(id, email).run();
         return json({ ok: true });
       }
       return error('Ruta no encontrada', 404);

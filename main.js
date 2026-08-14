@@ -1,4 +1,4 @@
-// Base de datos de productos Maria Nila
+﻿// Base de datos de productos Maria Nila
 const MARIA_NILA_PRODUCTS = {
     // ==================== HEAD & HAIR HEAL (Cuero cabelludo sensible) ====================
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
@@ -353,187 +353,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /* ═══════════════════════════════════════
-       GLOBAL EVENT DELEGATION
-       (Attached only once to document)
-       ═══════════════════════════════════════ */
-    document.addEventListener('click', async e => {
-        // 1. Generic Delete Buttons (.delete-btn) - Clients, Services, Salons, Appointments
-        const delBtn = e.target.closest('.delete-btn');
-        if (delBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (delBtn.dataset.confirming === 'true') {
-                const id = delBtn.dataset.id;
-                const type = delBtn.dataset.type;
-                delBtn.disabled = true;
-                
-                if (type === 'client') {
-                    if (State.session?.staff && !isStaffClient(id)) {
-                        showToast('No tienes permiso para eliminar este cliente', 'error');
-                        delBtn.disabled = false;
-                        delBtn.dataset.confirming = 'false';
-                        delBtn.textContent = '';
-                        return;
-                    }
-                    if (await deleteClient(id)) renderRoute();
-                } else if (type === 'service') {
-                    if (State.session?.staff && !isStaffService(id)) {
-                        showToast('No tienes permiso para eliminar este servicio', 'error');
-                        delBtn.disabled = false;
-                        delBtn.dataset.confirming = 'false';
-                        delBtn.textContent = '';
-                        return;
-                    }
-                    if (await deleteService(id)) renderRoute();
-                } else if (type === 'salon') {
-                    if (await deleteSalon(id)) renderRoute();
-                } else {
-                    const apt = State.appointments.find(a => a.id === id);
-                    if (State.session?.staff && !isStaffAppointment(id)) {
-                        showToast('No tienes permiso para eliminar esta cita', 'error');
-                        delBtn.disabled = false;
-                        delBtn.dataset.confirming = 'false';
-                        delBtn.textContent = '';
-                        return;
-                    }
-                    if (!State.session?.staff && apt && apt.userEmail && apt.userEmail !== State.currentUserEmail) {
-                        showToast('No puedes eliminar citas de otro administrador', 'error');
-                        delBtn.disabled = false;
-                        delBtn.dataset.confirming = 'false';
-                        delBtn.textContent = '';
-                        return;
-                    }
-                    if (await deleteAppointment(id)) renderRoute();
-                }
-            } else {
-                delBtn.dataset.confirming = 'true';
-                const originalHtml = delBtn.innerHTML;
-                delBtn.innerHTML = '<span style="font-size:0.7rem">¿Borrar?</span>';
-                delBtn.style.background = '#e67e22';
-                delBtn.style.width = 'auto';
-                delBtn.style.padding = '0 6px';
-                
-                setTimeout(() => {
-                    if (delBtn && delBtn.dataset.confirming === 'true') {
-                        delBtn.dataset.confirming = 'false';
-                        delBtn.innerHTML = originalHtml;
-                        delBtn.style.background = '';
-                        delBtn.style.width = '';
-                        delBtn.style.padding = '';
-                    }
-                }, 3000);
-            }
-            return;
-        }
-
-        // 2. Appointment Photo Delete
-        const aptDelBtn = e.target.closest('.apt-photo-delete-btn');
-        if (aptDelBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (aptDelBtn.dataset.confirming === 'true') {
-                const photoId = aptDelBtn.dataset.photoId;
-                const aptItem = aptDelBtn.closest('.apt-mini-photo');
-                const aptId = aptItem?.dataset.aptId;
-                
-                if (aptId && photoId) {
-                    const apt = State.appointments.find(a => a.id === aptId);
-                    if (apt && apt.appointmentPhotos) {
-                        const photoToDelete = apt.appointmentPhotos.find(p => p.id === photoId);
-                        apt.appointmentPhotos = apt.appointmentPhotos.filter(p => p.id !== photoId);
-                        await api.updateAppointmentPhotos(aptId, apt.appointmentPhotos);
-                        
-                        if (photoToDelete && photoToDelete.clientPhotoId) {
-                            await deleteClientPhoto(photoToDelete.clientPhotoId);
-                        }
-                        showToast('Foto eliminada');
-                        renderRoute();
-                    }
-                }
-            } else {
-                aptDelBtn.dataset.confirming = 'true';
-                aptDelBtn.textContent = '¿X?';
-                aptDelBtn.style.background = '#e67e22';
-                setTimeout(() => {
-                    if (aptDelBtn && aptDelBtn.dataset.confirming === 'true') {
-                        aptDelBtn.dataset.confirming = 'false';
-                        aptDelBtn.textContent = '🗑️';
-                        aptDelBtn.style.background = 'rgba(0,0,0,0.6)';
-                    }
-                }, 3000);
-            }
-            return;
-        }
-
-        // 3. Appointment Photo Edit
-        const aptEditBtn = e.target.closest('.apt-photo-edit-btn');
-        if (aptEditBtn) {
-            e.stopPropagation();
-            const photoId = aptEditBtn.dataset.photoId;
-            const aptItem = aptEditBtn.closest('.apt-mini-photo');
-            const aptId = aptItem?.dataset.aptId;
-            const apt = State.appointments.find(a => a.id === aptId);
-            const photo = apt?.appointmentPhotos?.find(p => p.id === photoId);
-            if (photo && aptId) {
-                window.editAptPhoto(photoId, aptId, photo.photo_date || '', photo.notes || '', photo.photo_type || 'before');
-            }
-            return;
-        }
-
-        // 4. Client Photo Delete
-        const clientDelBtn = e.target.closest('.client-photo-remove-btn');
-        if (clientDelBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            if (clientDelBtn.dataset.confirming === 'true') {
-                const photoId = clientDelBtn.dataset.id;
-                clientDelBtn.disabled = true;
-                clientDelBtn.textContent = '...';
-                
-                const success = await deleteClientPhoto(photoId);
-                if (success) {
-                    renderRoute(); 
-                    if (typeof window.refreshCurrentClientPhotos === 'function') {
-                        window.refreshCurrentClientPhotos();
-                    }
-                } else {
-                    clientDelBtn.disabled = false;
-                    clientDelBtn.dataset.confirming = 'false';
-                    clientDelBtn.textContent = '🗑️';
-                    clientDelBtn.style.background = 'rgba(220,53,69,0.8)';
-                }
-            } else {
-                clientDelBtn.dataset.confirming = 'true';
-                clientDelBtn.textContent = '¿Borrar?';
-                clientDelBtn.style.background = '#e67e22';
-                clientDelBtn.style.width = 'auto';
-                
-                setTimeout(() => {
-                    if (clientDelBtn && clientDelBtn.dataset.confirming === 'true') {
-                        clientDelBtn.dataset.confirming = 'false';
-                        clientDelBtn.textContent = '🗑️';
-                        clientDelBtn.style.background = 'rgba(220,53,69,0.8)';
-                    }
-                }, 3000);
-            }
-            return;
-        }
-
-        // 5. Client Photo Edit
-        const clientEditBtn = e.target.closest('.client-photo-edit-btn');
-        if (clientEditBtn) {
-            e.stopPropagation();
-            const photoId = clientEditBtn.dataset.photoId;
-            const cid = window.currentModalClientId;
-            if (photoId) window.editClientPhoto(photoId, cid, '', '', '');
-            return;
-        }
-    });
-
-    /* ═══════════════════════════════════════
        STATE
        ═══════════════════════════════════════ */
     const State = {
@@ -828,6 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
                 notes: a.notes || '',
                 whatsappSent: a.whatsapp_sent || false,
+                whatsappSentCount: a.whatsapp_sent_count || 0,
                 userEmail: a.user_email || '',
                 appointmentPhotos: a.appointment_photos || [],
                 isStaffAppointment: a.is_staff_appointment || false,
@@ -842,6 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             State.isLoading = false;
             renderRoute();
+            updateRemindersBadge();
             
             // Verificación post-carga: ¿Hay recordatorios para los próximos 3 días?
             if (State.session && !State.session.staff) {
@@ -851,10 +672,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const limitStr = toLocalDateStr(futureLimit);
                 const todayStr = toLocalDateStr(today);
+                const nowTime = new Date().toTimeString().slice(0, 5);
                 
                 const count = State.appointments.filter(apt => {
                     if (apt.date < todayStr || apt.date > limitStr) return false;
-                    if (apt.whatsappSent) return false; // Solo pendientes
+                    if (apt.date === todayStr && apt.time <= nowTime) return false; // Ya pasó la hora
                     const client = State.clients.find(c => c.id === apt.clientId);
                     return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
                 }).length;
@@ -1656,11 +1478,36 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await api.markAppointmentReminded(id);
         } catch (err) {
-            console.error('Error al marcar como avisado (¿columna whatsapp_sent existe?):', err);
+            console.error('Error al marcar como avisado (¿columna whatsapp_sent_count existe?):', err);
         }
         const apt = State.appointments.find(a => a.id === id);
-        if (apt) apt.whatsappSent = true;
+        if (apt) apt.whatsappSentCount = (apt.whatsappSentCount || 0) + 1;
         return true;
+    }
+
+    function updateRemindersBadge() {
+        const badge = document.getElementById('reminders-badge');
+        if (!badge) return;
+        if (State.session?.staff) {
+            badge.style.display = 'none';
+            return;
+        }
+        const today = new Date();
+        const futureLimit = new Date(today);
+        futureLimit.setDate(today.getDate() + 3);
+        const limitStr = toLocalDateStr(futureLimit);
+        const todayStr = toLocalDateStr(today);
+        const nowTime = new Date().toTimeString().slice(0, 5);
+
+        const count = State.appointments.filter(apt => {
+            if (apt.date < todayStr || apt.date > limitStr) return false;
+            if (apt.date === todayStr && apt.time <= nowTime) return false;
+            const client = State.clients.find(c => c.id === apt.clientId);
+            return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
+        }).length;
+
+        badge.textContent = count;
+        badge.style.display = count > 0 ? '' : 'none';
     }
 
     async function deleteAppointment(id) {
@@ -1755,6 +1602,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         attachEvents();
+        updateRemindersBadge();
 
         // Cargar lista de clientes para diagnóstico
         if (currentRoute === 'diagnosis') {
@@ -2813,11 +2661,12 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         
         const limitStr = toLocalDateStr(futureLimit);
         const todayStr = toLocalDateStr(today);
+        const nowTime = new Date().toTimeString().slice(0, 5);
 
         const toRemind = State.appointments.filter(apt => {
-            // Citas entre hoy y dentro de 3 días que NO hayan sido avisadas
+            // Citas entre hoy y dentro de 3 días, mientras la hora no haya pasado
             if (apt.date < todayStr || apt.date > limitStr) return false;
-            if (apt.whatsappSent) return false;
+            if (apt.date === todayStr && apt.time <= nowTime) return false; // Ya pasó la hora
             
             const client = State.clients.find(c => c.id === apt.clientId);
             return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
@@ -2864,6 +2713,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <th>Fecha</th>
                             <th>Hora</th>
                             <th>Servicio</th>
+                            <th style="text-align:center">Veces</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -2882,6 +2732,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                                 <td><span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)">${dLabel}</span></td>
                                 <td><div style="font-weight:500;color:var(--accent-primary)">${apt.time}</div></td>
                                 <td><span class="monthly-service-badge">${service ? service.name : '—'}</span></td>
+                                <td style="text-align:center">
+                                    <span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)" title="Veces que se ha enviado el recordatorio">${apt.whatsappSentCount || 0}×</span>
+                                </td>
                                 <td>
                                     <button class="btn btn-primary btn-sm send-reminder-btn" 
                                             style="padding: 0.4rem 0.8rem;"
