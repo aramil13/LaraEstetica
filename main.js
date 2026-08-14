@@ -1352,20 +1352,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.editClientPhoto = async function(photoId, clientId, currentDate, currentNotes, currentType) {
-        // Obtener la foto actual para extraer valores de diagnóstico
-        const photoData = (State.clientPhotos?.[clientId] || []).find(p => p.id === photoId) || {};
-        
-        // Extraer valores de diagnóstico de las notas o usar valores por defecto
-        let caspaVal = 0, seboVal = 5, eritemaVal = 0;
-        if (photoData?.notes) {
-            const caspaMatch = photoData.notes.match(/Caspa:\s*(\d+)/i);
-            const seboMatch = photoData.notes.match(/Sebo:\s*(\d+)/i);
-            const eritemaMatch = photoData.notes.match(/Eritema:\s*(\d+)/i);
-            if (caspaMatch) caspaVal = parseInt(caspaMatch[1]) || 0;
-            if (seboMatch) seboVal = parseInt(seboMatch[1]) || 5;
-            if (eritemaMatch) eritemaVal = parseInt(eritemaMatch[1]) || 0;
-        }
-        
         openModal('Editar Foto', `
             <form id="edit-client-photo-form">
                 <div class="form-group">
@@ -1393,18 +1379,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const newType = document.getElementById('edit-client-photo-type').value;
                 const newDate = document.getElementById('edit-client-photo-date').value;
-                const newCaspa = document.getElementById('edit-client-photo-caspa').value;
-                const newSebo = document.getElementById('edit-client-photo-sebo').value;
-                const newEritema = document.getElementById('edit-client-photo-eritema').value;
                 const newNotes = document.getElementById('edit-client-photo-notes').value;
-                
-                // Incluir diagnósticos en las notas
-                const notesWithDiag = `${newNotes ? newNotes + ' | ' : ''}Caspa: ${newCaspa}, Sebo: ${newSebo}, Eritema: ${newEritema}`;
                 
                 await updateClientPhoto(photoId, clientId, { 
                     photo_type: newType, 
                     photo_date: newDate, 
-                    notes: notesWithDiag
+                    notes: newNotes || ''
                 });
                 closeModal();
                 showToast('Foto actualizada');
