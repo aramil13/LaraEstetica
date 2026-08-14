@@ -2263,7 +2263,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 </tr>`).join('');
 
         const totals = tpvCartTotals();
-        const docTypeLabel = State.tpv.docType === 'factura' ? 'Factura simplificada' : 'Ticket';
+        const docTypeLabel = State.tpv.docType === 'factura' ? 'Factura' : 'Ticket';
 
         return `
             <div class="data-card" style="padding:1.25rem;">
