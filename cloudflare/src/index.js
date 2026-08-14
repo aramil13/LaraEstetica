@@ -226,7 +226,7 @@ export default {
     if (path === '/api/clients' && method === 'GET') {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT * FROM clients ORDER BY name').all();
+      const { results } = await env.DB.prepare('SELECT * FROM clients WHERE user_email = ? ORDER BY name').bind(email).all();
       return json(results);
     }
     if (path === '/api/clients' && method === 'POST') {
@@ -247,16 +247,18 @@ export default {
       const id = path.split('/')[3];
       const b = await readJson(request);
       const enviar = b.enviar_was === true || b.enviar_was === 1 || b.enviar_was === 'true' ? 1 : 0;
-      await env.DB.prepare(
-        `UPDATE clients SET name = ?, phone = ?, email = ?, enviar_was = ?, whatsapp_template = ?, observations = ? WHERE id = ?`
-      ).bind(b.name, b.phone || null, b.email || null, enviar, b.whatsapp_template || null, b.observations || null, id).run();
+      const r = await env.DB.prepare(
+        `UPDATE clients SET name = ?, phone = ?, email = ?, enviar_was = ?, whatsapp_template = ?, observations = ? WHERE id = ? AND user_email = ?`
+      ).bind(b.name, b.phone || null, b.email || null, enviar, b.whatsapp_template || null, b.observations || null, id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
     if (path.startsWith('/api/clients/') && method === 'DELETE') {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
-      await env.DB.prepare('DELETE FROM clients WHERE id = ?').bind(id).run();
+      const r = await env.DB.prepare('DELETE FROM clients WHERE id = ? AND user_email = ?').bind(id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
 
@@ -264,7 +266,7 @@ export default {
     if (path === '/api/services' && method === 'GET') {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT * FROM services ORDER BY name').all();
+      const { results } = await env.DB.prepare('SELECT * FROM services WHERE user_email = ? ORDER BY name').bind(email).all();
       return json(results);
     }
     if (path === '/api/services' && method === 'POST') {
@@ -281,15 +283,17 @@ export default {
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
-      await env.DB.prepare('UPDATE services SET name = ?, duration = ?, price = ? WHERE id = ?')
-        .bind(b.name, b.duration || 0, b.price || 0, id).run();
+      const r = await env.DB.prepare('UPDATE services SET name = ?, duration = ?, price = ? WHERE id = ? AND user_email = ?')
+        .bind(b.name, b.duration || 0, b.price || 0, id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
     if (path.startsWith('/api/services/') && method === 'DELETE') {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
-      await env.DB.prepare('DELETE FROM services WHERE id = ?').bind(id).run();
+      const r = await env.DB.prepare('DELETE FROM services WHERE id = ? AND user_email = ?').bind(id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
 
@@ -297,7 +301,7 @@ export default {
     if (path === '/api/salons' && method === 'GET') {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT * FROM salons ORDER BY name').all();
+      const { results } = await env.DB.prepare('SELECT * FROM salons WHERE user_email = ? ORDER BY name').bind(email).all();
       return json(results);
     }
     if (path === '/api/salons' && method === 'POST') {
@@ -314,15 +318,17 @@ export default {
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
-      await env.DB.prepare('UPDATE salons SET name = ?, address = ?, phone = ?, email = ? WHERE id = ?')
-        .bind(b.name, b.address || null, b.phone || null, b.email || null, id).run();
+      const r = await env.DB.prepare('UPDATE salons SET name = ?, address = ?, phone = ?, email = ? WHERE id = ? AND user_email = ?')
+        .bind(b.name, b.address || null, b.phone || null, b.email || null, id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
     if (path.startsWith('/api/salons/') && method === 'DELETE') {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
-      await env.DB.prepare('DELETE FROM salons WHERE id = ?').bind(id).run();
+      const r = await env.DB.prepare('DELETE FROM salons WHERE id = ? AND user_email = ?').bind(id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
 
@@ -330,7 +336,7 @@ export default {
     if (path === '/api/appointments' && method === 'GET') {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT * FROM appointments ORDER BY date, time').all();
+      const { results } = await env.DB.prepare('SELECT * FROM appointments WHERE user_email = ? ORDER BY date, time').bind(email).all();
       const rows = results.map(r => ({ ...r, appointment_photos: JSON.parse(r.appointment_photos || '[]') }));
       return json(rows);
     }
@@ -354,9 +360,10 @@ export default {
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
-      await env.DB.prepare(
-        `UPDATE appointments SET client_id = ?, service_id = ?, salon_id = ?, date = ?, time = ?, notes = ?, appointment_photos = ? WHERE id = ?`
-      ).bind(b.client_id, b.service_id, b.salon_id || null, b.date, b.time, b.notes || '', JSON.stringify(b.appointment_photos || []), id).run();
+      const r = await env.DB.prepare(
+        `UPDATE appointments SET client_id = ?, service_id = ?, salon_id = ?, date = ?, time = ?, notes = ?, appointment_photos = ? WHERE id = ? AND user_email = ?`
+      ).bind(b.client_id, b.service_id, b.salon_id || null, b.date, b.time, b.notes || '', JSON.stringify(b.appointment_photos || []), id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
     if (path.startsWith('/api/appointments/') && method === 'PATCH') {
@@ -367,12 +374,12 @@ export default {
       const sub = parts[4];
       if (sub === 'photos') {
         const b = await readJson(request);
-        await env.DB.prepare('UPDATE appointments SET appointment_photos = ? WHERE id = ?')
-          .bind(JSON.stringify(b.photos || []), id).run();
+        await env.DB.prepare('UPDATE appointments SET appointment_photos = ? WHERE id = ? AND user_email = ?')
+          .bind(JSON.stringify(b.photos || []), id, email).run();
         return json({ ok: true });
       }
       if (sub === 'reminded') {
-        await env.DB.prepare('UPDATE appointments SET whatsapp_sent = 1 WHERE id = ?').bind(id).run();
+        await env.DB.prepare('UPDATE appointments SET whatsapp_sent = 1 WHERE id = ? AND user_email = ?').bind(id, email).run();
         return json({ ok: true });
       }
       return error('Ruta no encontrada', 404);
@@ -381,7 +388,8 @@ export default {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
-      await env.DB.prepare('DELETE FROM appointments WHERE id = ?').bind(id).run();
+      const r = await env.DB.prepare('DELETE FROM appointments WHERE id = ? AND user_email = ?').bind(id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
 
@@ -404,10 +412,10 @@ export default {
       const clientId = url.searchParams.get('clientId');
       let rows;
       if (clientId) {
-        const r = await env.DB.prepare('SELECT * FROM client_photos WHERE client_id = ? ORDER BY created_at DESC').bind(clientId).all();
+        const r = await env.DB.prepare('SELECT * FROM client_photos WHERE client_id = ? AND user_email = ? ORDER BY created_at DESC').bind(clientId, email).all();
         rows = r.results;
       } else {
-        const r = await env.DB.prepare('SELECT * FROM client_photos ORDER BY created_at DESC').all();
+        const r = await env.DB.prepare('SELECT * FROM client_photos WHERE user_email = ? ORDER BY created_at DESC').bind(email).all();
         rows = r.results;
       }
       return json(rows);
@@ -449,8 +457,9 @@ export default {
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
-      await env.DB.prepare('UPDATE client_photos SET photo_type = ?, photo_date = ?, notes = ? WHERE id = ?')
-        .bind(b.photo_type || null, b.photo_date || null, b.notes || null, id).run();
+      const r = await env.DB.prepare('UPDATE client_photos SET photo_type = ?, photo_date = ?, notes = ? WHERE id = ? AND user_email = ?')
+        .bind(b.photo_type || null, b.photo_date || null, b.notes || null, id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
 
@@ -458,11 +467,13 @@ export default {
       const email = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
-      const row = await env.DB.prepare('SELECT * FROM client_photos WHERE id = ?').bind(id).first();
+      const row = await env.DB.prepare('SELECT * FROM client_photos WHERE id = ? AND user_email = ?').bind(id, email).first();
       if (row) {
         await env.DB.prepare('DELETE FROM client_photos WHERE id = ?').bind(id).run();
         const m = row.photo_url && row.photo_url.match(/\/api\/photos\/(.+)$/);
         if (m) await env.PHOTOS.delete(m[1]);
+      } else {
+        return error('No autorizado', 403);
       }
       return json({ ok: true });
     }
