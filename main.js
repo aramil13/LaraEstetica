@@ -787,7 +787,6 @@ document.addEventListener('DOMContentLoaded', () => {
     /** Loads all data from the API into our local State cache */
     async function loadAllData() {
         State.isLoading = true;
-        renderRoute();
 
         try {
             const [clientsData, servicesData, appointmentsData, salonsData] = await Promise.all([
@@ -1720,15 +1719,6 @@ document.addEventListener('DOMContentLoaded', () => {
        RENDER DISPATCHER
        ═══════════════════════════════════════ */
     function renderRoute() {
-        if (State.isLoading) {
-            appContent.innerHTML = `
-                <div class="fade-in" style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:1rem;">
-                    <div class="loading-spinner"></div>
-                    <p style="color:var(--text-secondary);font-size:1.1rem;">Conectando con Supabase…</p>
-                </div>`;
-            return;
-        }
-
         if (currentRoute === 'agenda') content = getAgendaView();
         else if (currentRoute === 'clients') {
             // Recargar fotos de clientes al entrar a la pestaña
