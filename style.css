@@ -2366,7 +2366,20 @@ textarea.form-control {
     color: #000;
     background: #fff;
 }
+.invoice-a4 {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 15mm;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #000;
+    background: #fff;
+}
 @media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
     body * {
         visibility: hidden !important;
     }
@@ -2379,7 +2392,7 @@ textarea.form-control {
         position: absolute;
         left: 0;
         top: 0;
-        width: 76mm;
+        width: auto;
     }
 }
 

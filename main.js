@@ -2371,6 +2371,60 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
     function tpvBuildDocHtml(inv, isPreview) {
         const items = Array.isArray(inv.items) ? inv.items : [];
+        const num = (inv.doc_type === 'factura' ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
+        const dateStr = (inv.created_at || new Date().toISOString()).substring(0, 16).replace('T', ' ');
+        const clientName = inv.client_name || 'Consumidor final';
+        const nifLine = inv.client_nif ? `<strong>NIF:</strong> ${inv.client_nif}` : '';
+
+        if (inv.doc_type === 'factura') {
+            const lines = items.length === 0
+                ? '<tr><td colspan="5" style="padding:0.6rem;color:#777;">—</td></tr>'
+                : items.map(i => `
+                    <tr>
+                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;">${i.name}</td>
+                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:center;">${i.qty}</td>
+                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(parseFloat(i.price) || 0)}</td>
+                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney((parseFloat(i.price) || 0) * i.qty)}</td>
+                    </tr>`).join('');
+            return `
+                <div class="invoice-a4">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:1rem;margin-bottom:1.5rem;">
+                        <div>
+                            <div style="font-size:1.6rem;font-weight:800;">Estética y Bienestar Lara</div>
+                            <div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">Estética y bienestar</div>
+                        </div>
+                        <div style="text-align:right;font-size:0.95rem;">
+                            <div style="font-size:1.3rem;font-weight:800;">FACTURA</div>
+                            <div>Nº ${num}</div>
+                            <div>${dateStr}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.95rem;margin-bottom:1.5rem;">
+                        <strong>Cliente:</strong> ${clientName}${nifLine ? '<br>' + nifLine : ''}
+                    </div>
+                    <table style="width:100%;font-size:0.9rem;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f4f4f4;">
+                                <th style="padding:0.6rem 0.75rem;text-align:left;border-bottom:2px solid #000;">Servicio</th>
+                                <th style="padding:0.6rem 0.75rem;text-align:center;border-bottom:2px solid #000;">Cantidad</th>
+                                <th style="padding:0.6rem 0.75rem;text-align:right;border-bottom:2px solid #000;">Precio</th>
+                                <th style="padding:0.6rem 0.75rem;text-align:right;border-bottom:2px solid #000;">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>${lines}</tbody>
+                    </table>
+                    <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
+                        <div style="width:280px;">
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base</span><strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(inv.total_amount)}</span></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:2.5rem;text-align:center;font-size:0.8rem;color:#555;border-top:1px solid #ddd;padding-top:0.75rem;">¡Gracias por su visita!</div>
+                </div>`;
+        }
+
         const lines = items.length === 0
             ? '<tr><td colspan="3" style="padding:0.5rem;color:var(--text-secondary);">—</td></tr>'
             : items.map(i => `
@@ -2379,17 +2433,16 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <td style="padding:0.25rem 0.5rem;text-align:center;">${i.qty}</td>
                     <td style="padding:0.25rem 0.5rem;text-align:right;">${tpvFormatMoney((parseFloat(i.price) || 0) * i.qty)}</td>
                 </tr>`).join('');
-        const num = (inv.doc_type === 'factura' ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
         return `
             <div class="ticket-print">
                 <div style="text-align:center;border-bottom:1px dashed #999;padding-bottom:0.5rem;margin-bottom:0.5rem;">
                     <div style="font-size:1.1rem;font-weight:800;">Estética y Bienestar Lara</div>
-                    <div style="font-size:0.8rem;color:#555;">${inv.doc_type === 'factura' ? 'FACTURA SIMPLIFICADA' : 'TICKET'}</div>
+                    <div style="font-size:0.8rem;color:#555;">TICKET</div>
                     <div style="font-size:0.8rem;color:#555;">Nº ${num}</div>
-                    <div style="font-size:0.8rem;color:#555;">${(inv.created_at || new Date().toISOString()).substring(0, 16).replace('T', ' ')}</div>
+                    <div style="font-size:0.8rem;color:#555;">${dateStr}</div>
                 </div>
                 <div style="font-size:0.85rem;margin-bottom:0.5rem;">
-                    <strong>Cliente:</strong> ${inv.client_name || 'Consumidor final'}${inv.client_nif ? '<br><strong>NIF:</strong> ' + inv.client_nif : ''}
+                    <strong>Cliente:</strong> ${clientName}${nifLine ? '<br>' + nifLine : ''}
                 </div>
                 <table style="width:100%;font-size:0.85rem;border-collapse:collapse;">
                     <thead><tr><th style="text-align:left;border-bottom:1px solid #999;">Servicio</th><th style="border-bottom:1px solid #999;">Cant.</th><th style="border-bottom:1px solid #999;text-align:right;">Importe</th></tr></thead>
