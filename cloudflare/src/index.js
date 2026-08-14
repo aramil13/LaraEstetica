@@ -496,7 +496,7 @@ export default {
       const base = Number(b.base_amount) || 0;
       const commissionRate = isSalonInvoice ? (Number(b.commission_rate) || 30) : 0;
       const commission = isSalonInvoice ? (Number(b.commission_amount) || Math.round(base * commissionRate / 100 * 100) / 100) : 0;
-      const taxable = base - commission;
+      const taxable = isSalonInvoice ? commission : base;
       const tax = Number(b.tax_amount) || Math.round(taxable * 0.21 * 100) / 100;
       const retention = Number(b.retention_amount) || Math.round(taxable * 0.15 * 100) / 100;
       const total = Number(b.total_amount) || Math.round((taxable + tax - retention) * 100) / 100;
