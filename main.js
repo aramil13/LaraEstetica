@@ -1546,42 +1546,36 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => (modalBody.innerHTML = ''), 300);
     }
 
-    function openBeforeAfterCompare(photos, title = 'Comparativa Antes / Después') {
+    function openBeforeAfterCompare(photos, title = 'Comparativa Antes / Después', context = null) {
         const list = Array.isArray(photos) ? photos : [];
         const before = list.filter(p => p.photo_type !== 'after' && p.photo_type !== 'diagnosis');
         const after = list.filter(p => p.photo_type === 'after');
         const diagnosis = list.filter(p => p.photo_type === 'diagnosis');
 
-        const colHtml = (items, label, color) => {
-            if (!items.length) {
-                return `
-                    <div style="flex:1;min-width:0">
-                        <h3 style="text-align:center;font-size:1rem;font-weight:700;margin-bottom:0.75rem;color:${color}">${label}</h3>
-                        <div style="border:1px dashed var(--border-color);border-radius:8px;padding:2rem;text-align:center;color:var(--text-secondary);font-size:0.85rem">Sin fotos de "${label}"</div>
-                    </div>`;
-            }
-            const imgs = items.map(p => {
-                const d = p.photo_date || '';
-                return `
-                    <div style="text-align:center;margin-bottom:0.75rem">
-                        <img src="${p.photo_url}" alt="${label}" style="width:100%;max-height:240px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid ${color}" onclick="openModal('${label}','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                        ${d ? `<div style="font-size:0.7rem;color:var(--text-secondary);margin-top:0.25rem">${d}</div>` : ''}
-                    </div>`;
-            }).join('');
+        const photoCard = (p, label, color, small = false) => {
+            const d = p.photo_date || '';
             return `
-                <div style="flex:1;min-width:0">
-                    <h3 style="text-align:center;font-size:1rem;font-weight:700;margin-bottom:0.75rem;color:${color}">${label} (${items.length})</h3>
-                    ${imgs}
+                <div class="compare-photo" data-photo-id="${p.id}" draggable="true"
+                     style="text-align:center;margin-bottom:0.75rem;cursor:grab;position:relative">
+                    <img src="${p.photo_url}" alt="${label}" style="width:100%;${small ? 'height:90px;width:90px' : 'max-height:240px'};object-fit:cover;border-radius:8px;border:2px solid ${color};pointer-events:none">
+                    <div style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;border-radius:4px;font-size:0.65rem;padding:2px 6px">${label}</div>
+                    ${d ? `<div style="font-size:0.7rem;color:var(--text-secondary);margin-top:0.25rem">${d}</div>` : ''}
                 </div>`;
         };
+
+        const colHtml = (items, label, color) => `
+            <div class="compare-col" data-target="${label}" style="flex:1;min-width:0">
+                <h3 style="text-align:center;font-size:1rem;font-weight:700;margin-bottom:0.75rem;color:${color}">${label} (${items.length})</h3>
+                ${items.length
+                    ? items.map(p => photoCard(p, label, color)).join('')
+                    : `<div style="border:1px dashed var(--border-color);border-radius:8px;padding:2rem;text-align:center;color:var(--text-secondary);font-size:0.85rem">Arrastra aquí una foto</div>`}
+            </div>`;
 
         const extra = diagnosis.length ? `
             <hr style="margin:1.25rem 0;border:none;border-top:1px solid var(--border-color)">
             <h3 style="text-align:center;font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;color:var(--text-secondary)">Diagnóstico (${diagnosis.length})</h3>
             <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
-                ${diagnosis.map(p => `
-                    <img src="${p.photo_url}" alt="Diagnóstico" style="width:90px;height:90px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Diagnóstico','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
-                `).join('')}
+                ${diagnosis.map(p => photoCard(p, 'Diagnóstico', '#94a3b8', true)).join('')}
             </div>` : '';
 
         openModal(title, `
@@ -1590,7 +1584,75 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${colHtml(after, 'Después', '#34d399')}
             </div>
             ${extra}
-        `);
+            ${context ? `<p style="text-align:center;font-size:0.75rem;color:var(--text-secondary);margin-top:1rem">Arrastra una foto a la otra columna para reclasificarla</p>` : ''}
+        `, () => {
+            let draggedId = null;
+
+            const dropTargets = document.querySelectorAll('.compare-col');
+            dropTargets.forEach(col => {
+                col.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    col.style.outline = '2px dashed var(--accent-color)';
+                });
+                col.addEventListener('dragleave', () => { col.style.outline = ''; });
+                col.addEventListener('drop', async e => {
+                    e.preventDefault();
+                    col.style.outline = '';
+                    const targetType = col.dataset.target;
+                    const photoId = draggedId;
+                    draggedId = null;
+                    if (!photoId || !context || !targetType) return;
+                    await setPhotoCompareType(photoId, targetType, context);
+                });
+            });
+
+            document.querySelectorAll('.compare-photo').forEach(el => {
+                el.addEventListener('dragstart', e => {
+                    draggedId = el.dataset.photoId;
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                el.addEventListener('click', () => {
+                    const p = list.find(x => String(x.id) === String(el.dataset.photoId));
+                    if (p) openModal('Foto', `<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>`);
+                });
+            });
+        });
+    }
+
+    async function setPhotoCompareType(photoId, targetType, context) {
+        const newType = targetType === 'Después' ? 'after' : targetType === 'Diagnóstico' ? 'diagnosis' : 'before';
+        try {
+            if (context.aptId) {
+                const apt = State.appointments.find(a => a.id === context.aptId);
+                if (!apt || !apt.appointmentPhotos) { showToast('Cita no encontrada', 'error'); return; }
+                const photo = apt.appointmentPhotos.find(p => String(p.id) === String(photoId));
+                if (!photo) { showToast('Foto no encontrada', 'error'); return; }
+                photo.photo_type = newType;
+                await api.updateAppointmentPhotos(apt.id, apt.appointmentPhotos);
+                if (photo.clientPhotoId) {
+                    try {
+                        await api.updatePhoto(photo.clientPhotoId, { photo_type: newType });
+                    } catch (err) {
+                        console.error('Error sincronizando foto del cliente:', err);
+                    }
+                }
+                showToast('Foto reclasificada');
+            } else if (context.clientId) {
+                const photos = (State.clientPhotos && State.clientPhotos[context.clientId]) || [];
+                const photo = photos.find(p => String(p.id) === String(photoId));
+                if (!photo) { showToast('Foto no encontrada', 'error'); return; }
+                photo.photo_type = newType;
+                await api.updatePhoto(photoId, { photo_type: newType });
+                showToast('Foto reclasificada');
+            } else {
+                return;
+            }
+            closeModal();
+            renderRoute();
+        } catch (err) {
+            console.error('Error reclasificando foto:', err);
+            showToast('Error al reclasificar foto: ' + (err.message || err), 'error');
+        }
     }
 
     btnCloseModal.addEventListener('click', closeModal);
@@ -3374,7 +3436,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             } else if (clientId) {
                 photos = (State.clientPhotos && State.clientPhotos[clientId]) || [];
             }
-            openBeforeAfterCompare(photos);
+            openBeforeAfterCompare(photos, 'Comparativa Antes / Después', aptId ? { aptId } : clientId ? { clientId } : null);
             return;
         }
 
