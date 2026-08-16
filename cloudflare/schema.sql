@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   client_id TEXT,
   client_name TEXT,
   client_nif TEXT,
+  salon_id TEXT,
   items TEXT NOT NULL,
   base_amount REAL NOT NULL,
   tax_amount REAL NOT NULL,
@@ -130,3 +131,4 @@ CREATE TABLE IF NOT EXISTS invoices (
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_invoices_user_email ON invoices(user_email);
+CREATE INDEX IF NOT EXISTS idx_invoices_salon_id ON invoices(salon_id);

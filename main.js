@@ -387,6 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clientNif: '',
             commissionRate: 30,
             salonId: '',
+            historySalonId: 'all',
             invoices: []
         }
     };
@@ -2214,7 +2215,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const commission = isSalonInvoice ? base * rate / 100 : 0;
         const taxable = isSalonInvoice ? commission : base;
         const tax = taxable * 0.21;
-        const retention = taxable * 0.15;
+        const retention = isSalonInvoice ? taxable * 0.15 : 0;
         return { base, commission, commissionRate: rate, tax, retention, total: taxable + tax - retention };
     }
 
@@ -2281,6 +2282,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura para Cliente</button>
                     <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon">Factura para el Salón</button>
                 </div>
+                <div class="form-group">
+                    <label>Salón de la venta</label>
+                    <select class="form-control" id="tpv-sale-salon">${tpvSalonOptions()}</select>
+                </div>
                 ${showClient ? `
                 <div class="form-group">
                     <label>Cliente</label>
@@ -2290,11 +2295,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div class="form-group">
                     <label>NIF del cliente</label>
                     <input type="text" class="form-control" id="tpv-nif" placeholder="NIF / CIF" value="${State.tpv.clientNif}">
-                </div>` : ''}
-                ${isSalonInvoice ? `
-                <div class="form-group">
-                    <label>Cliente (Salón)</label>
-                    <select class="form-control" id="tpv-salon-client">${tpvSalonOptions()}</select>
                 </div>` : ''}
                 ${isSalonInvoice ? `
                 <div class="form-group" style="margin-bottom:0.25rem;">
@@ -2309,7 +2309,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <div style="color:var(--text-secondary)">Base: <strong>${tpvFormatMoney(totals.base)}</strong></div>
                     ${isSalonInvoice ? `<div style="color:var(--text-secondary)">Comisión por los Servicios (${totals.commissionRate}%): <strong>${tpvFormatMoney(totals.commission)}</strong></div>` : ''}
                     <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
-                    <div style="color:var(--text-secondary)">Retención (15%): <strong style="color:var(--danger)">−${tpvFormatMoney(totals.retention)}</strong></div>
+                    ${isSalonInvoice ? `<div style="color:var(--text-secondary)">Retención (15%): <strong style="color:var(--danger)">−${tpvFormatMoney(totals.retention)}</strong></div>` : ''}
                     <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
                 </div>
                 <button type="button" class="btn btn-primary" id="tpv-emit" style="width:100%;margin-top:1rem;">
@@ -2321,14 +2321,22 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
     function tpvHistoryRows() {
         if (State.tpv.invoices.length === 0) {
-            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
+            return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
         }
-        return State.tpv.invoices.map(inv => {
+        const filtered = State.tpv.historySalonId === 'all'
+            ? State.tpv.invoices
+            : State.tpv.invoices.filter(i => i.salon_id === State.tpv.historySalonId);
+        if (filtered.length === 0) {
+            return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas registradas en este salón.</td></tr>';
+        }
+        return filtered.map(inv => {
             const isInvoice = inv.doc_type !== 'ticket';
+            const salon = State.salons.find(s => s.id === inv.salon_id);
             return `
             <tr>
                 <td>${isInvoice ? 'F' : 'T'}-${String(inv.number).padStart(4, '0')}</td>
                 <td>${(inv.created_at || '').substring(0, 10)}</td>
+                <td>${salon ? `<span class="daily-salon-badge">${salon.name}</span>` : '<span style="color:var(--text-secondary);font-size:0.8rem;">Sin salón</span>'}</td>
                 <td>${inv.client_name || 'Consumidor final'}</td>
                 <td style="text-align:right">${tpvFormatMoney(inv.total_amount)}</td>
                 <td><span class="status-${isInvoice ? 'success' : 'info'}" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;">${isInvoice ? 'Factura' : 'Ticket'}</span></td>
@@ -2347,11 +2355,17 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     }
 
     function getTpvHistoryCard() {
+        const salonFilterOptions = [
+            '<option value="all">Todos los salones</option>'
+        ].concat(State.salons.map(s => `<option value="${s.id}"${State.tpv.historySalonId === s.id ? ' selected' : ''}>${s.name}</option>`)).join('');
         return `
             <div class="data-card" style="padding:1.25rem;">
-                <h3 style="margin-bottom:0.75rem;font-size:1rem;">Historial</h3>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
+                    <h3 style="margin-bottom:0;font-size:1rem;">Listado de ventas</h3>
+                    <select class="form-control" id="tpv-history-salon" style="width:auto;min-width:180px;padding:0.4rem 0.75rem;">${salonFilterOptions}</select>
+                </div>
                 <table class="table">
-                    <thead><tr><th>Nº</th><th>Fecha</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th></th></tr></thead>
+                    <thead><tr><th>Nº</th><th>Fecha</th><th>Salón</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th></th></tr></thead>
                     <tbody id="tpv-history-body">${tpvHistoryRows()}</tbody>
                 </table>
             </div>`;
@@ -2453,7 +2467,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base</span><strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
                     ${inv.doc_type === 'factura-salon' ? `<div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los Servicios (${inv.commission_rate || 30}%)</span><strong>${tpvFormatMoney(inv.commission_amount || 0)}</strong></div>` : ''}
                     <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>
+                    ${inv.doc_type === 'factura-salon' ? `<div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>` : ''}
                             <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(inv.total_amount)}</span></div>
                         </div>
                     </div>
@@ -2489,7 +2503,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <div style="margin-top:0.5rem;font-size:0.85rem;text-align:right;">
                     <div>Base: <strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
                     <div>IVA (21%): <strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
-                    <div>Retención (15%): <strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>
+                    ${inv.doc_type === 'factura-salon' ? `<div>Retención (15%): <strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>` : ''}
                     <div style="font-size:1rem;font-weight:800;">TOTAL: ${tpvFormatMoney(inv.total_amount)}</div>
                 </div>
                 <div style="margin-top:0.75rem;text-align:center;font-size:0.8rem;color:#555;">¡Gracias por su visita!</div>
@@ -2509,6 +2523,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const salon = isSalonInvoice ? tpvSelectedSalon() : null;
         const payload = {
             doc_type: State.tpv.docType,
+            salon_id: State.tpv.salonId || null,
             client_id: isSalonInvoice ? (salon ? salon.id : null) : (clientId || null),
             client_name: isSalonInvoice ? (salon ? (salon.business_name || salon.name) : (State.profile?.full_name || 'Estética y Bienestar Lara')) : tpvClientName(clientId),
             client_nif: isSalonInvoice ? (salon && salon.nif ? salon.nif : null) : (clientNif || null),
@@ -2568,8 +2583,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 tpvRenderCartPanel();
             }
         });
-        const salonClientSel = document.getElementById('tpv-salon-client');
-        if (salonClientSel) salonClientSel.addEventListener('change', e => { State.tpv.salonId = e.target.value; });
+        const saleSalonSel = document.getElementById('tpv-sale-salon');
+        if (saleSalonSel) saleSalonSel.addEventListener('change', e => { State.tpv.salonId = e.target.value; tpvRenderCartPanel(); });
         const nifInput = document.getElementById('tpv-nif');
         if (nifInput) nifInput.addEventListener('input', e => { State.tpv.clientNif = e.target.value; });
         const commissionInput = document.getElementById('tpv-commission-rate');
@@ -2598,6 +2613,11 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     }
 
     function tpvBindHistoryEvents() {
+        const historySalonSel = document.getElementById('tpv-history-salon');
+        if (historySalonSel) historySalonSel.addEventListener('change', e => {
+            State.tpv.historySalonId = e.target.value;
+            tpvRenderHistory();
+        });
         document.querySelectorAll('[data-invoice-id]').forEach(btn => {
             btn.addEventListener('click', async e => {
                 const invId = btn.dataset.invoiceId;
