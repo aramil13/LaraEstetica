@@ -1534,14 +1534,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 
     function navigate(route) {
-        if (State.session?.staff && (route === 'tpv' || route === 'salons' || route === 'diagnosis' || route === 'whatsapp')) {
+        if (State.session?.staff && (route === 'tpv' || route === 'sales' || route === 'salons' || route === 'diagnosis' || route === 'whatsapp')) {
             route = 'agenda';
         }
         currentRoute = route;
         navItems.forEach(item => {
             item.classList.toggle('active', item.dataset.target === route);
         });
-        if (route === 'tpv') tpvLoadInvoices();
+        if (route === 'tpv' || route === 'sales') tpvLoadInvoices();
         renderRoute();
         closeSidebar();
     }
@@ -1706,6 +1706,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         else if (currentRoute === 'services') content = getServicesView();
         else if (currentRoute === 'tpv') content = getTpvView();
+        else if (currentRoute === 'sales') content = getSalesView();
         else if (currentRoute === 'monthly') content = getMonthlyView();
         else if (currentRoute === 'salons') content = getSalonsView();
         else if (currentRoute === 'whatsapp') content = getWhatsAppView();
@@ -2237,6 +2238,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         return `
             <div class="section-header">
                 <div><h1 class="section-title">TPV · Punto de Venta</h1><p style="color:var(--text-secondary)">Tickets y facturas simplificadas · <span class="cloudflare-badge">⚡ IVA 21%</span></p></div>
+                <button type="button" class="btn btn-secondary" id="btn-tpv-sales">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Listado de Ventas
+                </button>
             </div>
             <div class="tpv-layout">
                 <div id="tpv-cart-panel">${getTpvCartPanel()}</div>
@@ -2245,7 +2250,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <h3 style="margin-bottom:0.75rem;font-size:1rem;">Servicios</h3>
                         ${serviceGrid}
                     </div>
-                    ${getTpvHistoryCard()}
                 </div>
             </div>`;
     }
@@ -2319,15 +2323,31 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             </div>`;
     }
 
+    function tpvSalesFiltered() {
+        const salonOk = i => State.tpv.historySalonId === 'all' || i.salon_id === State.tpv.historySalonId;
+        const fromOk = i => !State.tpv.salesFrom || (i.created_at || '').substring(0, 10) >= State.tpv.salesFrom;
+        const toOk = i => !State.tpv.salesTo || (i.created_at || '').substring(0, 10) <= State.tpv.salesTo;
+        return State.tpv.invoices.filter(i => salonOk(i) && fromOk(i) && toOk(i));
+    }
+
+    function tpvSalesSummary() {
+        const list = tpvSalesFiltered();
+        let count = 0, total = 0, tax = 0;
+        list.forEach(i => {
+            count++;
+            total += Number(i.total_amount) || 0;
+            tax += Number(i.tax_amount) || 0;
+        });
+        return { count, total, tax };
+    }
+
     function tpvHistoryRows() {
         if (State.tpv.invoices.length === 0) {
             return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
         }
-        const filtered = State.tpv.historySalonId === 'all'
-            ? State.tpv.invoices
-            : State.tpv.invoices.filter(i => i.salon_id === State.tpv.historySalonId);
+        const filtered = tpvSalesFiltered();
         if (filtered.length === 0) {
-            return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas registradas en este salón.</td></tr>';
+            return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en este salón y período.</td></tr>';
         }
         return filtered.map(inv => {
             const isInvoice = inv.doc_type !== 'ticket';
@@ -2354,16 +2374,60 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         }).join('');
     }
 
-    function getTpvHistoryCard() {
+    function getSalesView() {
+        if (!State.tpv.salesFrom) {
+            const now = new Date();
+            State.tpv.salesFrom = toLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
+        }
+        if (!State.tpv.salesTo) State.tpv.salesTo = toLocalDateStr(new Date());
+
         const salonFilterOptions = [
             '<option value="all">Todos los salones</option>'
         ].concat(State.salons.map(s => `<option value="${s.id}"${State.tpv.historySalonId === s.id ? ' selected' : ''}>${s.name}</option>`)).join('');
+        const summary = tpvSalesSummary();
+
         return `
-            <div class="data-card" style="padding:1.25rem;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
-                    <h3 style="margin-bottom:0;font-size:1rem;">Listado de ventas</h3>
-                    <select class="form-control" id="tpv-history-salon" style="width:auto;min-width:180px;padding:0.4rem 0.75rem;">${salonFilterOptions}</select>
+            <div class="section-header">
+                <div><h1 class="section-title">Listado de Ventas</h1><p style="color:var(--text-secondary)">Tickets y facturas por salón y período · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
+                <button type="button" class="btn btn-secondary" id="btn-sales-back">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
+                    Volver al TPV
+                </button>
+            </div>
+            <div class="daily-controls" style="justify-content:flex-start;flex-wrap:wrap;gap:0.75rem;">
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:0.75rem;font-weight:600;">Salón</label>
+                    <select class="form-control" id="sales-salon-select" style="min-width:180px;">${salonFilterOptions}</select>
                 </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:0.75rem;font-weight:600;">Desde</label>
+                    <input type="date" class="form-control" id="sales-from" value="${State.tpv.salesFrom}" style="min-width:150px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:0.75rem;font-weight:600;">Hasta</label>
+                    <input type="date" class="form-control" id="sales-to" value="${State.tpv.salesTo}" style="min-width:150px;">
+                </div>
+                <div style="display:flex;gap:0.5rem;align-items:flex-end;">
+                    <button type="button" class="btn btn-primary" id="btn-sales-apply">Aplicar</button>
+                    <button type="button" class="btn btn-secondary" id="btn-sales-reset">Limpiar</button>
+                </div>
+            </div>
+            <div class="stats-row" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin:1rem 0;">
+                <div class="stat-card">
+                    <p class="stat-label">Ventas</p>
+                    <p class="stat-value">${summary.count}</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">Importe total</p>
+                    <p class="stat-value">${tpvFormatMoney(summary.total)}</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">IVA incluido</p>
+                    <p class="stat-value">${tpvFormatMoney(summary.tax)}</p>
+                </div>
+            </div>
+            <div class="data-card" style="padding:1.25rem;">
+                <h3 style="margin-bottom:0.75rem;font-size:1rem;">Detalle</h3>
                 <table class="table">
                     <thead><tr><th>Nº</th><th>Fecha</th><th>Salón</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th></th></tr></thead>
                     <tbody id="tpv-history-body">${tpvHistoryRows()}</tbody>
@@ -2613,11 +2677,32 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     }
 
     function tpvBindHistoryEvents() {
-        const historySalonSel = document.getElementById('tpv-history-salon');
-        if (historySalonSel) historySalonSel.addEventListener('change', e => {
+        const salesSalonSel = document.getElementById('sales-salon-select');
+        if (salesSalonSel) salesSalonSel.addEventListener('change', e => {
             State.tpv.historySalonId = e.target.value;
-            tpvRenderHistory();
+            renderRoute();
         });
+        const salesFrom = document.getElementById('sales-from');
+        const salesTo = document.getElementById('sales-to');
+        const applyBtn = document.getElementById('btn-sales-apply');
+        if (applyBtn) applyBtn.addEventListener('click', () => {
+            State.tpv.salesFrom = salesFrom ? salesFrom.value : '';
+            State.tpv.salesTo = salesTo ? salesTo.value : '';
+            if (State.tpv.salesFrom && State.tpv.salesTo && State.tpv.salesFrom > State.tpv.salesTo) {
+                showToast('La fecha "Desde" no puede ser posterior a "Hasta".', 'error');
+                return;
+            }
+            renderRoute();
+        });
+        const resetBtn = document.getElementById('btn-sales-reset');
+        if (resetBtn) resetBtn.addEventListener('click', () => {
+            State.tpv.salesFrom = '';
+            State.tpv.salesTo = '';
+            State.tpv.historySalonId = 'all';
+            renderRoute();
+        });
+        const backBtn = document.getElementById('btn-sales-back');
+        if (backBtn) backBtn.addEventListener('click', () => navigate('tpv'));
         document.querySelectorAll('[data-invoice-id]').forEach(btn => {
             btn.addEventListener('click', async e => {
                 const invId = btn.dataset.invoiceId;
@@ -2626,7 +2711,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     try {
                         await api.deleteInvoice(invId);
                         State.tpv.invoices = State.tpv.invoices.filter(i => i.id !== invId);
-                        tpvRenderHistory();
+                        renderRoute();
                         showToast('Documento eliminado.');
                     } catch (err) {
                         showToast('Error: ' + (err.message || 'error'), 'error');
@@ -2643,6 +2728,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         document.querySelectorAll('.tpv-service-card').forEach(btn => {
             btn.addEventListener('click', () => tpvAddService(btn.dataset.serviceId));
         });
+        const btnTpvSales = document.getElementById('btn-tpv-sales');
+        if (btnTpvSales) btnTpvSales.addEventListener('click', () => navigate('sales'));
         tpvBindCartEvents();
         tpvBindHistoryEvents();
     }
