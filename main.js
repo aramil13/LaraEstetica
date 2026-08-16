@@ -2324,6 +2324,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     }
 
     function tpvSalesFiltered() {
+        if (!State.tpv.salesApplied) return [];
         const salonOk = i => State.tpv.historySalonId === 'all' || i.salon_id === State.tpv.historySalonId;
         const fromOk = i => !State.tpv.salesFrom || (i.created_at || '').substring(0, 10) >= State.tpv.salesFrom;
         const toOk = i => !State.tpv.salesTo || (i.created_at || '').substring(0, 10) <= State.tpv.salesTo;
@@ -2345,6 +2346,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     function tpvHistoryRows() {
         if (State.tpv.invoices.length === 0) {
             return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
+        }
+        if (!State.tpv.salesApplied) {
+            return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
         }
         const filtered = tpvSalesFiltered();
         if (filtered.length === 0) {
@@ -2381,6 +2385,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             State.tpv.salesFrom = toLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
         }
         if (State.tpv.salesTo === undefined) State.tpv.salesTo = toLocalDateStr(new Date());
+        if (State.tpv.salesApplied === undefined) State.tpv.salesApplied = true;
 
         const salonFilterOptions = [
             '<option value="all">Todos los salones</option>'
@@ -2778,6 +2783,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 showToast('La fecha "Desde" no puede ser posterior a "Hasta".', 'error');
                 return;
             }
+            State.tpv.salesApplied = true;
             renderRoute();
         });
         const resetBtn = document.getElementById('btn-sales-reset');
@@ -2785,6 +2791,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             State.tpv.salesFrom = '';
             State.tpv.salesTo = '';
             State.tpv.historySalonId = 'all';
+            State.tpv.salesApplied = false;
             renderRoute();
         });
         const backBtn = document.getElementById('btn-sales-back');
