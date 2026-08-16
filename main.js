@@ -960,7 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleStaffSession(account) {
         const adminEmail = account.adminEmail || State.currentUserEmail || '';
-        State.session = { staff: true, email: adminEmail, staffName: account.name };
+        State.session = { staff: true, email: adminEmail, staffName: account.name, staffSalonId: account.salonId || null };
         State.currentUserEmail = adminEmail;
         State.currentUserColor = getUserColor(adminEmail);
         if (account.salonId) {
@@ -983,7 +983,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide restricted nav items for staff
         document.querySelectorAll('.nav-item').forEach(item => {
             const target = item.dataset.target;
-            if (target === 'salons' || target === 'diagnosis' || target === 'whatsapp') {
+            if (target === 'salons' || target === 'diagnosis' || target === 'whatsapp' || target === 'tpv') {
                 item.style.display = 'none';
             } else {
                 item.style.display = '';
@@ -1519,6 +1519,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentRoute = 'agenda';
 
     function navigate(route) {
+        if (State.session?.staff && (route === 'tpv' || route === 'salons' || route === 'diagnosis' || route === 'whatsapp')) {
+            route = 'agenda';
+        }
         currentRoute = route;
         navItems.forEach(item => {
             item.classList.toggle('active', item.dataset.target === route);
@@ -2040,21 +2043,27 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
        CLIENTS VIEW
        ═══════════════════════════════════════ */
     function getClientsView() {
+        const salonFilter = State.activeSalonId || 'all';
+        const filteredClients = salonFilter === 'all'
+            ? State.clients
+            : State.clients.filter(c => c.salon_id === salonFilter);
+
         let rows = '';
-        if (State.clients.length === 0) {
+        if (filteredClients.length === 0) {
             rows = `
             <div class="empty-state data-card">
                 <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <h3>No hay clientes registrados</h3>
+                <h3>No hay clientes registrados${salonFilter !== 'all' ? ' en este salón' : ''}</h3>
                 <p>Añade tu primer cliente pulsando el botón superior.</p>
             </div>`;
         } else {
-            rows = `<div class="clients-list">${State.clients.map(c => {
+            rows = `<div class="clients-list">${filteredClients.map(c => {
+                const salonName = State.salons.find(s => s.id === c.salon_id)?.name;
                 return `
                 <div class="client-card" data-client-id="${c.id}">
                     <div class="client-header">
                         <div class="client-info">
-                            <h3 style="margin:0;font-weight:600">${c.name}</h3>
+                            <h3 style="margin:0;font-weight:600">${c.name}${salonName ? ` <span class="salon-badge" style="font-size:0.7rem;font-weight:600;color:var(--accent-color);border:1px solid var(--accent-color);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle">${salonName}</span>` : ''}</h3>
                             <div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;color:var(--text-secondary)">
                                 ${c.phone ? `<span><a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">📱 ${c.phone}</a></span>` : ''}
                                 ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
@@ -2226,9 +2235,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     }
 
     function getTpvCartPanel() {
+        const tpvClients = State.clients.filter(c => !c.salon_id || c.salon_id === State.tpv.salonId);
         const clientOptions = [
             '<option value="">Consumidor final</option>'
-        ].concat(State.clients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
+        ].concat(tpvClients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
 
         const cartRows = State.tpv.cart.length === 0
             ? '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1rem;">El carrito está vacío. Añade servicios desde la derecha.</td></tr>'
@@ -3534,11 +3544,26 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     });
 
     function showClientFormForDiagnosis() {
+        const isStaff = !!State.session?.staff;
+        const staffSalonId = State.session?.staff && State.session.staffSalonId;
+        const defaultSalonId = State.activeSalonId !== 'all' ? State.activeSalonId : (State.salons.length === 1 ? State.salons[0].id : '');
+        const salonOptions = State.salons.map(s => `
+            <option value="${s.id}" ${String(defaultSalonId) === String(s.id) ? 'selected' : ''}>${s.name}</option>`).join('');
         const html = `
             <form id="client-form-diagnosis">
                 <div class="form-group">
                     <label>Nombre y Apellidos</label>
                     <input type="text" class="form-control" name="name" required placeholder="Ej: María García">
+                </div>
+                <div class="form-group">
+                    <label>Salón <span style="color:var(--danger-color, #dc3545)">*</span></label>
+                    ${isStaff
+                        ? `<div class="form-control" style="background:rgba(0,0,0,0.03);color:var(--text-secondary)">${State.salons.find(s => String(s.id) === String(staffSalonId))?.name || 'Salón asignado'}</div>
+                           <input type="hidden" name="salon_id" value="${staffSalonId || ''}">`
+                        : `<select class="form-control" name="salon_id" required>
+                              <option value="" disabled ${!defaultSalonId ? 'selected' : ''}>Selecciona un salón...</option>
+                              ${salonOptions}
+                          </select>`}
                 </div>
                 <div class="form-group">
                     <label>Teléfono</label>
@@ -3573,6 +3598,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const data = {
                     id: clientId,
                     name: fd.get('name'),
+                    salon_id: fd.get('salon_id') || null,
                     phone: fd.get('phone'),
                     email: fd.get('email'),
                     enviar_was: fd.get('enviar_was') === 'true',
@@ -4119,11 +4145,26 @@ window.addEventListener('message', async (event) => {
        ═══════════════════════════════════════ */
     function showClientForm(info = null) {
         const isEdit = !!info;
+        const isStaff = !!State.session?.staff;
+        const staffSalonId = State.session?.staff && State.session.staffSalonId;
+        const defaultSalonId = isEdit ? (info.salon_id || '') : (State.activeSalonId !== 'all' ? State.activeSalonId : (State.salons.length === 1 ? State.salons[0].id : ''));
+        const salonOptions = State.salons.map(s => `
+            <option value="${s.id}" ${String(defaultSalonId) === String(s.id) ? 'selected' : ''}>${s.name}</option>`).join('');
         const html = `
             <form id="client-form">
                 <div class="form-group">
                     <label>Nombre y Apellidos</label>
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
+                </div>
+                <div class="form-group">
+                    <label>Salón <span style="color:var(--danger-color, #dc3545)">*</span></label>
+                    ${isStaff
+                        ? `<div class="form-control" style="background:rgba(0,0,0,0.03);color:var(--text-secondary)">${State.salons.find(s => String(s.id) === String(staffSalonId))?.name || 'Salón asignado'}</div>
+                           <input type="hidden" name="salon_id" value="${staffSalonId || ''}">`
+                        : `<select class="form-control" name="salon_id" required>
+                              <option value="" disabled ${!defaultSalonId ? 'selected' : ''}>Selecciona un salón...</option>
+                              ${salonOptions}
+                          </select>`}
                 </div>
                 <div class="form-group">
                     <label>NIF / CIF</label>
@@ -4393,6 +4434,7 @@ window.addEventListener('message', async (event) => {
                 const data = { 
                     id: currentClientId, 
                     name: fd.get('name'), 
+                    salon_id: fd.get('salon_id') || null,
                     phone: fd.get('phone'), 
                     email: fd.get('email'),
                     fiscal_address: fd.get('fiscal_address'),

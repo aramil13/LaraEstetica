@@ -326,40 +326,49 @@ export default {
 
     /* ── Clientes ──────────────────────────── */
     if (path === '/api/clients' && method === 'GET') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT * FROM clients WHERE user_email = ? ORDER BY name').bind(email).all();
+      let results;
+      if (isStaff) {
+        results = (await env.DB.prepare('SELECT * FROM clients WHERE user_email = ? AND salon_id = ? ORDER BY name').bind(email, staffSalonId).all()).results;
+      } else {
+        results = (await env.DB.prepare('SELECT * FROM clients WHERE user_email = ? ORDER BY name').bind(email).all()).results;
+      }
       return json(results);
     }
     if (path === '/api/clients' && method === 'POST') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       const id = b.id || randomHex(16);
+      const salonId = isStaff ? staffSalonId : b.salon_id;
+      if (!salonId) return error('Debes asignar un salón al cliente', 400);
       const enviar = b.enviar_was === true || b.enviar_was === 1 || b.enviar_was === 'true' ? 1 : 0;
       await env.DB.prepare(
-        `INSERT INTO clients (id, name, phone, email, fiscal_address, nif, enviar_was, whatsapp_template, observations, user_email)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(id, b.name, b.phone || null, b.email || null, b.fiscal_address || null, b.nif || null, enviar, b.whatsapp_template || null, b.observations || null, b.user_email || email).run();
+        `INSERT INTO clients (id, name, phone, email, fiscal_address, nif, salon_id, enviar_was, whatsapp_template, observations, user_email)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(id, b.name, b.phone || null, b.email || null, b.fiscal_address || null, b.nif || null, salonId, enviar, b.whatsapp_template || null, b.observations || null, b.user_email || email).run();
       return json({ id, ...b, enviar_was: enviar === 1 });
     }
     if (path.startsWith('/api/clients/') && method === 'PUT') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
+      const salonId = isStaff ? staffSalonId : b.salon_id;
+      if (!salonId) return error('Debes asignar un salón al cliente', 400);
       const enviar = b.enviar_was === true || b.enviar_was === 1 || b.enviar_was === 'true' ? 1 : 0;
       const r = await env.DB.prepare(
-        `UPDATE clients SET name = ?, phone = ?, email = ?, fiscal_address = ?, nif = ?, enviar_was = ?, whatsapp_template = ?, observations = ? WHERE id = ? AND user_email = ?`
-      ).bind(b.name, b.phone || null, b.email || null, b.fiscal_address || null, b.nif || null, enviar, b.whatsapp_template || null, b.observations || null, id, email).run();
+        `UPDATE clients SET name = ?, phone = ?, email = ?, fiscal_address = ?, nif = ?, salon_id = ?, enviar_was = ?, whatsapp_template = ?, observations = ? WHERE id = ? AND user_email = ?`
+      ).bind(b.name, b.phone || null, b.email || null, b.fiscal_address || null, b.nif || null, salonId, enviar, b.whatsapp_template || null, b.observations || null, id, email).run();
       if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
     if (path.startsWith('/api/clients/') && method === 'DELETE') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
-      const r = await env.DB.prepare('DELETE FROM clients WHERE id = ? AND user_email = ?').bind(id, email).run();
+      const r = await env.DB.prepare('DELETE FROM clients WHERE id = ? AND user_email = ? AND (? IS NULL OR salon_id = ?)').bind(id, email, isStaff ? staffSalonId : null, staffSalonId).run();
       if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }

@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS clients (
   email TEXT,
   fiscal_address TEXT,
   nif TEXT,
+  salon_id TEXT,
   enviar_was INTEGER DEFAULT 0,
   whatsapp_template TEXT,
   observations TEXT,
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS clients (
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_clients_user_email ON clients(user_email);
+CREATE INDEX IF NOT EXISTS idx_clients_salon_id ON clients(salon_id);
 
 CREATE TABLE IF NOT EXISTS services (
   id TEXT PRIMARY KEY,
