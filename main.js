@@ -2332,13 +2332,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
     function tpvSalesSummary() {
         const list = tpvSalesFiltered();
-        let count = 0, total = 0, tax = 0;
+        let count = 0, base = 0, total = 0, tax = 0;
         list.forEach(i => {
             count++;
+            base += Number(i.base_amount) || 0;
             total += Number(i.total_amount) || 0;
             tax += Number(i.tax_amount) || 0;
         });
-        return { count, total, tax };
+        return { count, base, total, tax };
     }
 
     function tpvHistoryRows() {
@@ -2389,10 +2390,16 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         return `
             <div class="section-header">
                 <div><h1 class="section-title">Listado de Ventas</h1><p style="color:var(--text-secondary)">Tickets y facturas por salón y período · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
-                <button type="button" class="btn btn-secondary" id="btn-sales-back">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
-                    Volver al TPV
-                </button>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-primary" id="btn-sales-print">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
+                        Imprimir
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btn-sales-back">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
+                        Volver al TPV
+                    </button>
+                </div>
             </div>
             <div class="daily-controls" style="justify-content:flex-start;flex-wrap:wrap;gap:0.75rem;">
                 <div class="form-group" style="margin:0;">
@@ -2433,6 +2440,85 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <tbody id="tpv-history-body">${tpvHistoryRows()}</tbody>
                 </table>
             </div>`;
+    }
+
+    function tpvPrintSales() {
+        const printArea = document.getElementById('print-area');
+        if (!printArea) return;
+        const list = tpvSalesFiltered();
+        const salon = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
+        const fromLabel = State.tpv.salesFrom || 'inicio';
+        const toLabel = State.tpv.salesTo || 'hoy';
+        const summary = tpvSalesSummary();
+        const issuer = State.profile || {};
+        const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
+        const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
+        const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
+
+        const rows = list.length === 0
+            ? '<tr><td colspan="8" style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</td></tr>'
+            : list.map(inv => {
+                const isInvoice = inv.doc_type !== 'ticket';
+                const num = (isInvoice ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
+                const salonName = State.salons.find(s => s.id === inv.salon_id)?.name || 'Sin salón';
+                return `
+                <tr>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;">${num}</td>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;">${(inv.created_at || '').substring(0, 10)}</td>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;">${salonName}</td>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;">${inv.client_name || 'Consumidor final'}</td>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(inv.base_amount)}</td>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(inv.tax_amount)}</td>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;font-weight:600;">${tpvFormatMoney(inv.total_amount)}</td>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${isInvoice ? 'Factura' : 'Ticket'}</td>
+                </tr>`;
+            }).join('');
+
+        printArea.innerHTML = `
+            <div class="invoice-a4">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:1rem;margin-bottom:1.25rem;">
+                    <div>
+                        <div style="font-size:1.6rem;font-weight:800;">${issuerName}</div>
+                        ${issuerNif}
+                        ${issuerAddress}
+                    </div>
+                    <div style="text-align:right;font-size:0.95rem;">
+                        <div style="font-size:1.3rem;font-weight:800;">LISTADO DE VENTAS</div>
+                        <div>Salón: <strong>${salon}</strong></div>
+                        <div>Período: ${fromLabel} → ${toLabel}</div>
+                        <div>Emitido: ${toLocalDateStr(new Date())}</div>
+                    </div>
+                </div>
+                <table style="width:100%;font-size:0.85rem;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f4f4f4;">
+                            <th style="padding:0.55rem 0.6rem;text-align:left;border-bottom:2px solid #000;">Nº</th>
+                            <th style="padding:0.55rem 0.6rem;text-align:left;border-bottom:2px solid #000;">Fecha</th>
+                            <th style="padding:0.55rem 0.6rem;text-align:left;border-bottom:2px solid #000;">Salón</th>
+                            <th style="padding:0.55rem 0.6rem;text-align:left;border-bottom:2px solid #000;">Cliente</th>
+                            <th style="padding:0.55rem 0.6rem;text-align:right;border-bottom:2px solid #000;">Base</th>
+                            <th style="padding:0.55rem 0.6rem;text-align:right;border-bottom:2px solid #000;">IVA</th>
+                            <th style="padding:0.55rem 0.6rem;text-align:right;border-bottom:2px solid #000;">Total</th>
+                            <th style="padding:0.55rem 0.6rem;text-align:center;border-bottom:2px solid #000;">Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
+                    <div style="width:300px;">
+                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Documentos</span><strong>${summary.count}</strong></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base total</span><strong>${tpvFormatMoney(summary.base)}</strong></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA total</span><strong>${tpvFormatMoney(summary.tax)}</strong></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(summary.total)}</span></div>
+                    </div>
+                </div>
+            </div>`;
+        printArea.classList.add('print-active');
+        window.print();
+        setTimeout(() => {
+            printArea.innerHTML = '';
+            printArea.classList.remove('print-active');
+        }, 300);
     }
 
     function tpvRenderCartPanel() {
@@ -2703,6 +2789,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         });
         const backBtn = document.getElementById('btn-sales-back');
         if (backBtn) backBtn.addEventListener('click', () => navigate('tpv'));
+        const printBtn = document.getElementById('btn-sales-print');
+        if (printBtn) printBtn.addEventListener('click', tpvPrintSales);
         document.querySelectorAll('[data-invoice-id]').forEach(btn => {
             btn.addEventListener('click', async e => {
                 const invId = btn.dataset.invoiceId;
