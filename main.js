@@ -1518,6 +1518,20 @@ document.addEventListener('DOMContentLoaded', () => {
        ═══════════════════════════════════════ */
     let currentRoute = 'agenda';
 
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    function closeSidebar() {
+        if (appLayout) appLayout.classList.remove('sidebar-open');
+    }
+
+    function toggleSidebar() {
+        if (appLayout) appLayout.classList.toggle('sidebar-open');
+    }
+
+    if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
     function navigate(route) {
         if (State.session?.staff && (route === 'tpv' || route === 'salons' || route === 'diagnosis' || route === 'whatsapp')) {
             route = 'agenda';
@@ -1528,6 +1542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (route === 'tpv') tpvLoadInvoices();
         renderRoute();
+        closeSidebar();
     }
 
     navItems.forEach(item => {

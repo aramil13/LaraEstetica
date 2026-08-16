@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20250816b">
 </head>
 <body>
 
@@ -139,8 +139,12 @@
          APP (shown when logged in)
          ════════════════════════════════════ -->
     <div class="app-layout" id="app-layout" style="display:none">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Abrir menú">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
         <!-- Sidebar Navigation -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="brand">
                 <div class="brand-icon">✨</div>
                 <h1>Estética y Bienestar <span class="highlight">Lara</span></h1>
@@ -195,6 +199,9 @@
             </div>
         </aside>
 
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
         <!-- Main Content Area -->
         <main class="main-content" id="app-content">
             <!-- Dynamic Content Injected Here -->
@@ -214,7 +221,7 @@
         </div>
     </div>
 
-    <script src="main.js?v=20250816a"></script>
+    <script src="main.js?v=20250816b"></script>
     <div id="print-area" style="display:none;"></div>
 </body>
 </html>
