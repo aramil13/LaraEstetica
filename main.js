@@ -2376,11 +2376,11 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     }
 
     function getSalesView() {
-        if (!State.tpv.salesFrom) {
+        if (State.tpv.salesFrom === undefined) {
             const now = new Date();
             State.tpv.salesFrom = toLocalDateStr(new Date(now.getFullYear(), now.getMonth(), 1));
         }
-        if (!State.tpv.salesTo) State.tpv.salesTo = toLocalDateStr(new Date());
+        if (State.tpv.salesTo === undefined) State.tpv.salesTo = toLocalDateStr(new Date());
 
         const salonFilterOptions = [
             '<option value="all">Todos los salones</option>'
