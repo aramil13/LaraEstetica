@@ -604,6 +604,30 @@ textarea.form-control {
     text-transform: capitalize;
 }
 
+.day-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.day-detail-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.day-detail-nav h3 {
+    margin-bottom: 0;
+}
+
+.btn-day-add {
+    flex-shrink: 0;
+}
+
 .day-detail-list {
     display: flex;
     flex-direction: column;
@@ -2148,6 +2172,14 @@ textarea.form-control {
     }
     .day-detail h3 {
         font-size: 0.95rem;
+    }
+    .day-detail-nav {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .day-detail-header .btn-day-add {
+        width: 100%;
+        justify-content: center;
     }
     .day-detail-item {
         padding: 0.65rem;

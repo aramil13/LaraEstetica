@@ -2049,7 +2049,21 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
             <!-- Day Detail -->
             <div class="day-detail">
-                <h3>📋 ${detailLabel}</h3>
+                <div class="day-detail-header">
+                    <div class="day-detail-nav">
+                        <button class="cal-nav-btn" id="day-prev" title="Día anterior" aria-label="Día anterior">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <h3>📋 ${detailLabel}</h3>
+                        <button class="cal-nav-btn" id="day-next" title="Día siguiente" aria-label="Día siguiente">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                    <button class="btn btn-primary btn-day-add" onclick="showAppointmentForm()">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        Nueva Cita
+                    </button>
+                </div>
                 ${timelineHtml}
                 ${detailHtml}
             </div>
@@ -3471,6 +3485,21 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             if (State.calMonth > 11) { State.calMonth = 0; State.calYear++; }
             renderRoute();
         });
+
+        // Day detail navigation (prev/next day)
+        const btnDayPrev = document.getElementById('day-prev');
+        const btnDayNext = document.getElementById('day-next');
+        const shiftDetailDay = delta => {
+            const base = State.selectedDate || toLocalDateStr(new Date());
+            const d = new Date(base + 'T00:00:00');
+            d.setDate(d.getDate() + delta);
+            State.selectedDate = toLocalDateStr(d);
+            State.calYear = d.getFullYear();
+            State.calMonth = d.getMonth();
+            renderRoute();
+        };
+        if (btnDayPrev) btnDayPrev.addEventListener('click', () => shiftDetailDay(-1));
+        if (btnDayNext) btnDayNext.addEventListener('click', () => shiftDetailDay(1));
 
         // Salon filter
         const salonSelects = [document.getElementById('agenda-salon-select'), document.getElementById('daily-salon-select')];
