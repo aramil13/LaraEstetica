@@ -388,7 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
             commissionRate: 30,
             salonId: '',
             historySalonId: 'all',
-            invoices: []
+            invoices: [],
+            paymentMethod: 'contado',
+            paymentCash: ''
         }
     };
 
@@ -2238,6 +2240,19 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         return v.toFixed(2) + ' €';
     }
 
+    function tpvPaymentShort(inv) {
+        const m = inv.payment_method || 'contado';
+        return m === 'tarjeta' ? 'Tarjeta' : (m === 'mixto' ? 'Mixto' : 'Contado');
+    }
+
+    function tpvPaymentDetail(inv) {
+        const m = inv.payment_method || 'contado';
+        if (m === 'mixto') {
+            return `Mixto (Contado: ${tpvFormatMoney(Number(inv.payment_cash) || 0)} / Tarjeta: ${tpvFormatMoney(Number(inv.payment_card) || 0)})`;
+        }
+        return tpvPaymentShort(inv);
+    }
+
     function getTpvView() {
         const isStaff = State.session && State.session.staff;
         const services = State.services.filter(s => !isStaff || isStaffService(s.id));
@@ -2330,6 +2345,22 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     ${isSalonInvoice ? `<div style="color:var(--text-secondary)">Retención (15%): <strong style="color:var(--danger)">−${tpvFormatMoney(totals.retention)}</strong></div>` : ''}
                     <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
                 </div>
+                <div class="form-group" style="margin-top:1rem;margin-bottom:0;">
+                    <label>Forma de pago</label>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <button type="button" class="btn ${State.tpv.paymentMethod === 'contado' ? 'btn-primary' : 'btn-secondary'}" id="tpv-pay-contado">Contado</button>
+                        <button type="button" class="btn ${State.tpv.paymentMethod === 'tarjeta' ? 'btn-primary' : 'btn-secondary'}" id="tpv-pay-tarjeta">Tarjeta</button>
+                        <button type="button" class="btn ${State.tpv.paymentMethod === 'mixto' ? 'btn-primary' : 'btn-secondary'}" id="tpv-pay-mixto">Mixto</button>
+                    </div>
+                </div>
+                ${State.tpv.paymentMethod === 'mixto' ? `
+                <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-top:0.75rem;">
+                    <div class="form-group" style="margin:0;flex:1;">
+                        <label>Importe en efectivo (€)</label>
+                        <input type="number" class="form-control" id="tpv-payment-cash" min="0" max="${totals.total.toFixed(2)}" step="0.01" placeholder="0.00" value="${State.tpv.paymentCash}">
+                    </div>
+                    <div style="padding-bottom:0.6rem;font-size:0.9rem;color:var(--text-secondary);white-space:nowrap;">Tarjeta: <strong id="tpv-payment-card-label">${tpvFormatMoney(totals.total - (parseFloat(State.tpv.paymentCash) || 0))}</strong></div>
+                </div>` : ''}
                 <button type="button" class="btn btn-primary" id="tpv-emit" style="width:100%;margin-top:1rem;">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-4px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
                     Emitir ${docTypeLabel}
@@ -2359,14 +2390,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
     function tpvHistoryRows() {
         if (State.tpv.invoices.length === 0) {
-            return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
+            return '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
         }
         if (!State.tpv.salesApplied) {
-            return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
+            return '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
         }
         const filtered = tpvSalesFiltered();
         if (filtered.length === 0) {
-            return '<tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en este salón y período.</td></tr>';
+            return '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en este salón y período.</td></tr>';
         }
         return filtered.map(inv => {
             const isInvoice = inv.doc_type !== 'ticket';
@@ -2379,6 +2410,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 <td>${inv.client_name || 'Consumidor final'}</td>
                 <td style="text-align:right">${tpvFormatMoney(inv.total_amount)}</td>
                 <td><span class="status-${isInvoice ? 'success' : 'info'}" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;">${isInvoice ? 'Factura' : 'Ticket'}</span></td>
+                <td>${tpvPaymentShort(inv)}</td>
                 <td>
                     <div class="actions">
                         <button class="edit-btn" data-invoice-id="${inv.id}" title="Imprimir">
@@ -2455,7 +2487,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             <div class="data-card" style="padding:1.25rem;">
                 <h3 style="margin-bottom:0.75rem;font-size:1rem;">Detalle</h3>
                 <table class="table">
-                    <thead><tr><th>Nº</th><th>Fecha</th><th>Salón</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th></th></tr></thead>
+                    <thead><tr><th>Nº</th><th>Fecha</th><th>Salón</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th>Pago</th><th></th></tr></thead>
                     <tbody id="tpv-history-body">${tpvHistoryRows()}</tbody>
                 </table>
             </div>`;
@@ -2475,7 +2507,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
 
         const rows = list.length === 0
-            ? '<tr><td colspan="8" style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</td></tr>'
+            ? '<tr><td colspan="9" style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</td></tr>'
             : list.map(inv => {
                 const isInvoice = inv.doc_type !== 'ticket';
                 const num = (isInvoice ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
@@ -2490,6 +2522,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(inv.tax_amount)}</td>
                     <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;font-weight:600;">${tpvFormatMoney(inv.total_amount)}</td>
                     <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${isInvoice ? 'Factura' : 'Ticket'}</td>
+                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${tpvPaymentShort(inv)}</td>
                 </tr>`;
             }).join('');
 
@@ -2519,6 +2552,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <th style="padding:0.55rem 0.6rem;text-align:right;border-bottom:2px solid #000;">IVA</th>
                             <th style="padding:0.55rem 0.6rem;text-align:right;border-bottom:2px solid #000;">Total</th>
                             <th style="padding:0.55rem 0.6rem;text-align:center;border-bottom:2px solid #000;">Tipo</th>
+                            <th style="padding:0.55rem 0.6rem;text-align:center;border-bottom:2px solid #000;">Pago</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
@@ -2638,6 +2672,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
                     ${inv.doc_type === 'factura-salon' ? `<div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>` : ''}
                             <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(inv.total_amount)}</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;font-size:0.9rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>
                         </div>
                     </div>
                     <div style="margin-top:2.5rem;text-align:center;font-size:0.8rem;color:#555;border-top:1px solid #ddd;padding-top:0.75rem;">¡Gracias por su visita!</div>
@@ -2675,6 +2710,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     ${inv.doc_type === 'factura-salon' ? `<div>Retención (15%): <strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>` : ''}
                     <div style="font-size:1rem;font-weight:800;">TOTAL: ${tpvFormatMoney(inv.total_amount)}</div>
                 </div>
+                <div style="margin-top:0.4rem;font-size:0.8rem;text-align:right;"><strong>Forma de pago:</strong> ${tpvPaymentDetail(inv)}</div>
                 <div style="margin-top:0.75rem;text-align:center;font-size:0.8rem;color:#555;">¡Gracias por su visita!</div>
             </div>`;
     }
@@ -2690,6 +2726,20 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const totals = tpvCartTotals();
         const isSalonInvoice = State.tpv.docType === 'factura-salon';
         const salon = isSalonInvoice ? tpvSelectedSalon() : null;
+        const payMethod = ['contado', 'tarjeta', 'mixto'].includes(State.tpv.paymentMethod) ? State.tpv.paymentMethod : 'contado';
+        let payCash = 0, payCard = 0;
+        if (payMethod === 'contado') {
+            payCash = totals.total;
+        } else if (payMethod === 'tarjeta') {
+            payCard = totals.total;
+        } else {
+            const cashInput = document.getElementById('tpv-payment-cash');
+            const v = cashInput ? (parseFloat(cashInput.value) || 0) : 0;
+            payCash = Math.min(Math.max(v, 0), totals.total);
+            payCard = totals.total - payCash;
+        }
+        payCash = Math.round(payCash * 100) / 100;
+        payCard = Math.round(payCard * 100) / 100;
         const payload = {
             doc_type: State.tpv.docType,
             salon_id: State.tpv.salonId || null,
@@ -2702,7 +2752,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             commission_amount: Math.round(totals.commission * 100) / 100,
             tax_amount: Math.round(totals.tax * 100) / 100,
             retention_amount: Math.round(totals.retention * 100) / 100,
-            total_amount: Math.round(totals.total * 100) / 100
+            total_amount: Math.round(totals.total * 100) / 100,
+            payment_method: payMethod,
+            payment_cash: payCash,
+            payment_card: payCard
         };
         try {
             const created = await api.addInvoice(payload);
@@ -2761,6 +2814,22 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             const v = parseFloat(e.target.value);
             State.tpv.commissionRate = isNaN(v) ? 0 : v;
             tpvRenderCartPanel();
+        });
+
+        // Payment method
+        [['tpv-pay-contado', 'contado'], ['tpv-pay-tarjeta', 'tarjeta'], ['tpv-pay-mixto', 'mixto']].forEach(([id, val]) => {
+            const btn = document.getElementById(id);
+            if (btn) btn.addEventListener('click', () => { State.tpv.paymentMethod = val; tpvRenderCartPanel(); });
+        });
+        const cashInput = document.getElementById('tpv-payment-cash');
+        if (cashInput) cashInput.addEventListener('input', e => {
+            State.tpv.paymentCash = e.target.value;
+            const lbl = document.getElementById('tpv-payment-card-label');
+            if (lbl) {
+                const t = tpvCartTotals().total;
+                const v = Math.min(Math.max(parseFloat(e.target.value) || 0, 0), t);
+                lbl.textContent = tpvFormatMoney(t - v);
+            }
         });
 
         document.querySelectorAll('.tpv-qty-btn').forEach(btn => {

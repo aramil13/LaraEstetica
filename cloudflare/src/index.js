@@ -508,7 +508,7 @@ export default {
     if (path === '/api/invoices' && method === 'GET') {
       const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT id, number, doc_type, client_id, client_name, client_nif, salon_id, items, base_amount, tax_amount, retention_amount, commission_rate, commission_amount, total_amount, created_at FROM invoices WHERE user_email = ? ORDER BY number DESC').bind(email).all();
+      const { results } = await env.DB.prepare('SELECT id, number, doc_type, client_id, client_name, client_nif, salon_id, items, base_amount, tax_amount, retention_amount, commission_rate, commission_amount, total_amount, payment_method, payment_cash, payment_card, created_at FROM invoices WHERE user_email = ? ORDER BY number DESC').bind(email).all();
       return json(results.map(r => ({ ...r, items: JSON.parse(r.items || '[]') })));
     }
     if (path === '/api/invoices' && method === 'POST') {
@@ -527,15 +527,26 @@ export default {
       const retention = isSalonInvoice ? (Number(b.retention_amount) || Math.round(taxable * 0.15 * 100) / 100) : 0;
       const total = Number(b.total_amount) || Math.round((taxable + tax - retention) * 100) / 100;
       const isInvoice = docType !== 'ticket';
+      const validPayMethods = ['contado', 'tarjeta', 'mixto'];
+      const payMethod = validPayMethods.includes(b.payment_method) ? b.payment_method : 'contado';
+      let payCash = Number(b.payment_cash) || 0;
+      let payCard = Number(b.payment_card) || 0;
+      if (payMethod === 'contado') { payCash = total; payCard = 0; }
+      else if (payMethod === 'tarjeta') { payCash = 0; payCard = total; }
+      else {
+        payCash = Math.min(Math.max(payCash, 0), total);
+        payCard = Math.round((total - payCash) * 100) / 100;
+      }
+      payCash = Math.round(payCash * 100) / 100;
       const last = await env.DB.prepare('SELECT MAX(number) AS maxNum FROM invoices WHERE user_email = ? AND doc_type IN (\'factura\', \'factura-salon\')').bind(email).first();
       const nextNumber = isInvoice ? ((last && last.maxNum ? last.maxNum : 0) + 1) : (await env.DB.prepare('SELECT MAX(number) AS maxNum FROM invoices WHERE user_email = ? AND doc_type = \'ticket\'').bind(email).first().then(r => (r && r.maxNum ? r.maxNum : 0) + 1));
       const id = randomHex(16);
       await env.DB.prepare(
-        `INSERT INTO invoices (id, number, doc_type, client_id, client_name, client_nif, salon_id, items, base_amount, tax_amount, retention_amount, commission_rate, commission_amount, total_amount, user_email)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO invoices (id, number, doc_type, client_id, client_name, client_nif, salon_id, items, base_amount, tax_amount, retention_amount, commission_rate, commission_amount, total_amount, payment_method, payment_cash, payment_card, user_email)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         id, nextNumber, docType, b.client_id || null, b.client_name || 'Consumidor final',
-        b.client_nif || null, b.salon_id || null, JSON.stringify(b.items), base, tax, retention, commissionRate, commission, total, email
+        b.client_nif || null, b.salon_id || null, JSON.stringify(b.items), base, tax, retention, commissionRate, commission, total, payMethod, payCash, payCard, email
       ).run();
       return json({ id, number: nextNumber, doc_type: docType });
     }

@@ -127,6 +127,9 @@ CREATE TABLE IF NOT EXISTS invoices (
   commission_rate REAL NOT NULL DEFAULT 0,
   commission_amount REAL NOT NULL DEFAULT 0,
   total_amount REAL NOT NULL,
+  payment_method TEXT NOT NULL DEFAULT 'contado',
+  payment_cash REAL NOT NULL DEFAULT 0,
+  payment_card REAL NOT NULL DEFAULT 0,
   user_email TEXT DEFAULT '',
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
