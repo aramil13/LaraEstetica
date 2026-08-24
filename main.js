@@ -389,6 +389,8 @@ document.addEventListener('DOMContentLoaded', () => {
             salonId: '',
             historySalonId: 'all',
             invoices: [],
+            salesClientIds: [],
+            salesGroupBy: 'cliente',
             paymentMethod: 'contado',
             paymentCash: ''
         }
@@ -2373,7 +2375,81 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const salonOk = i => State.tpv.historySalonId === 'all' || i.salon_id === State.tpv.historySalonId;
         const fromOk = i => !State.tpv.salesFrom || (i.created_at || '').substring(0, 10) >= State.tpv.salesFrom;
         const toOk = i => !State.tpv.salesTo || (i.created_at || '').substring(0, 10) <= State.tpv.salesTo;
-        return State.tpv.invoices.filter(i => salonOk(i) && fromOk(i) && toOk(i));
+        const selClients = State.tpv.salesClientIds || [];
+        const clientOk = i => selClients.length === 0
+            ? true
+            : (i.doc_type !== 'factura-salon' && selClients.includes(i.client_id));
+        return State.tpv.invoices
+            .filter(i => salonOk(i) && fromOk(i) && toOk(i) && clientOk(i))
+            .sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+    }
+
+    function tpvSalesGroups() {
+        const by = State.tpv.salesGroupBy === 'cliente' ? 'cliente' : 'salon';
+        const map = new Map();
+        tpvSalesFiltered().forEach(inv => {
+            if (by === 'cliente' && inv.doc_type === 'factura-salon') return;
+            let key, label;
+            if (by === 'cliente') {
+                key = inv.client_id || '__consumidor__';
+                label = inv.client_name || 'Consumidor final';
+            } else {
+                key = inv.salon_id || '__sin_salon__';
+                label = State.salons.find(s => s.id === key)?.name || 'Sin salón';
+            }
+            if (!map.has(key)) map.set(key, { label, items: [] });
+            map.get(key).items.push(inv);
+        });
+        return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+    }
+
+    function tpvInvoiceNum(inv) {
+        return (inv.doc_type !== 'ticket' ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
+    }
+
+    function tpvSalesReportRows() {
+        const by = State.tpv.salesGroupBy === 'cliente' ? 'cliente' : 'salon';
+        if (!State.tpv.salesApplied) {
+            return '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
+        }
+        const groups = tpvSalesGroups();
+        if (groups.length === 0) {
+            return '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en el período y filtros seleccionados.</td></tr>';
+        }
+        let html = '';
+        let grandTotal = 0;
+        groups.forEach(g => {
+            let gBase = 0;
+            html += `<tr class="report-group-header"><td colspan="5">${g.label}</td></tr>`;
+            g.items.forEach(inv => {
+                const items = Array.isArray(inv.items) ? inv.items : [];
+                const dateStr = (inv.created_at || '').substring(0, 10);
+                const dimVal = by === 'cliente'
+                    ? (State.salons.find(s => s.id === inv.salon_id)?.name || 'Sin salón')
+                    : (inv.client_name || 'Consumidor final');
+                const lines = items.length > 0 ? items.map(it => ({
+                    name: it.name,
+                    qty: it.qty,
+                    amount: Math.round((parseFloat(it.price) || 0) * (it.qty || 0) * 100) / 100
+                })) : [{ name: '—', qty: '', amount: Number(inv.base_amount) || 0 }];
+                lines.forEach((line, idx) => {
+                    gBase += line.amount;
+                    html += `<tr>
+                        ${idx === 0 ? `<td rowspan="${lines.length}" style="vertical-align:top;">${dateStr}<br><span style="font-size:0.7rem;color:var(--text-secondary);">${tpvInvoiceNum(inv)}</span></td>
+                        <td rowspan="${lines.length}" style="vertical-align:top;"><span class="daily-salon-badge">${dimVal}</span></td>` : ''}
+                        <td>${line.name}</td>
+                        <td style="text-align:center;">${line.qty}</td>
+                        <td style="text-align:right;">${tpvFormatMoney(line.amount)}</td>
+                    </tr>`;
+                });
+            });
+            gBase = Math.round(gBase * 100) / 100;
+            grandTotal += g.items.reduce((acc, i) => acc + (Number(i.total_amount) || 0), 0);
+            html += `<tr class="report-subtotal"><td colspan="4" style="text-align:right;">Subtotal ${g.label} <span style="font-weight:400;font-size:0.75rem;">(sin IVA)</span></td><td style="text-align:right;">${tpvFormatMoney(gBase)}</td></tr>`;
+        });
+        grandTotal = Math.round(grandTotal * 100) / 100;
+        html += `<tr class="report-grand"><td colspan="4" style="text-align:right;">TOTAL GENERAL (IVA incl.)</td><td style="text-align:right;">${tpvFormatMoney(grandTotal)}</td></tr>`;
+        return html;
     }
 
     function tpvSalesSummary() {
@@ -2388,43 +2464,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         return { count, base, total, tax };
     }
 
-    function tpvHistoryRows() {
-        if (State.tpv.invoices.length === 0) {
-            return '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:1rem;">Aún no se han emitido tickets ni facturas.</td></tr>';
-        }
-        if (!State.tpv.salesApplied) {
-            return '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
-        }
-        const filtered = tpvSalesFiltered();
-        if (filtered.length === 0) {
-            return '<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en este salón y período.</td></tr>';
-        }
-        return filtered.map(inv => {
-            const isInvoice = inv.doc_type !== 'ticket';
-            const salon = State.salons.find(s => s.id === inv.salon_id);
-            return `
-            <tr>
-                <td>${isInvoice ? 'F' : 'T'}-${String(inv.number).padStart(4, '0')}</td>
-                <td>${(inv.created_at || '').substring(0, 10)}</td>
-                <td>${salon ? `<span class="daily-salon-badge">${salon.name}</span>` : '<span style="color:var(--text-secondary);font-size:0.8rem;">Sin salón</span>'}</td>
-                <td>${inv.client_name || 'Consumidor final'}</td>
-                <td style="text-align:right">${tpvFormatMoney(inv.total_amount)}</td>
-                <td><span class="status-${isInvoice ? 'success' : 'info'}" style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:999px;">${isInvoice ? 'Factura' : 'Ticket'}</span></td>
-                <td>${tpvPaymentShort(inv)}</td>
-                <td>
-                    <div class="actions">
-                        <button class="edit-btn" data-invoice-id="${inv.id}" title="Imprimir">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
-                        </button>
-                        <button class="delete-btn" data-invoice-id="${inv.id}" title="Eliminar">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>
-                </td>
-            </tr>`;
-        }).join('');
-    }
-
     function getSalesView() {
         if (State.tpv.salesFrom === undefined) {
             const now = new Date();
@@ -2432,6 +2471,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         }
         if (State.tpv.salesTo === undefined) State.tpv.salesTo = toLocalDateStr(new Date());
         if (State.tpv.salesApplied === undefined) State.tpv.salesApplied = true;
+        const selClients = State.tpv.salesClientIds || [];
+        const groupByCliente = State.tpv.salesGroupBy === 'cliente';
 
         const salonFilterOptions = [
             '<option value="all">Todos los salones</option>'
@@ -2440,10 +2481,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Listado de Ventas</h1><p style="color:var(--text-secondary)">Tickets y facturas por salón y período · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
+                <div><h1 class="section-title">Listado de Ventas</h1><p style="color:var(--text-secondary)">Ventas entre fechas · filtros por cliente y salón · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                     <button type="button" class="btn btn-primary" id="btn-sales-print">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm0-12V5a2 2 0 012-2h2a2 2 0 012 2v0"></path></svg>
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                         Imprimir
                     </button>
                     <button type="button" class="btn btn-secondary" id="btn-sales-back">
@@ -2465,6 +2506,22 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <label style="font-size:0.75rem;font-weight:600;">Hasta</label>
                     <input type="date" class="form-control" id="sales-to" value="${State.tpv.salesTo}" style="min-width:150px;">
                 </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:0.75rem;font-weight:600;">Clientes${selClients.length > 0 ? ` (${selClients.length} seleccionados)` : ' (todos)'}</label>
+                    <div class="client-check-box" id="sales-client-box">
+                        ${State.clients.length === 0 ? '<span style="color:var(--text-secondary);font-size:0.8rem;">Sin clientes</span>' : ''}
+                        ${State.clients.map(c => `
+                        <label class="client-check-item"><input type="checkbox" data-client-id="${c.id}" ${selClients.includes(c.id) ? 'checked' : ''}> ${c.name}</label>`).join('')}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary" id="btn-sales-clients-clear" style="margin-top:0.35rem;">Quitar filtro de clientes</button>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:0.75rem;font-weight:600;">Agrupar por</label>
+                    <div style="display:flex;gap:0.4rem;">
+                        <button type="button" class="btn ${groupByCliente ? 'btn-primary' : 'btn-secondary'}" id="btn-group-cliente">Cliente</button>
+                        <button type="button" class="btn ${!groupByCliente ? 'btn-primary' : 'btn-secondary'}" id="btn-group-salon">Salón</button>
+                    </div>
+                </div>
                 <div style="display:flex;gap:0.5rem;align-items:flex-end;">
                     <button type="button" class="btn btn-primary" id="btn-sales-apply">Aplicar</button>
                     <button type="button" class="btn btn-secondary" id="btn-sales-reset">Limpiar</button>
@@ -2485,10 +2542,10 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                 </div>
             </div>
             <div class="data-card" style="padding:1.25rem;">
-                <h3 style="margin-bottom:0.75rem;font-size:1rem;">Detalle</h3>
+                <h3 style="margin-bottom:0.75rem;font-size:1rem;">Detalle agrupado por ${groupByCliente ? 'cliente' : 'salón'}</h3>
                 <table class="table">
-                    <thead><tr><th>Nº</th><th>Fecha</th><th>Salón</th><th>Cliente</th><th style="text-align:right">Total</th><th>Tipo</th><th>Pago</th><th></th></tr></thead>
-                    <tbody id="tpv-history-body">${tpvHistoryRows()}</tbody>
+                    <thead><tr><th>Fecha</th><th>${groupByCliente ? 'Salón' : 'Cliente'}</th><th>Servicio</th><th style="text-align:center">Cant.</th><th style="text-align:right">Subtotal</th></tr></thead>
+                    <tbody id="tpv-history-body">${tpvSalesReportRows()}</tbody>
                 </table>
             </div>`;
     }
@@ -2496,8 +2553,13 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     function tpvPrintSales() {
         const printArea = document.getElementById('print-area');
         if (!printArea) return;
-        const list = tpvSalesFiltered();
+        const by = State.tpv.salesGroupBy === 'cliente' ? 'cliente' : 'salon';
+        const groups = tpvSalesGroups();
         const salon = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
+        const selClients = (State.tpv.salesClientIds || [])
+            .map(id => State.clients.find(c => c.id === id)?.name)
+            .filter(Boolean);
+        const clientsLabel = selClients.length === 0 ? 'Todos los clientes' : selClients.join(', ');
         const fromLabel = State.tpv.salesFrom || 'inicio';
         const toLabel = State.tpv.salesTo || 'hoy';
         const summary = tpvSalesSummary();
@@ -2506,25 +2568,65 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
         const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
 
-        const rows = list.length === 0
-            ? '<tr><td colspan="9" style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</td></tr>'
-            : list.map(inv => {
-                const isInvoice = inv.doc_type !== 'ticket';
-                const num = (isInvoice ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
-                const salonName = State.salons.find(s => s.id === inv.salon_id)?.name || 'Sin salón';
+        const dimHead = by === 'cliente' ? 'Salón' : 'Cliente';
+        let grandTotal = 0;
+        const groupBlocks = groups.length === 0
+            ? '<div style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</div>'
+            : groups.map(g => {
+                let gBase = 0;
+                const rows = g.items.map(inv => {
+                    const items = Array.isArray(inv.items) ? inv.items : [];
+                    const dateStr = (inv.created_at || '').substring(0, 10);
+                    const dimVal = by === 'cliente'
+                        ? (State.salons.find(s => s.id === inv.salon_id)?.name || 'Sin salón')
+                        : (inv.client_name || 'Consumidor final');
+                    const lines = items.length > 0 ? items.map(it => ({
+                        name: it.name,
+                        qty: it.qty,
+                        amount: Math.round((parseFloat(it.price) || 0) * (it.qty || 0) * 100) / 100
+                    })) : [{ name: '—', qty: '', amount: Number(inv.base_amount) || 0 }];
+                    return lines.map((line, idx) => `
+                        <tr>
+                            ${idx === 0 ? `<td rowspan="${lines.length}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dateStr}<br><span style="font-size:0.7rem;color:#777;">${tpvInvoiceNum(inv)}</span></td>
+                            <td rowspan="${lines.length}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dimVal}</td>` : ''}
+                            <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;">${line.name}</td>
+                            <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${line.qty}</td>
+                            <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(line.amount)}</td>
+                        </tr>`).join('');
+                }).join('');
+                g.items.forEach(inv => {
+                    const items = Array.isArray(inv.items) ? inv.items : [];
+                    if (items.length > 0) {
+                        items.forEach(it => { gBase += (parseFloat(it.price) || 0) * (it.qty || 0); });
+                    } else {
+                        gBase += Number(inv.base_amount) || 0;
+                    }
+                    grandTotal += Number(inv.total_amount) || 0;
+                });
+                gBase = Math.round(gBase * 100) / 100;
                 return `
-                <tr>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;">${num}</td>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;">${(inv.created_at || '').substring(0, 10)}</td>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;">${salonName}</td>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;">${inv.client_name || 'Consumidor final'}</td>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(inv.base_amount)}</td>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(inv.tax_amount)}</td>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;font-weight:600;">${tpvFormatMoney(inv.total_amount)}</td>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${isInvoice ? 'Factura' : 'Ticket'}</td>
-                    <td style="padding:0.5rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${tpvPaymentShort(inv)}</td>
-                </tr>`;
+                <div style="margin-top:1.25rem;">
+                    <div style="background:#f4f4f4;padding:0.45rem 0.6rem;font-weight:800;font-size:1rem;">${g.label}</div>
+                    <table style="width:100%;font-size:0.85rem;border-collapse:collapse;">
+                        <thead>
+                            <tr style="color:#555;">
+                                <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;width:110px;">Fecha</th>
+                                <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;">${dimHead}</th>
+                                <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;">Servicio</th>
+                                <th style="padding:0.35rem 0.6rem;text-align:center;border-bottom:1px solid #999;width:50px;">Cant.</th>
+                                <th style="padding:0.35rem 0.6rem;text-align:right;border-bottom:1px solid #999;width:90px;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}
+                        </tbody>
+                    </table>
+                    <div style="display:flex;justify-content:flex-end;padding:0.4rem 0.6rem;border-top:2px solid #000;font-weight:700;">
+                        <span>Subtotal ${g.label} (sin IVA)</span>
+                        <span style="min-width:90px;text-align:right;">${tpvFormatMoney(gBase)}</span>
+                    </div>
+                </div>`;
             }).join('');
+        grandTotal = Math.round(grandTotal * 100) / 100;
 
         printArea.innerHTML = `
             <div class="invoice-a4">
@@ -2536,33 +2638,21 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     </div>
                     <div style="text-align:right;font-size:0.95rem;">
                         <div style="font-size:1.3rem;font-weight:800;">LISTADO DE VENTAS</div>
-                        <div>Salón: <strong>${salon}</strong></div>
+                        <div>Agrupado por: <strong>${by === 'cliente' ? 'Cliente' : 'Salón'}</strong></div>
                         <div>Período: ${fromLabel} → ${toLabel}</div>
                         <div>Emitido: ${toLocalDateStr(new Date())}</div>
                     </div>
                 </div>
-                <table style="width:100%;font-size:0.85rem;border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#f4f4f4;">
-                            <th style="padding:0.55rem 0.6rem;text-align:left;border-bottom:2px solid #000;">Nº</th>
-                            <th style="padding:0.55rem 0.6rem;text-align:left;border-bottom:2px solid #000;">Fecha</th>
-                            <th style="padding:0.55rem 0.6rem;text-align:left;border-bottom:2px solid #000;">Salón</th>
-                            <th style="padding:0.55rem 0.6rem;text-align:left;border-bottom:2px solid #000;">Cliente</th>
-                            <th style="padding:0.55rem 0.6rem;text-align:right;border-bottom:2px solid #000;">Base</th>
-                            <th style="padding:0.55rem 0.6rem;text-align:right;border-bottom:2px solid #000;">IVA</th>
-                            <th style="padding:0.55rem 0.6rem;text-align:right;border-bottom:2px solid #000;">Total</th>
-                            <th style="padding:0.55rem 0.6rem;text-align:center;border-bottom:2px solid #000;">Tipo</th>
-                            <th style="padding:0.55rem 0.6rem;text-align:center;border-bottom:2px solid #000;">Pago</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
+                <div style="font-size:0.85rem;color:#333;margin-bottom:0.75rem;">
+                    Salón: <strong>${salon}</strong> · Clientes: <strong>${clientsLabel}</strong>
+                </div>
+                ${groupBlocks}
                 <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
                     <div style="width:300px;">
                         <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Documentos</span><strong>${summary.count}</strong></div>
                         <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base total</span><strong>${tpvFormatMoney(summary.base)}</strong></div>
                         <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA total</span><strong>${tpvFormatMoney(summary.tax)}</strong></div>
-                        <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(summary.total)}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL GENERAL (IVA incl.)</span><span>${tpvFormatMoney(grandTotal)}</span></div>
                     </div>
                 </div>
             </div>`;
@@ -2874,6 +2964,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             State.tpv.salesFrom = '';
             State.tpv.salesTo = '';
             State.tpv.historySalonId = 'all';
+            State.tpv.salesClientIds = [];
             State.tpv.salesApplied = false;
             renderRoute();
         });
@@ -2881,6 +2972,27 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         if (backBtn) backBtn.addEventListener('click', () => navigate('tpv'));
         const printBtn = document.getElementById('btn-sales-print');
         if (printBtn) printBtn.addEventListener('click', tpvPrintSales);
+
+        // Filtro por clientes (checkboxes) y agrupación
+        document.querySelectorAll('#sales-client-box input[type="checkbox"]').forEach(chk => {
+            chk.addEventListener('change', () => {
+                const id = chk.dataset.clientId;
+                const set = new Set(State.tpv.salesClientIds || []);
+                if (chk.checked) set.add(id); else set.delete(id);
+                State.tpv.salesClientIds = Array.from(set);
+                renderRoute();
+            });
+        });
+        const btnClientsClear = document.getElementById('btn-sales-clients-clear');
+        if (btnClientsClear) btnClientsClear.addEventListener('click', () => {
+            State.tpv.salesClientIds = [];
+            renderRoute();
+        });
+        const btnGroupCliente = document.getElementById('btn-group-cliente');
+        const btnGroupSalon = document.getElementById('btn-group-salon');
+        if (btnGroupCliente) btnGroupCliente.addEventListener('click', () => { State.tpv.salesGroupBy = 'cliente'; renderRoute(); });
+        if (btnGroupSalon) btnGroupSalon.addEventListener('click', () => { State.tpv.salesGroupBy = 'salon'; renderRoute(); });
+
         document.querySelectorAll('[data-invoice-id]').forEach(btn => {
             btn.addEventListener('click', async e => {
                 const invId = btn.dataset.invoiceId;

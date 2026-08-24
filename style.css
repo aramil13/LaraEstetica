@@ -1043,6 +1043,49 @@ textarea.form-control {
     box-shadow: var(--shadow-glow);
 }
 
+/* ── Listado de ventas: filtros e informe agrupado ── */
+.client-check-box {
+    max-height: 170px;
+    min-width: 210px;
+    max-width: 260px;
+    overflow-y: auto;
+    background: var(--bg-base);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.45rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.client-check-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.report-group-header td {
+    background: var(--bg-base);
+    font-weight: 700;
+    padding: 0.6rem !important;
+    font-size: 0.95rem;
+}
+
+.report-subtotal td {
+    font-weight: 700;
+    background: var(--bg-surface);
+    border-top: 2px solid var(--border-color) !important;
+}
+
+.report-grand td {
+    font-weight: 800;
+    font-size: 1.02rem;
+    border-top: 2px solid var(--accent-primary) !important;
+}
+
 .monthly-selectors,
 .daily-selectors {
     display: flex;
