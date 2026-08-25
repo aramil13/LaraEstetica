@@ -3057,7 +3057,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         const totalHoras = Math.floor(totalMinutos / 60);
         const remainMin = totalMinutos % 60;
 
-        const colCount = showSalonCol ? 6 : 5;
+        const colCount = showSalonCol ? 7 : 6;
 
         let tableRows = '';
         if (dayAppointments.length === 0) {
@@ -3089,6 +3089,14 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <td><span class="monthly-service-badge">${service.name}</span></td>
                         <td>${service.duration} min</td>
                         <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '—'}</td>
+                        <td style="white-space:nowrap">
+                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-secondary)">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-secondary)">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </td>
                     </tr>`;
             });
         }
@@ -3167,6 +3175,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             <th>Servicio</th>
                             <th>Duración</th>
                             <th>Notas</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
