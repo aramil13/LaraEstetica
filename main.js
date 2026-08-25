@@ -4633,15 +4633,15 @@ window.addEventListener('message', async (event) => {
                     <textarea class="form-control" name="observations" rows="3" placeholder="Notas sobre el cliente...">${isEdit ? (info.observations || '') : ''}</textarea>
                 </div>
                 <div class="form-group">
-                    <label style="cursor:pointer;display:flex;align-items:center;gap:6px" onclick="document.getElementById('tech-history-body').classList.toggle('collapsed');document.getElementById('tech-history-arrow').textContent=document.getElementById('tech-history-body').classList.contains('collapsed')?'▶':'▼'">
+                    <label style="cursor:pointer;display:flex;align-items:center;gap:6px" data-action="toggle-tech-history">
                         <span id="tech-history-arrow">▼</span> Historial Técnico
                     </label>
                     <div id="tech-history-body" class="tech-history-container">
                         <div class="tech-history-tabs">
-                            <button type="button" class="tech-tab active" onclick="showTechTab('th-general')">Datos Generales</button>
-                            <button type="button" class="tech-tab" onclick="showTechTab('th-laser')">Láser Diodo</button>
-                            <button type="button" class="tech-tab" onclick="showTechTab('th-rf')">Radiofrecuencia</button>
-                            <button type="button" class="tech-tab" onclick="showTechTab('th-evolution')">Evolución</button>
+                            <button type="button" class="tech-tab active" data-tab="th-general">Datos Generales</button>
+                            <button type="button" class="tech-tab" data-tab="th-laser">Láser Diodo</button>
+                            <button type="button" class="tech-tab" data-tab="th-rf">Radiofrecuencia</button>
+                            <button type="button" class="tech-tab" data-tab="th-evolution">Evolución</button>
                         </div>
                         <div id="th-general" class="tech-tab-panel active">
                             <div class="form-group"><label>Fecha de Nacimiento</label><input type="date" class="form-control" name="th_birth_date"></div>
@@ -4657,19 +4657,19 @@ window.addEventListener('message', async (event) => {
                             <div class="form-group"><label>Densidad del vello</label><select class="form-control" name="th_hair_density"><option value="">Seleccionar...</option><option value="baja">Baja</option><option value="media">Media</option><option value="alta">Alta</option></select></div>
                             <div class="form-group"><label>Grosor del vello</label><select class="form-control" name="th_hair_thickness"><option value="">Seleccionar...</option><option value="fino">Fino</option><option value="medio">Medio</option><option value="grueso">Grueso</option></select></div>
                             <div class="form-group"><label>Color del vello</label><input type="text" class="form-control" name="th_hair_color" placeholder="Ej: castaño, negro, rubio"></div>
-                            <div class="tech-sessions-header">Sesiones Láser<button type="button" class="btn btn-sm btn-secondary" onclick="addTechSession('laser')">+ Añadir sesión</button></div>
+                            <div class="tech-sessions-header">Sesiones Láser<button type="button" class="btn btn-sm btn-secondary" data-action="add-session" data-type="laser">+ Añadir sesión</button></div>
                             <div id="th-laser-sessions"></div>
                         </div>
                         <div id="th-rf" class="tech-tab-panel">
                             <div class="form-group"><label>Objetivo del tratamiento</label><select class="form-control" name="th_rf_objective"><option value="">Seleccionar...</option><option value="flacidez">Flacidez</option><option value="celulitis">Celulitis</option><option value="grasa_localizada">Grasa localizada</option><option value="drenaje">Drenaje</option><option value="reafirmacion">Reafirmación</option></select></div>
                             <div class="form-group"><label>Zona corporal</label><input type="text" class="form-control" name="th_rf_zone" placeholder="Ej: abdomen, cartucheras, glúteos"></div>
-                            <div class="tech-sessions-header">Sesiones Radiofrecuencia<button type="button" class="btn btn-sm btn-secondary" onclick="addTechSession('rf')">+ Añadir sesión</button></div>
+                            <div class="tech-sessions-header">Sesiones Radiofrecuencia<button type="button" class="btn btn-sm btn-secondary" data-action="add-session" data-type="rf">+ Añadir sesión</button></div>
                             <div id="th-rf-sessions"></div>
-                            <div class="tech-sessions-header" style="margin-top:12px">Medidas y Control<button type="button" class="btn btn-sm btn-secondary" onclick="addTechPerimeter()">+ Añadir perímetro</button></div>
+                            <div class="tech-sessions-header" style="margin-top:12px">Medidas y Control<button type="button" class="btn btn-sm btn-secondary" data-action="add-perimeter">+ Añadir perímetro</button></div>
                             <div id="th-perimeters"></div>
                         </div>
                         <div id="th-evolution" class="tech-tab-panel">
-                            <div class="tech-sessions-header">Control de Evolución<button type="button" class="btn btn-sm btn-secondary" onclick="addTechEvolution()">+ Añadir registro</button></div>
+                            <div class="tech-sessions-header">Control de Evolución<button type="button" class="btn btn-sm btn-secondary" data-action="add-evolution">+ Añadir registro</button></div>
                             <div id="th-evolution-records"></div>
                         </div>
                     </div>
@@ -4701,23 +4701,15 @@ window.addEventListener('message', async (event) => {
             let pendingFiles = [];
 
             // --- Historial Técnico ---
-            window.techData = { general: {}, laser: { sessions: [] }, rf: { sessions: [], perimeters: [] }, evolution: [] };
-            try { if (isEdit && info.technical_history) window.techData = JSON.parse(info.technical_history); } catch(e) {}
+            const techData = { general: {}, laser: { sessions: [] }, rf: { sessions: [], perimeters: [] }, evolution: [] };
+            try { if (isEdit && info.technical_history) Object.assign(techData, JSON.parse(info.technical_history)); } catch(e) {}
 
-            window.showTechTab = function(tabId) {
-                document.querySelectorAll('.tech-tab-panel').forEach(p => p.classList.remove('active'));
-                document.querySelectorAll('.tech-tab').forEach(t => t.classList.remove('active'));
-                document.getElementById(tabId).classList.add('active');
-                event.target.classList.add('active');
-            };
-
-            window.renderLaserSessions = function() {
+            function renderLaserSessions() {
                 const c = document.getElementById('th-laser-sessions');
                 if (!c) return;
-                const td = window.techData;
-                c.innerHTML = (td.laser.sessions || []).map((s, i) => `
+                c.innerHTML = (techData.laser.sessions || []).map((s, i) => `
                     <div class="tech-session-card">
-                        <div class="tech-session-header">Sesión Láser ${i+1} <button type="button" class="btn btn-sm" style="color:var(--danger-color,#dc3545)" onclick="window.removeTechSession('laser',${i})">✕</button></div>
+                        <div class="tech-session-header">Sesión Láser ${i+1} <button type="button" class="btn btn-sm tech-remove-session" data-type="laser" data-idx="${i}" style="color:var(--danger-color,#dc3545)">✕</button></div>
                         <div class="form-row"><div class="form-group"><label>Fecha</label><input type="date" class="form-control" value="${s.date||''}" data-th="laser" data-idx="${i}" data-field="date"></div>
                         <div class="form-group"><label>Fluencia (J/cm²)</label><input type="text" class="form-control" value="${s.fluence||''}" placeholder="Ej: 12" data-th="laser" data-idx="${i}" data-field="fluence"></div></div>
                         <div class="form-row"><div class="form-group"><label>Ancho de pulso (ms)</label><input type="text" class="form-control" value="${s.pulse_width||''}" placeholder="Ej: 30" data-th="laser" data-idx="${i}" data-field="pulse_width"></div>
@@ -4725,80 +4717,124 @@ window.addEventListener('message', async (event) => {
                         <div class="form-group"><label>Reacciones inmediatas</label><input type="text" class="form-control" value="${s.reactions||''}" placeholder="Ej: eritema perifolicular leve" data-th="laser" data-idx="${i}" data-field="reactions"></div>
                         <div class="form-group"><label>Tolerancia del cliente</label><input type="text" class="form-control" value="${s.tolerance||''}" placeholder="Ej: buena, molestia leve" data-th="laser" data-idx="${i}" data-field="tolerance"></div>
                     </div>`).join('');
-            };
+            }
 
-            window.renderRfSessions = function() {
+            function renderRfSessions() {
                 const c = document.getElementById('th-rf-sessions');
                 if (!c) return;
-                const td = window.techData;
-                c.innerHTML = (td.rf.sessions || []).map((s, i) => `
+                c.innerHTML = (techData.rf.sessions || []).map((s, i) => `
                     <div class="tech-session-card">
-                        <div class="tech-session-header">Sesión RF ${i+1} <button type="button" class="btn btn-sm" style="color:var(--danger-color,#dc3545)" onclick="window.removeTechSession('rf',${i})">✕</button></div>
+                        <div class="tech-session-header">Sesión RF ${i+1} <button type="button" class="btn btn-sm tech-remove-session" data-type="rf" data-idx="${i}" style="color:var(--danger-color,#dc3545)">✕</button></div>
                         <div class="form-row"><div class="form-group"><label>Fecha</label><input type="date" class="form-control" value="${s.date||''}" data-th="rf" data-idx="${i}" data-field="date"></div>
                         <div class="form-group"><label>Tipo RF</label><select class="form-control" data-th="rf" data-idx="${i}" data-field="rf_type"><option value="">...</option><option value="monopolar" ${s.rf_type==='monopolar'?'selected':''}>Monopolar</option><option value="bipolar" ${s.rf_type==='bipolar'?'selected':''}>Bipolar</option><option value="multipolar" ${s.rf_type==='multipolar'?'selected':''}>Multipolar</option><option value="resistiva" ${s.rf_type==='resistiva'?'selected':''}>Resistiva</option><option value="capacitiva" ${s.rf_type==='capacitiva'?'selected':''}>Capacitiva</option></select></div></div>
                         <div class="form-row"><div class="form-group"><label>Temperatura (°C)</label><input type="text" class="form-control" value="${s.temperature||''}" placeholder="Ej: 40" data-th="rf" data-idx="${i}" data-field="temperature"></div>
                         <div class="form-group"><label>Tiempo exposición (min)</label><input type="text" class="form-control" value="${s.exposure_time||''}" placeholder="Ej: 20" data-th="rf" data-idx="${i}" data-field="exposure_time"></div></div>
                         <div class="form-group"><label>Potencia / Intensidad</label><input type="text" class="form-control" value="${s.power||''}" placeholder="Ej: nivel 4" data-th="rf" data-idx="${i}" data-field="power"></div>
                     </div>`).join('');
-            };
+            }
 
-            window.renderPerimeters = function() {
+            function renderPerimeters() {
                 const c = document.getElementById('th-perimeters');
                 if (!c) return;
-                const td = window.techData;
-                c.innerHTML = (td.rf.perimeters || []).map((p, i) => `
+                c.innerHTML = (techData.rf.perimeters || []).map((p, i) => `
                     <div class="tech-session-card" style="padding:8px">
                         <div style="display:flex;gap:8px;align-items:end">
                             <div class="form-group" style="flex:1"><label>Zona</label><input type="text" class="form-control" value="${p.zone||''}" placeholder="Ej: abdomen" data-th="perimeter" data-idx="${i}" data-field="zone"></div>
                             <div class="form-group" style="flex:1"><label>Medida (cm)</label><input type="text" class="form-control" value="${p.value||''}" placeholder="Ej: 85" data-th="perimeter" data-idx="${i}" data-field="value"></div>
                             <div class="form-group" style="flex:1"><label>Fecha</label><input type="date" class="form-control" value="${p.date||''}" data-th="perimeter" data-idx="${i}" data-field="date"></div>
-                            <button type="button" class="btn btn-sm" style="color:var(--danger-color,#dc3545);margin-bottom:4px" onclick="window.techData.rf.perimeters.splice(${i},1);window.renderPerimeters()">✕</button>
+                            <button type="button" class="btn btn-sm tech-remove-perimeter" data-idx="${i}" style="color:var(--danger-color,#dc3545);margin-bottom:4px">✕</button>
                         </div>
                     </div>`).join('');
-            };
+            }
 
-            window.renderEvolution = function() {
+            function renderEvolution() {
                 const c = document.getElementById('th-evolution-records');
                 if (!c) return;
-                const td = window.techData;
-                c.innerHTML = (td.evolution || []).map((e, i) => `
+                c.innerHTML = (techData.evolution || []).map((e, i) => `
                     <div class="tech-session-card">
-                        <div class="tech-session-header">Registro ${i+1} <button type="button" class="btn btn-sm" style="color:var(--danger-color,#dc3545)" onclick="window.techData.evolution.splice(${i},1);window.renderEvolution()">✕</button></div>
+                        <div class="tech-session-header">Registro ${i+1} <button type="button" class="btn btn-sm tech-remove-evolution" data-idx="${i}" style="color:var(--danger-color,#dc3545)">✕</button></div>
                         <div class="form-row"><div class="form-group"><label>Fecha</label><input type="date" class="form-control" value="${e.date||''}" data-th="evolution" data-idx="${i}" data-field="date"></div>
                         <div class="form-group"><label>Nº Sesión Láser</label><input type="text" class="form-control" value="${e.laser_session||''}" placeholder="Ej: 3" data-th="evolution" data-idx="${i}" data-field="laser_session"></div>
                         <div class="form-group"><label>Nº Sesión RF</label><input type="text" class="form-control" value="${e.rf_session||''}" placeholder="Ej: 5" data-th="evolution" data-idx="${i}" data-field="rf_session"></div></div>
                         <div class="form-group"><label>Incidencias / Efectos secundarios</label><input type="text" class="form-control" value="${e.incidents||''}" placeholder="Ej: quemazón leve, hiperpigmentación" data-th="evolution" data-idx="${i}" data-field="incidents"></div>
                         <div class="form-group"><label>Recomendaciones domiciliarias</label><input type="text" class="form-control" value="${e.home_recommendations||''}" placeholder="Ej: protector solar, hidratación profunda" data-th="evolution" data-idx="${i}" data-field="home_recommendations"></div>
                     </div>`).join('');
-            };
+            }
 
-            window.addTechSession = function(type) {
-                const td = window.techData;
-                if (type === 'laser') { td.laser.sessions.push({}); window.renderLaserSessions(); }
-                else { td.rf.sessions.push({}); window.renderRfSessions(); }
-            };
-            window.removeTechSession = function(type, idx) {
-                const td = window.techData;
-                if (type === 'laser') td.laser.sessions.splice(idx, 1);
-                else td.rf.sessions.splice(idx, 1);
-                if (type === 'laser') window.renderLaserSessions(); else window.renderRfSessions();
-            };
-            window.addTechPerimeter = function() { window.techData.rf.perimeters.push({}); window.renderPerimeters(); };
-            window.addTechEvolution = function() { window.techData.evolution.push({}); window.renderEvolution(); };
+            // Event delegation on tech-history-body
+            const thBody = document.getElementById('tech-history-body');
+            if (thBody) {
+                thBody.addEventListener('click', function(ev) {
+                    const btn = ev.target.closest('[data-action]');
+                    if (!btn) return;
+                    const action = btn.dataset.action;
+                    ev.preventDefault();
+                    if (action === 'add-session') {
+                        const type = btn.dataset.type;
+                        if (type === 'laser') { techData.laser.sessions.push({}); renderLaserSessions(); }
+                        else { techData.rf.sessions.push({}); renderRfSessions(); }
+                    } else if (action === 'add-perimeter') {
+                        techData.rf.perimeters.push({}); renderPerimeters();
+                    } else if (action === 'add-evolution') {
+                        techData.evolution.push({}); renderEvolution();
+                    }
+                });
 
-            // Delegate change events for tech history fields
-            document.getElementById('tech-history-body').addEventListener('change', function(e) {
-                const el = e.target;
-                const th = el.dataset.th;
-                const idx = parseInt(el.dataset.idx);
-                const field = el.dataset.field;
-                if (!th || isNaN(idx) || !field) return;
-                const td = window.techData;
-                if (th === 'laser') td.laser.sessions[idx][field] = el.value;
-                else if (th === 'rf') td.rf.sessions[idx][field] = el.value;
-                else if (th === 'perimeter') td.rf.perimeters[idx][field] = el.value;
-                else if (th === 'evolution') td.evolution[idx][field] = el.value;
-            });
+                // Delegate remove buttons for sessions, perimeters, evolution
+                thBody.addEventListener('click', function(ev) {
+                    const rm = ev.target.closest('.tech-remove-session');
+                    if (rm) {
+                        const type = rm.dataset.type;
+                        const idx = parseInt(rm.dataset.idx);
+                        if (type === 'laser') techData.laser.sessions.splice(idx, 1);
+                        else techData.rf.sessions.splice(idx, 1);
+                        if (type === 'laser') renderLaserSessions(); else renderRfSessions();
+                        return;
+                    }
+                    const rp = ev.target.closest('.tech-remove-perimeter');
+                    if (rp) {
+                        techData.rf.perimeters.splice(parseInt(rp.dataset.idx), 1);
+                        renderPerimeters();
+                        return;
+                    }
+                    const re = ev.target.closest('.tech-remove-evolution');
+                    if (re) {
+                        techData.evolution.splice(parseInt(re.dataset.idx), 1);
+                        renderEvolution();
+                        return;
+                    }
+                    // Tab switching
+                    const tab = ev.target.closest('[data-tab]');
+                    if (tab) {
+                        document.querySelectorAll('.tech-tab-panel').forEach(p => p.classList.remove('active'));
+                        document.querySelectorAll('.tech-tab').forEach(t => t.classList.remove('active'));
+                        const target = document.getElementById(tab.dataset.tab);
+                        if (target) target.classList.add('active');
+                        tab.classList.add('active');
+                        return;
+                    }
+                    // Toggle collapse
+                    if (ev.target.closest('[data-action="toggle-tech-history"]')) {
+                        const body = document.getElementById('tech-history-body');
+                        const arrow = document.getElementById('tech-history-arrow');
+                        body.classList.toggle('collapsed');
+                        arrow.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+                    }
+                });
+
+                // Delegate change for session fields
+                thBody.addEventListener('change', function(ev) {
+                    const el = ev.target;
+                    const th = el.dataset.th;
+                    const idx = parseInt(el.dataset.idx);
+                    const field = el.dataset.field;
+                    if (!th || isNaN(idx) || !field) return;
+                    if (th === 'laser') techData.laser.sessions[idx][field] = el.value;
+                    else if (th === 'rf') techData.rf.sessions[idx][field] = el.value;
+                    else if (th === 'perimeter') techData.rf.perimeters[idx][field] = el.value;
+                    else if (th === 'evolution') techData.evolution[idx][field] = el.value;
+                });
+            }
 
             // Populate fields from saved data
             if (techData.general) {
@@ -4833,16 +4869,15 @@ window.addEventListener('message', async (event) => {
 
             function collectTechHistory() {
                 const gv = n => { const el = document.querySelector(`[name="${n}"]`); return el ? el.value : ''; };
-                const td = window.techData;
-                td.general = { birth_date: gv('th_birth_date'), pregnancy: gv('th_pregnancy'), pacemaker: gv('th_pacemaker'), epilepsy: gv('th_epilepsy'), medication: gv('th_medication'), consent: gv('th_consent') };
-                td.laser.zone = gv('th_laser_zone');
-                td.laser.fitzpatrick = gv('th_fitzpatrick');
-                td.laser.hair_density = gv('th_hair_density');
-                td.laser.hair_thickness = gv('th_hair_thickness');
-                td.laser.hair_color = gv('th_hair_color');
-                td.rf.objective = gv('th_rf_objective');
-                td.rf.zone = gv('th_rf_zone');
-                return td;
+                techData.general = { birth_date: gv('th_birth_date'), pregnancy: gv('th_pregnancy'), pacemaker: gv('th_pacemaker'), epilepsy: gv('th_epilepsy'), medication: gv('th_medication'), consent: gv('th_consent') };
+                techData.laser.zone = gv('th_laser_zone');
+                techData.laser.fitzpatrick = gv('th_fitzpatrick');
+                techData.laser.hair_density = gv('th_hair_density');
+                techData.laser.hair_thickness = gv('th_hair_thickness');
+                techData.laser.hair_color = gv('th_hair_color');
+                techData.rf.objective = gv('th_rf_objective');
+                techData.rf.zone = gv('th_rf_zone');
+                return techData;
             }
 
             // --- Fin Historial Técnico ---
