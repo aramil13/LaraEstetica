@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS clients (
   enviar_was INTEGER DEFAULT 0,
   whatsapp_template TEXT,
   observations TEXT,
+  technical_history TEXT DEFAULT '{}',
   user_email TEXT DEFAULT '',
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );

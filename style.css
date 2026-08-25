@@ -2013,6 +2013,104 @@ textarea.form-control {
     background: var(--bg-surface);
 }
 
+/* ── Technical History ── */
+.tech-history-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    background: var(--bg-surface);
+    margin-top: 4px;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+    max-height: 3000px;
+    opacity: 1;
+    overflow: hidden;
+}
+.tech-history-container.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding: 0 12px;
+    border-color: transparent;
+}
+.tech-history-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 8px;
+}
+.tech-tab {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm, 4px);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+.tech-tab:hover {
+    background: var(--bg-surface-hover);
+}
+.tech-tab.active {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+.tech-tab-panel {
+    display: none;
+}
+.tech-tab-panel.active {
+    display: block;
+}
+.tech-session-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm, 4px);
+    padding: 10px;
+    margin-bottom: 8px;
+    background: var(--bg-base, rgba(0,0,0,0.02));
+}
+.tech-session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+.tech-sessions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.82rem;
+    margin: 8px 0 6px;
+    color: var(--text-secondary);
+}
+.form-row {
+    display: flex;
+    gap: 10px;
+}
+.form-row .form-group {
+    flex: 1;
+    min-width: 0;
+}
+@media (max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    .tech-history-tabs {
+        gap: 2px;
+    }
+    .tech-tab {
+        padding: 5px 8px;
+        font-size: 0.72rem;
+    }
+}
+
 .diagnosis-header-info {
     display: flex;
     align-items: center;

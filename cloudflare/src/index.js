@@ -344,10 +344,11 @@ export default {
       const salonId = isStaff ? staffSalonId : b.salon_id;
       if (!salonId) return error('Debes asignar un salón al cliente', 400);
       const enviar = b.enviar_was === true || b.enviar_was === 1 || b.enviar_was === 'true' ? 1 : 0;
+      const technicalHistory = b.technical_history ? JSON.stringify(b.technical_history) : '{}';
       await env.DB.prepare(
-        `INSERT INTO clients (id, name, phone, email, fiscal_address, nif, salon_id, enviar_was, whatsapp_template, observations, user_email)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(id, b.name, b.phone || null, b.email || null, b.fiscal_address || null, b.nif || null, salonId, enviar, b.whatsapp_template || null, b.observations || null, b.user_email || email).run();
+        `INSERT INTO clients (id, name, phone, email, fiscal_address, nif, salon_id, enviar_was, whatsapp_template, observations, technical_history, user_email)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(id, b.name, b.phone || null, b.email || null, b.fiscal_address || null, b.nif || null, salonId, enviar, b.whatsapp_template || null, b.observations || null, technicalHistory, b.user_email || email).run();
       return json({ id, ...b, enviar_was: enviar === 1 });
     }
     if (path.startsWith('/api/clients/') && method === 'PUT') {
@@ -358,9 +359,10 @@ export default {
       const salonId = isStaff ? staffSalonId : b.salon_id;
       if (!salonId) return error('Debes asignar un salón al cliente', 400);
       const enviar = b.enviar_was === true || b.enviar_was === 1 || b.enviar_was === 'true' ? 1 : 0;
+      const technicalHistory = b.technical_history ? JSON.stringify(b.technical_history) : '{}';
       const r = await env.DB.prepare(
-        `UPDATE clients SET name = ?, phone = ?, email = ?, fiscal_address = ?, nif = ?, salon_id = ?, enviar_was = ?, whatsapp_template = ?, observations = ? WHERE id = ? AND user_email = ?`
-      ).bind(b.name, b.phone || null, b.email || null, b.fiscal_address || null, b.nif || null, salonId, enviar, b.whatsapp_template || null, b.observations || null, id, email).run();
+        `UPDATE clients SET name = ?, phone = ?, email = ?, fiscal_address = ?, nif = ?, salon_id = ?, enviar_was = ?, whatsapp_template = ?, observations = ?, technical_history = ? WHERE id = ? AND user_email = ?`
+      ).bind(b.name, b.phone || null, b.email || null, b.fiscal_address || null, b.nif || null, salonId, enviar, b.whatsapp_template || null, b.observations || null, technicalHistory, id, email).run();
       if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
