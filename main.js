@@ -2777,7 +2777,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             const totalEntregar = Math.round((salonForSalon + retentionSalon) * 100) / 100;
                             return `
                             <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>TOTAL Servicios sin IVA</span><strong>${tpvFormatMoney(baseSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los Servicios (70%)</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>BASE Imponible:</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
                             <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(taxSalon)}</strong></div>
                             <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(retentionSalon)}</strong></div>
                             <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL FACTURA:</span><span>${tpvFormatMoney(Math.round((commissionSalon + taxSalon - retentionSalon) * 100) / 100)}</span></div>
