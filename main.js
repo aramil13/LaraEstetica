@@ -2239,8 +2239,9 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
             const total = Math.round((commission + tax - retention) * 100) / 100;
             return { base, commission, commissionRate: 70, tax, retention, total, salonForSalon: Math.round(imports * 0.30 * 100) / 100, salonRetention: retention };
         }
-        const tax = imports * 0.21;
-        return { base: imports, commission: 0, commissionRate: 0, tax, retention: 0, total: imports + tax };
+        const base = Math.round(imports / 1.21 * 100) / 100;
+        const tax = Math.round(base * 0.21 * 100) / 100;
+        return { base, commission: 0, commissionRate: 0, tax, retention: 0, total: imports };
     }
 
     function tpvFormatMoney(v) {
