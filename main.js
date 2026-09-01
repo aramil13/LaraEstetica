@@ -2225,18 +2225,21 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
     }
 
     function tpvCartTotals() {
-        let base = 0;
+        let imports = 0;
         State.tpv.cart.forEach(item => {
             const price = parseFloat(item.price) || 0;
-            base += price * item.qty;
+            imports += price * item.qty;
         });
         const isSalonInvoice = State.tpv.docType === 'factura-salon';
-        const rate = isSalonInvoice ? (parseFloat(State.tpv.commissionRate) || 0) : 0;
-        const commission = isSalonInvoice ? base * rate / 100 : 0;
-        const taxable = isSalonInvoice ? commission : base;
-        const tax = taxable * 0.21;
-        const retention = isSalonInvoice ? taxable * 0.15 : 0;
-        return { base, commission, commissionRate: rate, tax, retention, total: taxable + tax - retention };
+        if (isSalonInvoice) {
+            const base = Math.round(imports / 1.21 * 100) / 100;
+            const commission = Math.round(imports * 0.70 * 100) / 100;
+            const tax = Math.round(base * 0.21 * 100) / 100;
+            const retention = Math.round(base * 0.15 * 100) / 100;
+            return { base, commission, commissionRate: 70, tax, retention, total: imports, salonForSalon: Math.round(imports * 0.30 * 100) / 100, salonRetention: retention };
+        }
+        const tax = imports * 0.21;
+        return { base: imports, commission: 0, commissionRate: 0, tax, retention: 0, total: imports + tax };
     }
 
     function tpvFormatMoney(v) {
@@ -2332,11 +2335,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <label>NIF del cliente</label>
                     <input type="text" class="form-control" id="tpv-nif" placeholder="NIF / CIF" value="${State.tpv.clientNif}">
                 </div>` : ''}
-                ${isSalonInvoice ? `
-                <div class="form-group" style="margin-bottom:0.25rem;">
-                    <label>Comisión por los Servicios (%)</label>
-                    <input type="number" class="form-control" id="tpv-commission-rate" min="0" max="100" step="0.5" value="${State.tpv.commissionRate}">
-                </div>` : ''}
                 <table class="table" style="margin-top:0.5rem;">
                     <thead><tr><th>Servicio</th><th style="text-align:center">Cant.</th><th style="text-align:right">Importe</th><th></th></tr></thead>
                     <tbody>${cartRows}</tbody>
@@ -2347,6 +2345,13 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
                     ${isSalonInvoice ? `<div style="color:var(--text-secondary)">Retención (15%): <strong style="color:var(--danger)">−${tpvFormatMoney(totals.retention)}</strong></div>` : ''}
                     <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
+                    ${isSalonInvoice ? `
+                    <div style="border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.75rem;margin-top:0.4rem;width:100%;">
+                        <div style="font-weight:700;text-align:center;font-size:0.95rem;margin-bottom:0.35rem;">A ENTREGAR AL SALÓN</div>
+                        <div style="display:flex;justify-content:space-between;">30% PARA EL SALÓN: <strong>${tpvFormatMoney(totals.salonForSalon)}</strong></div>
+                        <div style="display:flex;justify-content:space-between;">+RETENCIÓN: <strong>${tpvFormatMoney(totals.salonRetention)}</strong></div>
+                        <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:0.3rem;padding-top:0.3rem;font-weight:800;">IMPORTE TOTAL: <strong>${tpvFormatMoney(totals.salonForSalon + totals.salonRetention)}</strong></div>
+                    </div>` : ''}
                 </div>
                 <div class="form-group" style="margin-top:1rem;margin-bottom:0;">
                     <label>Forma de pago</label>
@@ -2758,12 +2763,37 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     </table>
                     <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
                         <div style="width:280px;">
-                    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base</span><strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
-                    ${inv.doc_type === 'factura-salon' ? `<div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los Servicios (${inv.commission_rate || 30}%)</span><strong>${tpvFormatMoney(inv.commission_amount || 0)}</strong></div>` : ''}
-                    <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
-                    ${inv.doc_type === 'factura-salon' ? `<div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>` : ''}
-                            <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(inv.total_amount)}</span></div>
+                    ${(() => {
+                        if (inv.doc_type === 'factura-salon') {
+                            const itemsArr = Array.isArray(inv.items) ? inv.items : [];
+                            let imports = 0;
+                            itemsArr.forEach(it => { imports += (parseFloat(it.price) || 0) * (it.qty || 1); });
+                            const baseSalon = Math.round(imports / 1.21 * 100) / 100;
+                            const commissionSalon = Math.round(imports * 0.70 * 100) / 100;
+                            const taxSalon = Math.round(baseSalon * 0.21 * 100) / 100;
+                            const retentionSalon = Math.round(baseSalon * 0.15 * 100) / 100;
+                            const salonForSalon = Math.round(imports * 0.30 * 100) / 100;
+                            const totalEntregar = Math.round((salonForSalon + retentionSalon) * 100) / 100;
+                            return `
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base</span><strong>${tpvFormatMoney(baseSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los Servicios (70%)</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(taxSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(retentionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(imports)}</span></div>
                             <div style="display:flex;justify-content:space-between;padding:0.3rem 0;font-size:0.9rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>
+                            <div style="border:2px solid #000;border-radius:6px;padding:0.75rem;margin-top:1rem;">
+                                <div style="font-weight:800;text-align:center;font-size:0.95rem;margin-bottom:0.5rem;border-bottom:1px solid #ccc;padding-bottom:0.4rem;">A ENTREGAR AL SALÓN</div>
+                                <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>30% PARA EL SALÓN</span><strong>${tpvFormatMoney(salonForSalon)}</strong></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>+RETENCIÓN</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:1px solid #000;margin-top:0.3rem;font-weight:800;"><span>IMPORTE TOTAL</span><span>${tpvFormatMoney(totalEntregar)}</span></div>
+                            </div>`;
+                        }
+                        return `
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base</span><strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(inv.total_amount)}</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;font-size:0.9rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>`;
+                    })()}
                         </div>
                     </div>
                     <div style="margin-top:2.5rem;text-align:center;font-size:0.8rem;color:#555;border-top:1px solid #ddd;padding-top:0.75rem;">¡Gracias por su visita!</div>
@@ -2900,12 +2930,6 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         if (saleSalonSel) saleSalonSel.addEventListener('change', e => { State.tpv.salonId = e.target.value; tpvRenderCartPanel(); });
         const nifInput = document.getElementById('tpv-nif');
         if (nifInput) nifInput.addEventListener('input', e => { State.tpv.clientNif = e.target.value; });
-        const commissionInput = document.getElementById('tpv-commission-rate');
-        if (commissionInput) commissionInput.addEventListener('input', e => {
-            const v = parseFloat(e.target.value);
-            State.tpv.commissionRate = isNaN(v) ? 0 : v;
-            tpvRenderCartPanel();
-        });
 
         // Payment method
         [['tpv-pay-contado', 'contado'], ['tpv-pay-tarjeta', 'tarjeta'], ['tpv-pay-mixto', 'mixto']].forEach(([id, val]) => {
