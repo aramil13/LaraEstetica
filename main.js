@@ -2234,8 +2234,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         if (isSalonInvoice) {
             const base = Math.round(imports / 1.21 * 100) / 100;
             const commission = Math.round(imports * 0.70 * 100) / 100;
-            const tax = Math.round(base * 0.21 * 100) / 100;
-            const retention = Math.round(base * 0.15 * 100) / 100;
+            const tax = Math.round(commission * 0.21 * 100) / 100;
+            const retention = Math.round(commission * 0.15 * 100) / 100;
             const total = Math.round((commission + tax - retention) * 100) / 100;
             return { base, commission, commissionRate: 70, tax, retention, total, salonForSalon: Math.round(imports * 0.30 * 100) / 100, salonRetention: retention };
         }
@@ -2771,8 +2771,8 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             itemsArr.forEach(it => { imports += (parseFloat(it.price) || 0) * (it.qty || 1); });
                             const baseSalon = Math.round(imports / 1.21 * 100) / 100;
                             const commissionSalon = Math.round(imports * 0.70 * 100) / 100;
-                            const taxSalon = Math.round(baseSalon * 0.21 * 100) / 100;
-                            const retentionSalon = Math.round(baseSalon * 0.15 * 100) / 100;
+                            const taxSalon = Math.round(commissionSalon * 0.21 * 100) / 100;
+                            const retentionSalon = Math.round(commissionSalon * 0.15 * 100) / 100;
                             const salonForSalon = Math.round(imports * 0.30 * 100) / 100;
                             const totalEntregar = Math.round((salonForSalon + retentionSalon) * 100) / 100;
                             return `
