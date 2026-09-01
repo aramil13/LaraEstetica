@@ -2232,11 +2232,11 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
         });
         const isSalonInvoice = State.tpv.docType === 'factura-salon';
         if (isSalonInvoice) {
-            const base = Math.round(imports / 1.21 * 100) / 100;
             const commission = Math.round(imports * 0.70 * 100) / 100;
-            const tax = Math.round(commission * 0.21 * 100) / 100;
-            const retention = Math.round(commission * 0.15 * 100) / 100;
-            const total = Math.round((commission + tax - retention) * 100) / 100;
+            const base = Math.round(commission / 1.21 * 100) / 100;
+            const tax = Math.round(base * 0.21 * 100) / 100;
+            const retention = Math.round(base * 0.15 * 100) / 100;
+            const total = Math.round((base + tax - retention) * 100) / 100;
             return { base, commission, commissionRate: 70, tax, retention, total, salonForSalon: Math.round(imports * 0.30 * 100) / 100, salonRetention: retention };
         }
         const base = Math.round(imports / 1.21 * 100) / 100;
@@ -2342,18 +2342,23 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <tbody>${cartRows}</tbody>
                 </table>
                 <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.35rem;align-items:flex-end;font-size:0.95rem;">
-                    <div style="color:var(--text-secondary)">TOTAL Servicios sin IVA: <strong>${tpvFormatMoney(totals.base)}</strong></div>
-                    ${isSalonInvoice ? `<div style="color:var(--text-secondary)">Comisión por los Servicios (${totals.commissionRate}%): <strong>${tpvFormatMoney(totals.commission)}</strong></div>` : ''}
-                    <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
-                    ${isSalonInvoice ? `<div style="color:var(--text-secondary)">Retención (15%): <strong style="color:var(--danger)">−${tpvFormatMoney(totals.retention)}</strong></div>` : ''}
-                    <div style="font-size:1.2rem;font-weight:700;">TOTAL FACTURA: ${tpvFormatMoney(totals.total)}</div>
                     ${isSalonInvoice ? `
+                    <div style="color:var(--text-secondary)">Comisión por los Servicios (70%): <strong>${tpvFormatMoney(totals.commission)}</strong></div>
+                    <div style="color:var(--text-secondary)">BASE Imponible: <strong>${tpvFormatMoney(totals.base)}</strong></div>
+                    <div style="color:var(--text-secondary)">+IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
+                    <div style="color:var(--text-secondary)">−Retención (15%): <strong style="color:var(--danger)">${tpvFormatMoney(totals.retention)}</strong></div>
+                    <div style="font-size:1.2rem;font-weight:700;">TOTAL FACTURA: ${tpvFormatMoney(totals.total)}</div>
                     <div style="border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.75rem;margin-top:0.4rem;width:100%;">
                         <div style="font-weight:700;text-align:center;font-size:0.95rem;margin-bottom:0.35rem;">A ENTREGAR AL SALÓN</div>
                         <div style="display:flex;justify-content:space-between;">30% PARA EL SALÓN: <strong>${tpvFormatMoney(totals.salonForSalon)}</strong></div>
                         <div style="display:flex;justify-content:space-between;">+RETENCIÓN: <strong>${tpvFormatMoney(totals.salonRetention)}</strong></div>
                         <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:0.3rem;padding-top:0.3rem;font-weight:800;">IMPORTE TOTAL: <strong>${tpvFormatMoney(totals.salonForSalon + totals.salonRetention)}</strong></div>
-                    </div>` : ''}
+                    </div>
+                    ` : `
+                    <div style="color:var(--text-secondary)">TOTAL Servicios sin IVA: <strong>${tpvFormatMoney(totals.base)}</strong></div>
+                    <div style="color:var(--text-secondary)">IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
+                    <div style="font-size:1.2rem;font-weight:700;">TOTAL: ${tpvFormatMoney(totals.total)}</div>
+                    `}
                 </div>
                 <div class="form-group" style="margin-top:1rem;margin-bottom:0;">
                     <label>Forma de pago</label>
@@ -2770,18 +2775,19 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                             const itemsArr = Array.isArray(inv.items) ? inv.items : [];
                             let imports = 0;
                             itemsArr.forEach(it => { imports += (parseFloat(it.price) || 0) * (it.qty || 1); });
-                            const baseSalon = Math.round(imports / 1.21 * 100) / 100;
                             const commissionSalon = Math.round(imports * 0.70 * 100) / 100;
-                            const taxSalon = Math.round(commissionSalon * 0.21 * 100) / 100;
-                            const retentionSalon = Math.round(commissionSalon * 0.15 * 100) / 100;
+                            const baseSalon = Math.round(commissionSalon / 1.21 * 100) / 100;
+                            const taxSalon = Math.round(baseSalon * 0.21 * 100) / 100;
+                            const retentionSalon = Math.round(baseSalon * 0.15 * 100) / 100;
+                            const totalFactura = Math.round((baseSalon + taxSalon - retentionSalon) * 100) / 100;
                             const salonForSalon = Math.round(imports * 0.30 * 100) / 100;
                             const totalEntregar = Math.round((salonForSalon + retentionSalon) * 100) / 100;
                             return `
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>TOTAL Servicios sin IVA</span><strong>${tpvFormatMoney(baseSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>BASE Imponible:</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(taxSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Retención (15%)</span><strong>−${tpvFormatMoney(retentionSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL FACTURA:</span><span>${tpvFormatMoney(Math.round((commissionSalon + taxSalon - retentionSalon) * 100) / 100)}</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los Servicios (70%)</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>BASE Imponible:</span><strong>${tpvFormatMoney(baseSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>+IVA (21%)</span><strong>${tpvFormatMoney(taxSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>−Retención (15%)</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL FACTURA:</span><span>${tpvFormatMoney(totalFactura)}</span></div>
                             <div style="display:flex;justify-content:space-between;padding:0.3rem 0;font-size:0.9rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>
                             <div style="border:2px solid #000;border-radius:6px;padding:0.75rem;margin-top:1rem;">
                                 <div style="font-weight:800;text-align:center;font-size:0.95rem;margin-bottom:0.5rem;border-bottom:1px solid #ccc;padding-bottom:0.4rem;">A ENTREGAR AL SALÓN</div>
