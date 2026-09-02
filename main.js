@@ -2620,12 +2620,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <span>Subtotal ${g.label}</span>
                         <span style="min-width:90px;text-align:right;">${tpvFormatMoney(sTotal)}</span>
                     </div>
-                    <div style="display:flex;justify-content:flex-end;flex-direction:column;align-items:flex-end;padding:0.5rem 0.6rem 0;font-weight:600;">
-                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">Comisión por los servicios (70%): <span>${tpvFormatMoney(sCommission)}</span></div>
-                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(sBase)}</span></div>
-                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(sTax)}</span></div>
-                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(sRetention)}</span></div>
-                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL GENERAL (IVA incl.): <span>${tpvFormatMoney(sTotal)}</span></div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-start;padding:0.5rem 0.6rem 0;font-weight:600;white-space:nowrap;">
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">Comisión por los servicios (70%): <span>${tpvFormatMoney(sCommission)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(sBase)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(sTax)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(sRetention)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL GENERAL (IVA incl.): <span>${tpvFormatMoney(sTotal)}</span></div>
                     </div>` : '';
 
                 const clientTable = clientInvs.length > 0 ? `
@@ -2645,10 +2645,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <span>Subtotal Cliente</span>
                         <span style="min-width:90px;text-align:right;">${tpvFormatMoney(cTotal)}</span>
                     </div>
-                    <div style="display:flex;justify-content:flex-end;flex-direction:column;align-items:flex-end;padding:0.5rem 0.6rem 0;font-weight:600;">
-                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(cBase)}</span></div>
-                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(cTax)}</span></div>
-                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL GENERAL (IVA incl.): <span>${tpvFormatMoney(cTotal)}</span></div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-start;padding:0.5rem 0.6rem 0;font-weight:600;white-space:nowrap;">
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(cBase)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(cTax)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL GENERAL (IVA incl.): <span>${tpvFormatMoney(cTotal)}</span></div>
                     </div>` : '';
 
                 return `
