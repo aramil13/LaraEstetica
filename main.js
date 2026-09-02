@@ -2027,7 +2027,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                     <div class="stat-icon">
                         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     </div>
-                    <div class="stat-content"><h3>Clientes</h3><p>${State.clients.length}</p></div>
+                    <div class="stat-content"><h3>Clientes</h3><p>${(() => { const sf = State.activeSalonId || 'all'; const cf = sf === 'all' ? State.clients : State.clients.filter(c => c.salon_id === sf); return cf.length; })()}</p></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
