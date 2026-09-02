@@ -2484,7 +2484,7 @@ textarea.form-control {
    ═══════════════════════════════════════ */
 .tpv-layout {
     display: grid;
-    grid-template-columns: minmax(320px, 5fr) minmax(360px, 7fr);
+    grid-template-columns: minmax(400px, 6fr) minmax(360px, 6fr);
     gap: 1rem;
     align-items: start;
 }
