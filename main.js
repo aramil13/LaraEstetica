@@ -5832,7 +5832,6 @@ window.addEventListener('message', async (event) => {
                 const hasCollision = State.appointments.some(a => {
                     if (isEdit && apt && a.id === apt.id) return false; // Skip self when editing
                     if (a.date !== data.date) return false;
-                    if (a.salonId !== data.salonId) return false;
                     const [aptHour, aptMin] = a.time.split(':').map(Number);
                     const aptStartMinutes = aptHour * 60 + aptMin;
                     const aptService = State.services.find(s => s.id === a.serviceId);
@@ -5841,7 +5840,7 @@ window.addEventListener('message', async (event) => {
                 });
 
                 if (hasCollision) {
-                    showToast('El horario elegido choca con una cita ya existente.', 'error');
+                    showToast('El horario elegido choca con una cita ya existente. No puede solaparse con citas en otros salones.', 'error');
                     submitBtn.disabled = false;
                     submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
