@@ -2868,19 +2868,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             groups.get(key).items.push({ name: lineName, price: service ? (parseFloat(service.price) || 0) : 0, qty: 1 });
         });
 
-        navigate('tpv');
-
-        for (const [key, group] of groups) {
-            if (group.items.length === 0) continue;
-            if (activeSalonId === 'all' && !group.salon) continue;
-            State.tpv.docType = 'factura-salon';
-            State.tpv.salonId = (activeSalonId !== 'all') ? activeSalonId : group.salon.id;
-            State.tpv.cart = group.items;
-            showToast(`Generando factura para ${group.salon ? group.salon.name : 'el salón'}…`, 'info');
-            await tpvEmit();
+        const salonForBill = (activeSalonId !== 'all')
+            ? State.salons.find(s => s.id === activeSalonId) || null
+            : (groups.size === 1 ? groups.values().next().value.salon : null);
+        if (!salonForBill) {
+            showToast(activeSalonId === 'all' ? 'Selecciona un salón o deja citas de un solo salón para facturar.' : 'Salón no encontrado.', 'error');
+            return;
         }
-        State.tpv.cart = [];
-        navigate('sales');
+
+        State.tpv.docType = 'factura-salon';
+        State.tpv.salonId = salonForBill.id;
+        State.tpv.cart = salonForBill ? groups.get(salonForBill.id)?.items || groups.values().next().value.items : [];
+        navigate('tpv');
     }
 
     async function tpvEmit() {
