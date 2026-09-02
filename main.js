@@ -2009,6 +2009,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <button class="btn btn-secondary" id="btn-settings" title="Configuración">
                         Configuración
                     </button>` : ''}
+                    <button class="btn btn-secondary" id="btn-bill-today" onclick="tpvBillToday()" title="Genera la factura para el salón con todos los servicios de hoy">
+                        Facturar citas de Hoy
+                    </button>
                     <button class="btn btn-primary" id="btn-add-appointment" onclick="showAppointmentForm()">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Nueva Cita
@@ -2841,6 +2844,43 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div style="margin-top:0.4rem;font-size:0.8rem;text-align:right;"><strong>Forma de pago:</strong> ${tpvPaymentDetail(inv)}</div>
                 <div style="margin-top:0.75rem;text-align:center;font-size:0.8rem;color:#555;">¡Gracias por su visita!</div>
             </div>`;
+    }
+
+    async function tpvBillToday() {
+        const todayStr = toLocalDateStr(new Date());
+        const activeSalonId = State.activeSalonId || 'all';
+        const todayApts = State.appointments
+            .filter(a => a.date === todayStr && (activeSalonId === 'all' || a.salonId === activeSalonId))
+            .sort((a, b) => a.time.localeCompare(b.time));
+        if (todayApts.length === 0) {
+            showToast(activeSalonId === 'all' ? 'No hay citas hoy.' : 'No hay citas de hoy en este salón.', 'error');
+            return;
+        }
+
+        const groups = new Map();
+        todayApts.forEach(apt => {
+            const salonId = apt.salonId || activeSalonId;
+            const key = salonId || '__sin_salon__';
+            if (!groups.has(key)) groups.set(key, { salon: State.salons.find(s => s.id === salonId) || null, items: [] });
+            const client = State.clients.find(c => c.id === apt.clientId);
+            const service = State.services.find(s => s.id === apt.serviceId);
+            const lineName = `${client ? client.name : 'Cliente'} → ${service ? service.name : 'Servicio'}`;
+            groups.get(key).items.push({ name: lineName, price: service ? (parseFloat(service.price) || 0) : 0, qty: 1 });
+        });
+
+        navigate('tpv');
+
+        for (const [key, group] of groups) {
+            if (group.items.length === 0) continue;
+            if (activeSalonId === 'all' && !group.salon) continue;
+            State.tpv.docType = 'factura-salon';
+            State.tpv.salonId = (activeSalonId !== 'all') ? activeSalonId : group.salon.id;
+            State.tpv.cart = group.items;
+            showToast(`Generando factura para ${group.salon ? group.salon.name : 'el salón'}…`, 'info');
+            await tpvEmit();
+        }
+        State.tpv.cart = [];
+        navigate('sales');
     }
 
     async function tpvEmit() {
@@ -5936,6 +5976,7 @@ window.addEventListener('message', async (event) => {
     window.openModal = openModal;
     window.closeModal = closeModal;
     window.openBeforeAfterCompare = openBeforeAfterCompare;
+    window.tpvBillToday = tpvBillToday;
 
     window.editAppointment = function(id) {
         const apt = State.appointments.find(a => a.id === id);
