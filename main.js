@@ -390,8 +390,6 @@ document.addEventListener('DOMContentLoaded', () => {
             salonId: '',
             historySalonId: 'all',
             invoices: [],
-            salesClientIds: [],
-            salesGroupBy: 'cliente',
             paymentMethod: 'contado',
             paymentCash: ''
         }
@@ -2389,29 +2387,17 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const salonOk = i => State.tpv.historySalonId === 'all' || i.salon_id === State.tpv.historySalonId;
         const fromOk = i => !State.tpv.salesFrom || (i.created_at || '').substring(0, 10) >= State.tpv.salesFrom;
         const toOk = i => !State.tpv.salesTo || (i.created_at || '').substring(0, 10) <= State.tpv.salesTo;
-        const selClients = State.tpv.salesClientIds || [];
-        const clientOk = i => selClients.length === 0
-            ? true
-            : (i.doc_type !== 'factura-salon' && selClients.includes(i.client_id));
         return State.tpv.invoices
             .filter(i => i.status !== 'cancelled')
-            .filter(i => salonOk(i) && fromOk(i) && toOk(i) && clientOk(i))
+            .filter(i => salonOk(i) && fromOk(i) && toOk(i))
             .sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
     }
 
     function tpvSalesGroups() {
-        const by = State.tpv.salesGroupBy === 'cliente' ? 'cliente' : 'salon';
         const map = new Map();
         tpvSalesFiltered().forEach(inv => {
-            if (by === 'cliente' && inv.doc_type === 'factura-salon') return;
-            let key, label;
-            if (by === 'cliente') {
-                key = inv.client_id || '__consumidor__';
-                label = inv.client_name || 'Consumidor final';
-            } else {
-                key = inv.salon_id || '__sin_salon__';
-                label = State.salons.find(s => s.id === key)?.name || 'Sin salón';
-            }
+            const key = inv.salon_id || '__sin_salon__';
+            const label = State.salons.find(s => s.id === key)?.name || 'Sin salón';
             if (!map.has(key)) map.set(key, { label, items: [] });
             map.get(key).items.push(inv);
         });
@@ -2423,7 +2409,6 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     function tpvSalesReportRows() {
-        const by = State.tpv.salesGroupBy === 'cliente' ? 'cliente' : 'salon';
         if (!State.tpv.salesApplied) {
             return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
         }
@@ -2438,9 +2423,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             g.items.forEach(inv => {
                 const items = Array.isArray(inv.items) ? inv.items : [];
                 const dateStr = (inv.created_at || '').substring(0, 10);
-                const dimVal = by === 'cliente'
-                    ? (State.salons.find(s => s.id === inv.salon_id)?.name || 'Sin salón')
-                    : (inv.client_name || 'Consumidor final');
+                const clientLabel = inv.client_name || 'Consumidor final';
                 const servicesLabel = items.length > 0
                     ? items.map(it => `${it.name}${it.qty > 1 ? ` ×${it.qty}` : ''}`).join(', ')
                     : '—';
@@ -2450,7 +2433,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <td style="vertical-align:top;text-align:center;"><input type="checkbox" class="inv-select" data-invoice-id="${inv.id}" title="Marcar para anular" onclick="event.stopPropagation()"></td>
                     <td style="vertical-align:top;">${tpvInvoiceNum(inv)}</td>
                     <td style="vertical-align:top;">${dateStr}</td>
-                    <td style="vertical-align:top;">${dimVal}</td>
+                    <td style="vertical-align:top;">${clientLabel}</td>
                     <td style="vertical-align:top;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${servicesLabel.replace(/"/g, '')}">${servicesLabel}</td>
                     <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(total)}</td>
                 </tr>`;
@@ -2480,8 +2463,6 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         }
         if (State.tpv.salesTo === undefined) State.tpv.salesTo = toLocalDateStr(new Date());
         if (State.tpv.salesApplied === undefined) State.tpv.salesApplied = true;
-        const selClients = State.tpv.salesClientIds || [];
-        const groupByCliente = State.tpv.salesGroupBy === 'cliente';
 
         const salonFilterOptions = [
             '<option value="all">Todos los salones</option>'
@@ -2490,7 +2471,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Listado de Ventas</h1><p style="color:var(--text-secondary)">Ventas entre fechas · filtros por cliente y salón · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
+                <div><h1 class="section-title">Listado de Ventas</h1><p style="color:var(--text-secondary)">Ventas entre fechas · filtro por salón · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                     <button type="button" class="btn btn-primary" id="btn-sales-print">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
@@ -2515,22 +2496,6 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <label style="font-size:0.75rem;font-weight:600;">Hasta</label>
                     <input type="date" class="form-control" id="sales-to" value="${State.tpv.salesTo}" style="min-width:150px;">
                 </div>
-                <div class="form-group" style="margin:0;">
-                    <label style="font-size:0.75rem;font-weight:600;">Clientes${selClients.length > 0 ? ` (${selClients.length} seleccionados)` : ' (todos)'}</label>
-                    <div class="client-check-box" id="sales-client-box">
-                        ${State.clients.length === 0 ? '<span style="color:var(--text-secondary);font-size:0.8rem;">Sin clientes</span>' : ''}
-                        ${State.clients.map(c => `
-                        <label class="client-check-item"><input type="checkbox" data-client-id="${c.id}" ${selClients.includes(c.id) ? 'checked' : ''}> ${c.name}</label>`).join('')}
-                    </div>
-                    <button type="button" class="btn btn-sm btn-secondary" id="btn-sales-clients-clear" style="margin-top:0.35rem;">Quitar filtro de clientes</button>
-                </div>
-                <div class="form-group" style="margin:0;">
-                    <label style="font-size:0.75rem;font-weight:600;">Agrupar por</label>
-                    <div style="display:flex;gap:0.4rem;">
-                        <button type="button" class="btn ${groupByCliente ? 'btn-primary' : 'btn-secondary'}" id="btn-group-cliente">Cliente</button>
-                        <button type="button" class="btn ${!groupByCliente ? 'btn-primary' : 'btn-secondary'}" id="btn-group-salon">Salón</button>
-                    </div>
-                </div>
                 <div style="display:flex;gap:0.5rem;align-items:flex-end;">
                     <button type="button" class="btn btn-primary" id="btn-sales-apply">Aplicar</button>
                     <button type="button" class="btn btn-secondary" id="btn-sales-reset">Limpiar</button>
@@ -2552,14 +2517,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             </div>
             <div class="data-card" style="padding:1.25rem;">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
-                    <h3 style="font-size:1rem;margin:0;">Detalle agrupado por ${groupByCliente ? 'cliente' : 'salón'}</h3>
+                    <h3 style="font-size:1rem;margin:0;">Detalle agrupado por salón</h3>
                     <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
                         <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;cursor:pointer;"><input type="checkbox" id="inv-select-all"> Seleccionar todos</label>
                         <button type="button" class="btn btn-sm btn-danger" id="btn-invoices-cancel" style="background:var(--danger,#dc3545);border-color:var(--danger,#dc3545);">Anular seleccionados</button>
                     </div>
                 </div>
                 <table class="table">
-                    <thead><tr><th style="width:30px;"></th><th>Nº</th><th>Fecha</th><th>${groupByCliente ? 'Salón' : 'Cliente'}</th><th>Servicio</th><th style="text-align:right">Total</th></tr></thead>
+                    <thead><tr><th style="width:30px;"></th><th>Nº</th><th>Fecha</th><th>Cliente</th><th>Servicio</th><th style="text-align:right">Total</th></tr></thead>
                     <tbody id="tpv-history-body">${tpvSalesReportRows()}</tbody>
                 </table>
             </div>`;
@@ -2568,13 +2533,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     function tpvPrintSales() {
         const printArea = document.getElementById('print-area');
         if (!printArea) return;
-        const by = State.tpv.salesGroupBy === 'cliente' ? 'cliente' : 'salon';
-        const groups = tpvSalesGroups();
         const salon = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
-        const selClients = (State.tpv.salesClientIds || [])
-            .map(id => State.clients.find(c => c.id === id)?.name)
-            .filter(Boolean);
-        const clientsLabel = selClients.length === 0 ? 'Todos los clientes' : selClients.join(', ');
         const fromLabel = State.tpv.salesFrom || 'inicio';
         const toLabel = State.tpv.salesTo || 'hoy';
         const summary = tpvSalesSummary();
@@ -2583,18 +2542,16 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
         const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
 
-        const dimHead = by === 'cliente' ? 'Salón' : 'Cliente';
+        const dimHead = 'Cliente';
         let grandTotal = 0;
-        const groupBlocks = groups.length === 0
+        const groupBlocks = tpvSalesGroups().length === 0
             ? '<div style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</div>'
-            : groups.map(g => {
+            : tpvSalesGroups().map(g => {
                 let gBase = 0;
                 const rows = g.items.map(inv => {
                     const items = Array.isArray(inv.items) ? inv.items : [];
                     const dateStr = (inv.created_at || '').substring(0, 10);
-                    const dimVal = by === 'cliente'
-                        ? (State.salons.find(s => s.id === inv.salon_id)?.name || 'Sin salón')
-                        : (inv.client_name || 'Consumidor final');
+                    const dimVal = inv.client_name || 'Consumidor final';
                     const lines = items.length > 0 ? items.map(it => ({
                         name: it.name,
                         qty: it.qty,
@@ -2653,13 +2610,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     </div>
                     <div style="text-align:right;font-size:0.95rem;">
                         <div style="font-size:1.3rem;font-weight:800;">LISTADO DE VENTAS</div>
-                        <div>Agrupado por: <strong>${by === 'cliente' ? 'Cliente' : 'Salón'}</strong></div>
+                        <div>Agrupado por: <strong>Salón</strong></div>
                         <div>Período: ${fromLabel} → ${toLabel}</div>
                         <div>Emitido: ${toLocalDateStr(new Date())}</div>
                     </div>
                 </div>
                 <div style="font-size:0.85rem;color:#333;margin-bottom:0.75rem;">
-                    Salón: <strong>${salon}</strong> · Clientes: <strong>${clientsLabel}</strong>
+                    Salón: <strong>${salon}</strong>
                 </div>
                 ${groupBlocks}
                 <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
@@ -3035,7 +2992,6 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             State.tpv.salesFrom = '';
             State.tpv.salesTo = '';
             State.tpv.historySalonId = 'all';
-            State.tpv.salesClientIds = [];
             State.tpv.salesApplied = false;
             renderRoute();
         });
@@ -3043,26 +2999,6 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (backBtn) backBtn.addEventListener('click', () => navigate('tpv'));
         const printBtn = document.getElementById('btn-sales-print');
         if (printBtn) printBtn.addEventListener('click', tpvPrintSales);
-
-        // Filtro por clientes (checkboxes) y agrupación
-        document.querySelectorAll('#sales-client-box input[type="checkbox"]').forEach(chk => {
-            chk.addEventListener('change', () => {
-                const id = chk.dataset.clientId;
-                const set = new Set(State.tpv.salesClientIds || []);
-                if (chk.checked) set.add(id); else set.delete(id);
-                State.tpv.salesClientIds = Array.from(set);
-                renderRoute();
-            });
-        });
-        const btnClientsClear = document.getElementById('btn-sales-clients-clear');
-        if (btnClientsClear) btnClientsClear.addEventListener('click', () => {
-            State.tpv.salesClientIds = [];
-            renderRoute();
-        });
-        const btnGroupCliente = document.getElementById('btn-group-cliente');
-        const btnGroupSalon = document.getElementById('btn-group-salon');
-        if (btnGroupCliente) btnGroupCliente.addEventListener('click', () => { State.tpv.salesGroupBy = 'cliente'; renderRoute(); });
-        if (btnGroupSalon) btnGroupSalon.addEventListener('click', () => { State.tpv.salesGroupBy = 'salon'; renderRoute(); });
 
         document.querySelectorAll('[data-invoice-id]:not(input)').forEach(btn => {
             btn.addEventListener('click', async e => {
