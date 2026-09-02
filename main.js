@@ -2385,7 +2385,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
     function tpvSalesFiltered() {
         if (!State.tpv.salesApplied) return [];
-        const salonOk = i => State.tpv.historySalonId === 'all' || i.salon_id === State.tpv.historySalonId;
+        const salonOk = i => {
+            if (State.tpv.historySalonId === 'all') return true;
+            if (i.salon_id === State.tpv.historySalonId) return true;
+            // Incluir tickets/facturas de cliente que no tienen salón asignado
+            if (!i.salon_id && i.doc_type !== 'factura-salon') return true;
+            return false;
+        };
         const fromOk = i => !State.tpv.salesFrom || (i.created_at || '').substring(0, 10) >= State.tpv.salesFrom;
         const toOk = i => !State.tpv.salesTo || (i.created_at || '').substring(0, 10) <= State.tpv.salesTo;
         return State.tpv.invoices
