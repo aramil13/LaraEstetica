@@ -2563,14 +2563,19 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         qty: it.qty,
                         amount: Math.round((parseFloat(it.price) || 0) * (it.qty || 0) * 100) / 100
                     })) : [{ name: '—', qty: '', amount: Number(inv.base_amount) || 0 }];
-                    return lines.map((line, idx) => `
+                    const lineRows = lines.map((line, idx) => `
                         <tr>
-                            ${idx === 0 ? `<td rowspan="${lines.length}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dateStr}<br><span style="font-size:0.7rem;color:#777;">${tpvInvoiceNum(inv)}</span></td>
-                            <td rowspan="${lines.length}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dimVal}</td>` : ''}
+                            ${idx === 0 ? `<td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dateStr}<br><span style="font-size:0.7rem;color:#777;">${tpvInvoiceNum(inv)}</span></td>
+                            <td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dimVal}</td>` : ''}
                             <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;">${line.name}</td>
                             <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${line.qty}</td>
                             <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(line.amount)}</td>
                         </tr>`).join('');
+                    const totalRow = `<tr style="border-top:1px solid #999;font-weight:800;">
+                        <td style="padding:0.35rem 0.6rem;text-align:right;" colspan="2">TOTAL ${tpvInvoiceNum(inv)}</td>
+                        <td style="padding:0.35rem 0.6rem;text-align:right;">${tpvFormatMoney(Number(inv.total_amount) || 0)}</td>
+                    </tr>`;
+                    return lineRows + totalRow;
                 }).join('');
                 g.items.forEach(inv => {
                     const items = Array.isArray(inv.items) ? inv.items : [];
