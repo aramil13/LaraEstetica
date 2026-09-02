@@ -2078,17 +2078,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
        CLIENTS VIEW
        ═══════════════════════════════════════ */
     function getClientsView() {
-        const salonFilter = State.activeSalonId || 'all';
-        const filteredClients = salonFilter === 'all'
-            ? State.clients
-            : State.clients.filter(c => c.salon_id === salonFilter);
+        const filteredClients = State.clients;
 
         let rows = '';
         if (filteredClients.length === 0) {
             rows = `
             <div class="empty-state data-card">
                 <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <h3>No hay clientes registrados${salonFilter !== 'all' ? ' en este salón' : ''}</h3>
+                <h3>No hay clientes registrados</h3>
                 <p>Añade tu primer cliente pulsando el botón superior.</p>
             </div>`;
         } else {
