@@ -3117,7 +3117,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                             <span class="monthly-time-end">– ${endStr}</span>
                         </td>
                         <td><div style="font-weight:600">${client.name}${staffBadge}</div></td>
-                        ${showSalonCol ? `<td><span class="daily-salon-badge">${salon ? salon.name : '—'}</span></td>` : ''}
+                        ${showSalonCol ? `<td>${salon ? `<span class="daily-salon-badge" style="background:${salon.color || '#8B5CF6'};color:#fff;border:1px solid ${salon.color || '#8B5CF6'}">${salon.name}</span>` : '<span class="daily-salon-badge">—</span>'}</td>` : ''}
                         <td><span class="monthly-service-badge">${service.name}</span></td>
                         <td>${service.duration} min</td>
                         <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '—'}</td>
