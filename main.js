@@ -2599,7 +2599,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         </tbody>
                     </table>
                     <div style="display:flex;justify-content:flex-end;padding:0.4rem 0.6rem;border-top:2px solid #000;font-weight:700;">
-                        <span>Subtotal ${g.label} (sin IVA)</span>
+                        <span>Subtotal ${g.label}</span>
                         <span style="min-width:90px;text-align:right;">${tpvFormatMoney(gBase)}</span>
                     </div>
                 </div>`;
