@@ -2324,6 +2324,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket" style="flex:0 0 auto;">Ticket</button>
                     <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura" style="flex:0 0 auto;">Factura para Cliente</button>
                     <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon" style="font-size:1.15rem;font-weight:700;flex:0 0 auto;">Factura-Salón</button>
+                    ${State.tpv.pendingBills && State.tpv.pendingBills.length > 0 ? `
+                    <span style="display:inline-flex;align-items:center;gap:0.35rem;background:var(--danger);color:#fff;border-radius:999px;padding:0.15rem 0.7rem;font-size:0.95rem;font-weight:800;white-space:nowrap;flex:0 0 auto;margin-left:0.25rem;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        ${State.tpv.pendingBills.length} por emitir
+                    </span>` : ''}
                 </div>
                 <div class="form-group">
                     <label>Salón de la venta</label>
@@ -2882,18 +2887,17 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
     async function tpvBillToday() {
         const targetStr = State.selectedDate || toLocalDateStr(new Date());
-        const activeSalonId = State.activeSalonId || 'all';
-        const todayApts = State.appointments
-            .filter(a => a.date === targetStr && (activeSalonId === 'all' || a.salonId === activeSalonId))
+        const dayApts = State.appointments
+            .filter(a => a.date === targetStr)
             .sort((a, b) => a.time.localeCompare(b.time));
-        if (todayApts.length === 0) {
-            showToast(activeSalonId === 'all' ? 'No hay citas en el día señalado.' : 'No hay citas del día señalado en este salón.', 'error');
+        if (dayApts.length === 0) {
+            showToast('No hay citas en el día señalado.', 'error');
             return;
         }
 
         const groups = new Map();
-        todayApts.forEach(apt => {
-            const salonId = apt.salonId || activeSalonId;
+        dayApts.forEach(apt => {
+            const salonId = apt.salonId || State.activeSalonId;
             const key = salonId || '__sin_salon__';
             if (!groups.has(key)) groups.set(key, { salon: State.salons.find(s => s.id === salonId) || null, items: [] });
             const client = State.clients.find(c => c.id === apt.clientId);
@@ -2902,13 +2906,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             groups.get(key).items.push({ name: lineName, price: service ? (parseFloat(service.price) || 0) : 0, qty: 1 });
         });
 
-        // Construir una factura por salón con citas hoy
+        // Construir una factura por salón con citas del día señalado (todos los salones)
         const bills = [];
         groups.forEach((group, key) => {
             if (group.items.length === 0) return;
-            const salon = (activeSalonId !== 'all') ? State.salons.find(s => s.id === activeSalonId) : group.salon;
+            const salon = group.salon;
             if (!salon) return;
-            bills.push({ salonId: salon.id, items: group.items });
+            bills.push({ salonId: salon.id, salonName: salon.name || salon.id, items: group.items });
         });
 
         if (bills.length === 0) {
@@ -2916,25 +2920,24 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             return;
         }
 
-        // Control: no facturar más de una vez al día por salón
+        // Control: no contar salones ya facturados en el día señalado
         const alreadyBilled = (State.tpv.invoices || [])
             .filter(i => i.doc_type === 'factura-salon' && i.status !== 'cancelled' && (i.created_at || '').substring(0, 10) === targetStr)
             .reduce((map, i) => { map[i.salon_id] = true; return map; }, {});
-        const blocked = bills.filter(b => alreadyBilled[b.salonId]);
-        if (blocked.length > 0) {
-            const names = blocked.map(b => State.salons.find(s => s.id === b.salonId)?.name || b.salonId).join(', ');
-            showToast(`Este salón ya ha sido facturado en el día señalado: ${names}. Anúlelo en el Listado de Ventas para poder volver a facturarlo.`, 'error');
+        const remaining = bills.filter(b => !alreadyBilled[b.salonId]);
+        if (remaining.length === 0) {
+            const names = bills.map(b => `${b.salonName} (ya facturado)`).join(', ');
+            showToast(`Todos los salones del día ya han sido facturados: ${names}. Anúlelos en el Listado de Ventas para volver a facturarlos.`, 'error');
             return;
         }
 
-        State.tpv.pendingBills = bills.slice(1);
+        // Guardar todas las facturas por emitir y no cargar ninguna automáticamente.
+        // Se emitirán seleccionando el salón en el TPV.
+        State.tpv.pendingBills = remaining;
         State.tpv.docType = 'factura-salon';
-        State.tpv.salonId = bills[0].salonId;
-        State.tpv.cart = bills[0].items;
-        if (bills.length > 1) {
-            showToast(`Se cargó la factura del primer salón (${bills.length} en total). Al emitir cada una se cargará la siguiente.`, 'info');
-        }
+        State.tpv.cart = [];
         navigate('tpv');
+        showToast(`${remaining.length} factura${remaining.length > 1 ? 's' : ''} de salón por emitir. Selecciona el salón en el TPV.`, 'info');
     }
 
     async function tpvEmit() {
@@ -2998,16 +3001,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             };
             State.tpv.cart = [];
             State.tpv.invoices.unshift(doc);
-            await tpvPrintDoc(doc);
-            // Cargar la siguiente factura pendiente de otro salón en el TPV (sin emitir automáticamente)
-            if (State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
-                const next = State.tpv.pendingBills.shift();
-                State.tpv.docType = 'factura-salon';
-                State.tpv.salonId = next.salonId;
-                State.tpv.cart = next.items;
-                showToast('Siguiente factura cargada en el TPV. Pulsa Emitir para imprimirla.', 'info');
-                navigate('tpv');
+            // Si era una factura de salón pendiente del día, quitarla de la lista y actualizar el contador
+            if (doc.doc_type === 'factura-salon' && State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
+                State.tpv.pendingBills = State.tpv.pendingBills.filter(b => b.salonId !== doc.salon_id);
             }
+            await tpvPrintDoc(doc);
+            renderRoute();
         } catch (err) {
             showToast('Error al emitir: ' + (err.message || 'error'), 'error');
         }
@@ -3045,7 +3044,22 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             }
         });
         const saleSalonSel = document.getElementById('tpv-sale-salon');
-        if (saleSalonSel) saleSalonSel.addEventListener('change', e => { State.tpv.salonId = e.target.value; tpvRenderCartPanel(); });
+        if (saleSalonSel) saleSalonSel.addEventListener('change', e => {
+            const salonId = e.target.value;
+            State.tpv.salonId = salonId;
+            // Si hay facturas de salón del día señalado por emitir y hay una para este salón, cargarla automáticamente
+            if (State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
+                const pend = State.tpv.pendingBills.find(b => b.salonId === salonId);
+                if (pend) {
+                    State.tpv.docType = 'factura-salon';
+                    State.tpv.cart = pend.items.slice();
+                    showToast(`Factura de salón de ${pend.salonName || 'este salón'} cargada. Revisa y pulsa Emitir.`, 'info');
+                    tpvRenderCartPanel();
+                    return;
+                }
+            }
+            tpvRenderCartPanel();
+        });
         const nifInput = document.getElementById('tpv-nif');
         if (nifInput) nifInput.addEventListener('input', e => { State.tpv.clientNif = e.target.value; });
 
