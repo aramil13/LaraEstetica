@@ -474,8 +474,8 @@ export default {
       const id = path.split('/')[3];
       const b = await readJson(request);
       const r = await env.DB.prepare(
-        `UPDATE appointments SET client_id = ?, service_id = ?, salon_id = ?, date = ?, time = ?, notes = ?, appointment_photos = ? WHERE id = ? AND user_email = ?`
-      ).bind(b.client_id, b.service_id, b.salon_id || null, b.date, b.time, b.notes || '', JSON.stringify(b.appointment_photos || []), id, email).run();
+        `UPDATE appointments SET client_id = ?, service_id = ?, salon_id = ?, date = ?, time = ?, notes = ?, appointment_photos = ?, staff_modified_by = ? WHERE id = ? AND user_email = ?`
+      ).bind(b.client_id, b.service_id, b.salon_id || null, b.date, b.time, b.notes || '', JSON.stringify(b.appointment_photos || []), b.staff_modified_by || '', id, email).run();
       if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }

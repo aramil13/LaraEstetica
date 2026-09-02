@@ -656,6 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 userEmail: a.user_email || '',
                 appointmentPhotos: a.appointment_photos || [],
                 isStaffAppointment: a.is_staff_appointment || false,
+                staffModifiedBy: a.staff_modified_by || '',
             }));
             
             // Cargar todas las fotos de clientes
@@ -1306,6 +1307,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Appointments CRUD ──
 
+    function adminDisplayName() {
+        if (State.profile && State.profile.full_name) return State.profile.full_name;
+        const email = State.currentUserEmail || '';
+        if (email) return email.split('@')[0];
+        return 'Administrador';
+    }
+
     async function addAppointment(data) {
         // Map JS camelCase to DB snake_case
         const dbRow = {
@@ -1334,6 +1342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function updateAppointment(id, data) {
+        const original = State.appointments.find(a => a.id === id);
         const dbRow = {
             client_id: data.clientId,
             service_id: data.serviceId,
@@ -1343,6 +1352,10 @@ document.addEventListener('DOMContentLoaded', () => {
             appointment_photos: data.appointmentPhotos || [],
         };
         if (data.salonId) dbRow.salon_id = data.salonId;
+        // Si el administrador modifica una cita creada por un staff, dejar constancia de quién la modificó
+        if (original && original.isStaffAppointment && State.session && !State.session.staff) {
+            dbRow.staff_modified_by = adminDisplayName();
+        }
         try {
             await api.updateAppointment(id, dbRow);
         } catch (err) {
@@ -1351,7 +1364,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
         const idx = State.appointments.findIndex(a => a.id === id);
-        if (idx !== -1) State.appointments[idx] = { ...State.appointments[idx], ...data };
+        if (idx !== -1) State.appointments[idx] = { ...State.appointments[idx], ...data, staffModifiedBy: dbRow.staff_modified_by || State.appointments[idx].staffModifiedBy || '' };
         showToast('Cita actualizada correctamente');
         return true;
     }
@@ -1885,7 +1898,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <div class="day-detail-info">
                             <strong>Cliente: ${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
-                            <span style="font-size:0.75rem;display:block;margin-top:2px"><strong style="color:${aptSalonColor}">Salón: ${aptSalon?.name || 'Salón desconocido'}</strong>${apt.isStaffAppointment ? ` <span class="staff-badge" style="color:${userColor}">Staff</span>` : ''}</span>
+                            <span style="font-size:0.75rem;display:block;margin-top:2px"><strong style="color:${aptSalonColor}">Salón: ${aptSalon?.name || 'Salón desconocido'}</strong>${apt.isStaffAppointment ? ` <span class="staff-badge" style="color:${userColor}">Staff</span>` : ''}${apt.isStaffAppointment && apt.staffModifiedBy ? ` <span style="color:var(--text-secondary)">· modificado por <strong style="color:${userColor}">${apt.staffModifiedBy}</strong></span>` : ''}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
                             </div>
@@ -3247,7 +3260,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 const endStr = endTime.toTimeString().substring(0, 5);
                 const salon = State.salons.find(s => s.id === apt.salonId);
                 const staffClass = apt.isStaffAppointment ? ' staff-apt' : '';
-                const staffBadge = apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : '';
+                const staffBadge = apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>${apt.staffModifiedBy ? ` <span style="color:var(--text-secondary);font-size:0.75rem;">· modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}` : '';
 
                 tableRows += `
                     <tr class="monthly-apt-row${staffClass}">
@@ -3436,7 +3449,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         return `
                             <tr data-aptid="${apt.id}">
                                 <td>
-                                    <div style="font-weight:600">${client ? client.name : 'Cliente desconocido'}${apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : ''}</div>
+                                    <div style="font-weight:600">${client ? client.name : 'Cliente desconocido'}${apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>` : ''}${apt.isStaffAppointment && apt.staffModifiedBy ? ` <span style="font-size:0.75rem;color:var(--text-secondary)">· modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}</div>
                                     <div style="font-size:0.8rem;color:var(--text-secondary)">${client ? client.phone : 'Sin teléfono'}</div>
                                 </td>
                                 <td><span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)">${dLabel}</span></td>
