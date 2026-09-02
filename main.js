@@ -2935,14 +2935,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             State.tpv.cart = [];
             State.tpv.invoices.unshift(doc);
             await tpvPrintDoc(doc);
-            // Encadenar facturas pendientes de otros salones
+            // Cargar la siguiente factura pendiente de otro salón en el TPV (sin emitir automáticamente)
             if (State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
                 const next = State.tpv.pendingBills.shift();
                 State.tpv.docType = 'factura-salon';
                 State.tpv.salonId = next.salonId;
                 State.tpv.cart = next.items;
+                showToast('Siguiente factura cargada en el TPV. Pulsa Emitir para imprimirla.', 'info');
                 navigate('tpv');
-                await tpvEmit();
             }
         } catch (err) {
             showToast('Error al emitir: ' + (err.message || 'error'), 'error');
