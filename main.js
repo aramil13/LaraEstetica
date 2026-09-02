@@ -5549,10 +5549,19 @@ window.addEventListener('message', async (event) => {
         }
 
         const isEdit = apt !== null;
+        const salonScopeCheck = (State.activeSalonId && State.activeSalonId !== 'all') ? State.activeSalonId : null;
+        if (salonScopeCheck && !State.clients.some(c => c.salon_id === salonScopeCheck)) {
+            showToast('No hay clientes asignados a este salón. Crea o asigna clientes a este salón primero.', 'error');
+            return;
+        }
         const defaultDate = isEdit ? apt.date : (State.selectedDate || toLocalDateStr(new Date()));
         const defaultTime = isEdit ? apt.time : findNextAvailableTime(defaultDate, State.services.length > 0 ? parseInt(State.services[0].duration) : 30);
 
         const userColor = State.currentUserColor || '#6366f1';
+        const salonScope = (State.activeSalonId && State.activeSalonId !== 'all') ? State.activeSalonId : null;
+        const formClients = salonScope
+            ? State.clients.filter(c => (isEdit && c.id === apt.clientId) || c.salon_id === salonScope)
+            : State.clients;
         const html = `
             <form id="appointment-form">
                 <div class="form-user-badge" style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;padding:0.5rem;background:rgba(0,0,0,0.03);border-radius:8px;">
@@ -5562,7 +5571,7 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Cliente</label>
                     <select class="form-control" name="clientId" required>
-                        ${State.clients.map(c => `<option value="${c.id}" ${isEdit && c.id === apt.clientId ? 'selected' : ''}>${c.name}</option>`).join('')}
+                        ${formClients.length === 0 ? '<option value="">No hay clientes en este salón</option>' : formClients.map(c => `<option value="${c.id}" ${isEdit && c.id === apt.clientId ? 'selected' : ''}>${c.name}</option>`).join('')}
                     </select>
                     <div id="client-info" style="margin-top:6px;font-size:0.8rem;color:var(--text-secondary);display:none">
                         <span id="client-phone"></span>
