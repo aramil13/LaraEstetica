@@ -5650,7 +5650,6 @@ window.addEventListener('message', async (event) => {
                     const salon = State.salons.find(s => s.id === clientSalonId);
                     if (aptSalonSelect) {
                         aptSalonSelect.innerHTML = `<option value="${salon.id}" selected>${salon.name}</option>`;
-                        aptSalonSelect.disabled = true;
                     } else {
                         salonField.value = clientSalonId;
                     }
@@ -5660,7 +5659,6 @@ window.addEventListener('message', async (event) => {
                     }
                 } else {
                     if (aptSalonSelect) {
-                        aptSalonSelect.disabled = false;
                         if (aptSalonSelect.options.length === 0 || isEdit) {
                             aptSalonSelect.innerHTML = State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('');
                         }
@@ -5784,6 +5782,11 @@ window.addEventListener('message', async (event) => {
                     userEmail: State.currentUserEmail || '',
                     appointmentPhotos: existingPhotos
                 };
+
+                const chosenClient = State.clients.find(c => c.id === data.clientId);
+                if (chosenClient && chosenClient.salon_id && State.salons.some(s => s.id === chosenClient.salon_id)) {
+                    data.salonId = chosenClient.salon_id;
+                }
                 
                 if (data.salonId === 'all' || !State.salons.some(s => s.id === data.salonId)) {
                     showToast('Por favor, selecciona un salón válido para la cita.', 'error');
