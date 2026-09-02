@@ -2847,6 +2847,17 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             return;
         }
 
+        // Control: no facturar más de una vez al día por salón
+        const alreadyBilled = (State.tpv.invoices || [])
+            .filter(i => i.doc_type === 'factura-salon' && i.status !== 'cancelled' && (i.created_at || '').substring(0, 10) === todayStr)
+            .reduce((map, i) => { map[i.salon_id] = true; return map; }, {});
+        const blocked = bills.filter(b => alreadyBilled[b.salonId]);
+        if (blocked.length > 0) {
+            const names = blocked.map(b => State.salons.find(s => s.id === b.salonId)?.name || b.salonId).join(', ');
+            showToast(`Este salón ya ha sido facturado hoy: ${names}. Anúlelo en el Listado de Ventas para poder volver a facturarlo.`, 'error');
+            return;
+        }
+
         State.tpv.pendingBills = bills.slice(1);
         State.tpv.docType = 'factura-salon';
         State.tpv.salonId = bills[0].salonId;
