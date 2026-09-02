@@ -5578,9 +5578,10 @@ window.addEventListener('message', async (event) => {
                 ${(State.activeSalonId === 'all' || !State.activeSalonId || !State.salons.some(s => s.id === State.activeSalonId)) ? `
                 <div class="form-group">
                     <label>Salón</label>
-                    <select class="form-control" name="salonId" required>
+                    <select class="form-control" name="salonId" id="apt-salon-select" required>
                         ${State.salons.length === 0 ? '<option value="">No hay salones disponibles</option>' : State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
                     </select>
+                    <small id="apt-salon-note" style="color:var(--text-secondary);font-size:0.8rem;display:none"></small>
                 </div>
                 ` : `<input type="hidden" name="salonId" value="${State.activeSalonId}">`}
                 <div style="display:flex;gap:1rem">
@@ -5622,7 +5623,51 @@ window.addEventListener('message', async (event) => {
             const dateInput = form.querySelector('[name="date"]');
             const timeInput = form.querySelector('[name="time"]');
             const serviceSelect = form.querySelector('[name="serviceId"]');
-            
+            const clientSelect = form.querySelector('[name="clientId"]');
+            const aptSalonSelect = document.getElementById('apt-salon-select');
+            const aptSalonNote = document.getElementById('apt-salon-note');
+
+            function getClientSalonId() {
+                if (!clientSelect) return null;
+                const client = State.clients.find(c => c.id === clientSelect.value);
+                return client && client.salon_id ? client.salon_id : null;
+            }
+
+            function updateSalonOptionsForClient() {
+                const clientSalonId = getClientSalonId();
+                const salonField = form.querySelector('[name="salonId"]');
+                if (!salonField) return;
+                if (clientSalonId) {
+                    const salon = State.salons.find(s => s.id === clientSalonId);
+                    if (aptSalonSelect) {
+                        aptSalonSelect.innerHTML = `<option value="${salon.id}" selected>${salon.name}</option>`;
+                        aptSalonSelect.disabled = true;
+                    } else {
+                        salonField.value = clientSalonId;
+                    }
+                    if (aptSalonNote) {
+                        aptSalonNote.textContent = `El cliente pertenece a ${salon.name}. La cita se asignará a este salón.`;
+                        aptSalonNote.style.display = 'block';
+                    }
+                } else {
+                    if (aptSalonSelect) {
+                        aptSalonSelect.disabled = false;
+                        if (aptSalonSelect.options.length === 0 || isEdit) {
+                            aptSalonSelect.innerHTML = State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('');
+                        }
+                    }
+                    if (aptSalonNote) {
+                        aptSalonNote.style.display = 'none';
+                        aptSalonNote.textContent = '';
+                    }
+                }
+            }
+
+            if (clientSelect) {
+                clientSelect.addEventListener('change', updateSalonOptionsForClient);
+                updateSalonOptionsForClient();
+            }
+
             let pendingFiles = [];
             let existingPhotos = isEdit ? [...apt.appointmentPhotos] : [];
 
@@ -5733,6 +5778,15 @@ window.addEventListener('message', async (event) => {
                 
                 if (data.salonId === 'all' || !State.salons.some(s => s.id === data.salonId)) {
                     showToast('Por favor, selecciona un salón válido para la cita.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
+                    return;
+                }
+
+                const salonOwnerClient = State.clients.find(c => c.id === data.clientId);
+                if (salonOwnerClient && salonOwnerClient.salon_id && data.salonId !== salonOwnerClient.salon_id) {
+                    const clientSalon = State.salons.find(s => s.id === salonOwnerClient.salon_id);
+                    showToast(`El cliente pertenece a ${clientSalon ? clientSalon.name : 'su salón'}. No puedes agendar su cita en otro salón.`, 'error');
                     submitBtn.disabled = false;
                     submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
