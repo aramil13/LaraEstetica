@@ -2446,14 +2446,20 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
     function tpvSalesSummary() {
         const list = tpvSalesFiltered();
-        let count = 0, base = 0, total = 0, tax = 0;
+        let count = 0, base = 0, total = 0, tax = 0, commission = 0, retention = 0;
         list.forEach(i => {
             count++;
             base += Number(i.base_amount) || 0;
             total += Number(i.total_amount) || 0;
             tax += Number(i.tax_amount) || 0;
+            if (i.doc_type === 'factura-salon') {
+                commission += Number(i.commission_amount) || 0;
+                retention += Number(i.retention_amount) || 0;
+            }
         });
-        return { count, base, total, tax };
+        commission = Math.round(commission * 100) / 100;
+        retention = Math.round(retention * 100) / 100;
+        return { count, base, total, tax, commission, retention };
     }
 
     function getSalesView() {
@@ -2621,9 +2627,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 ${groupBlocks}
                 <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
                     <div style="width:300px;">
-                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Documentos</span><strong>${summary.count}</strong></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los servicios (70%)</span><strong>${tpvFormatMoney(summary.commission)}</strong></div>
                         <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base total</span><strong>${tpvFormatMoney(summary.base)}</strong></div>
                         <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA total</span><strong>${tpvFormatMoney(summary.tax)}</strong></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>− Retención (15%)</span><strong>${tpvFormatMoney(summary.retention)}</strong></div>
                         <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL GENERAL (IVA incl.)</span><span>${tpvFormatMoney(grandTotal)}</span></div>
                     </div>
                 </div>
