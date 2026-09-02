@@ -2320,7 +2320,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
                     <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket">Ticket</button>
                     <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura para Cliente</button>
-                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon" style="font-size:2rem;color:#dc3545;">Factura para el Salón</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon" style="font-size:1.3rem;font-weight:700;">Factura para el Salón</button>
                 </div>
                 <div class="form-group">
                     <label>Salón de la venta</label>
