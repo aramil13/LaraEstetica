@@ -2317,10 +2317,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         return `
             <div class="data-card" style="padding:1.25rem;">
-                <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
-                    <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket">Ticket</button>
-                    <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura">Factura para Cliente</button>
-                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon" style="font-size:1.15rem;font-weight:700;">Factura-Salón</button>
+                <div style="display:flex;gap:0.4rem;margin-bottom:1rem;flex-wrap:nowrap;width:100%;">
+                    <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket" style="flex:0 0 auto;">Ticket</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura" style="flex:0 0 auto;">Factura para Cliente</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon" style="font-size:1.15rem;font-weight:700;flex:0 0 auto;">Factura-Salón</button>
                 </div>
                 <div class="form-group">
                     <label>Salón de la venta</label>
