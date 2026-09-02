@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         // TPV
         tpv: {
-            docType: 'ticket',
+            docType: 'factura-salon',
             cart: [],
             clientId: '',
             clientNif: '',
