@@ -2561,8 +2561,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const groupBlocks = tpvSalesGroups().length === 0
             ? '<div style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</div>'
             : tpvSalesGroups().map(g => {
-                let gBase = 0, gCommission = 0, gBaseAmt = 0, gTax = 0, gRetention = 0;
-                const rows = g.items.map(inv => {
+                const salonInvs = g.items.filter(i => i.doc_type === 'factura-salon');
+                const clientInvs = g.items.filter(i => i.doc_type !== 'factura-salon');
+
+                const buildInvRows = inv => {
                     const items = Array.isArray(inv.items) ? inv.items : [];
                     const dateStr = (inv.created_at || '').substring(0, 10);
                     const dimVal = inv.client_name || 'Consumidor final';
@@ -2583,39 +2585,26 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <td style="padding:0.35rem 0.6rem;text-align:right;" colspan="2">TOTAL ${tpvInvoiceNum(inv)}</td>
                         <td style="padding:0.35rem 0.6rem;text-align:right;">${tpvFormatMoney(Number(inv.total_amount) || 0)}</td>
                     </tr>`;
-                    return lineRows + totalRow;
-                }).join('');
-                g.items.forEach(inv => {
-                    const items = Array.isArray(inv.items) ? inv.items : [];
-                    if (items.length > 0) {
-                        items.forEach(it => { gBase += (parseFloat(it.price) || 0) * (it.qty || 0); });
-                    } else {
-                        gBase += Number(inv.base_amount) || 0;
-                    }
-                    if (inv.doc_type === 'factura-salon') {
-                        gCommission += Number(inv.commission_amount) || 0;
-                        gBaseAmt += Number(inv.base_amount) || 0;
-                        gTax += Number(inv.tax_amount) || 0;
-                        gRetention += Number(inv.retention_amount) || 0;
-                    }
                     grandTotal += Number(inv.total_amount) || 0;
-                });
-                gBase = Math.round(gBase * 100) / 100;
-                gCommission = Math.round(gCommission * 100) / 100;
-                gBaseAmt = Math.round(gBaseAmt * 100) / 100;
-                gTax = Math.round(gTax * 100) / 100;
-                gRetention = Math.round(gRetention * 100) / 100;
-                const gSalonSummary = gCommission > 0 ? `
-                    <div style="display:flex;justify-content:flex-end;gap:2rem;padding:0.5rem 0.6rem;border-top:1px solid #bbb;font-weight:600;">
-                        <span>Comisión por los servicios (70%): ${tpvFormatMoney(gCommission)}</span>
-                        <span>Base: ${tpvFormatMoney(gBaseAmt)}</span>
-                        <span>IVA (21%): ${tpvFormatMoney(gTax)}</span>
-                        <span>− Retención (15%): −${tpvFormatMoney(gRetention)}</span>
-                    </div>` : '';
-                return `
-                <div style="margin-top:1.25rem;">
-                    <div style="background:#f4f4f4;padding:0.45rem 0.6rem;font-weight:800;font-size:1rem;">${g.label}</div>
-                    <table style="width:100%;font-size:0.85rem;border-collapse:collapse;">
+                    return lineRows + totalRow;
+                };
+
+                // Totales de las facturas de salón
+                const sCommission = Math.round(salonInvs.reduce((a, i) => a + (Number(i.commission_amount) || 0), 0) * 100) / 100;
+                const sBase = Math.round(salonInvs.reduce((a, i) => a + (Number(i.base_amount) || 0), 0) * 100) / 100;
+                const sTax = Math.round(salonInvs.reduce((a, i) => a + (Number(i.tax_amount) || 0), 0) * 100) / 100;
+                const sRetention = Math.round(salonInvs.reduce((a, i) => a + (Number(i.retention_amount) || 0), 0) * 100) / 100;
+                const sTotal = Math.round(salonInvs.reduce((a, i) => a + (Number(i.total_amount) || 0), 0) * 100) / 100;
+                // Totales de las facturas de cliente
+                const cBase = Math.round(clientInvs.reduce((a, i) => a + (Number(i.base_amount) || 0), 0) * 100) / 100;
+                const cTax = Math.round(clientInvs.reduce((a, i) => a + (Number(i.tax_amount) || 0), 0) * 100) / 100;
+                const cTotal = Math.round(clientInvs.reduce((a, i) => a + (Number(i.total_amount) || 0), 0) * 100) / 100;
+
+                const salonRows = salonInvs.map(buildInvRows).join('');
+                const clientRows = clientInvs.map(buildInvRows).join('');
+
+                const salonTable = salonInvs.length > 0 ? `
+                    <table style="width:100%;font-size:0.85rem;border-collapse:collapse;margin-top:0.4rem;">
                         <thead>
                             <tr style="color:#555;">
                                 <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;width:110px;">Fecha</th>
@@ -2625,14 +2614,48 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                                 <th style="padding:0.35rem 0.6rem;text-align:right;border-bottom:1px solid #999;width:90px;">Subtotal</th>
                             </tr>
                         </thead>
-                        <tbody>${rows}
-                        </tbody>
+                        <tbody>${salonRows}</tbody>
                     </table>
                     <div style="display:flex;justify-content:flex-end;padding:0.4rem 0.6rem;border-top:2px solid #000;font-weight:700;">
                         <span>Subtotal ${g.label}</span>
-                        <span style="min-width:90px;text-align:right;">${tpvFormatMoney(gBase)}</span>
+                        <span style="min-width:90px;text-align:right;">${tpvFormatMoney(sTotal)}</span>
                     </div>
-                    ${gSalonSummary}
+                    <div style="display:flex;justify-content:flex-end;flex-direction:column;align-items:flex-end;padding:0.5rem 0.6rem 0;font-weight:600;">
+                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">Comisión por los servicios (70%): <span>${tpvFormatMoney(sCommission)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(sBase)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(sTax)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(sRetention)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL GENERAL (IVA incl.): <span>${tpvFormatMoney(sTotal)}</span></div>
+                    </div>` : '';
+
+                const clientTable = clientInvs.length > 0 ? `
+                    <table style="width:100%;font-size:0.85rem;border-collapse:collapse;margin-top:0.4rem;">
+                        <thead>
+                            <tr style="color:#555;">
+                                <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;width:110px;">Fecha</th>
+                                <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;">${dimHead}</th>
+                                <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;">Servicio</th>
+                                <th style="padding:0.35rem 0.6rem;text-align:center;border-bottom:1px solid #999;width:50px;">Cant.</th>
+                                <th style="padding:0.35rem 0.6rem;text-align:right;border-bottom:1px solid #999;width:90px;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>${clientRows}</tbody>
+                    </table>
+                    <div style="display:flex;justify-content:flex-end;padding:0.4rem 0.6rem;border-top:2px solid #000;font-weight:700;">
+                        <span>Subtotal Cliente</span>
+                        <span style="min-width:90px;text-align:right;">${tpvFormatMoney(cTotal)}</span>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;flex-direction:column;align-items:flex-end;padding:0.5rem 0.6rem 0;font-weight:600;">
+                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(cBase)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(cTax)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:270px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL GENERAL (IVA incl.): <span>${tpvFormatMoney(cTotal)}</span></div>
+                    </div>` : '';
+
+                return `
+                <div style="margin-top:1.25rem;">
+                    <div style="background:#f4f4f4;padding:0.45rem 0.6rem;font-weight:800;font-size:1rem;">${g.label}</div>
+                    ${salonTable}
+                    ${clientTable}
                 </div>`;
             }).join('');
         grandTotal = Math.round(grandTotal * 100) / 100;
