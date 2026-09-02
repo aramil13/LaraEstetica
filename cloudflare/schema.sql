@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   payment_method TEXT NOT NULL DEFAULT 'contado',
   payment_cash REAL NOT NULL DEFAULT 0,
   payment_card REAL NOT NULL DEFAULT 0,
+  status TEXT DEFAULT 'active',
   user_email TEXT DEFAULT '',
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );

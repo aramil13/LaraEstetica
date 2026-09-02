@@ -510,7 +510,7 @@ export default {
     if (path === '/api/invoices' && method === 'GET') {
       const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT id, number, doc_type, client_id, client_name, client_nif, salon_id, items, base_amount, tax_amount, retention_amount, commission_rate, commission_amount, total_amount, payment_method, payment_cash, payment_card, created_at FROM invoices WHERE user_email = ? ORDER BY number DESC').bind(email).all();
+      const { results } = await env.DB.prepare('SELECT id, number, doc_type, client_id, client_name, client_nif, salon_id, items, base_amount, tax_amount, retention_amount, commission_rate, commission_amount, total_amount, payment_method, payment_cash, payment_card, status, created_at FROM invoices WHERE user_email = ? ORDER BY number DESC').bind(email).all();
       return json(results.map(r => ({ ...r, items: JSON.parse(r.items || '[]') })));
     }
     if (path === '/api/invoices' && method === 'POST') {
@@ -551,6 +551,16 @@ export default {
         b.client_nif || null, b.salon_id || null, JSON.stringify(b.items), base, tax, retention, commissionRate, commission, total, payMethod, payCash, payCard, email
       ).run();
       return json({ id, number: nextNumber, doc_type: docType });
+    }
+    if (path.startsWith('/api/invoices/') && method === 'PATCH') {
+      const { email } = await authenticate(env, request);
+      if (!email) return error('No autorizado', 401);
+      const id = path.split('/')[3];
+      const b = await readJson(request);
+      const status = b.status === 'cancelled' ? 'cancelled' : 'active';
+      const r = await env.DB.prepare('UPDATE invoices SET status = ? WHERE id = ? AND user_email = ?').bind(status, id, email).run();
+      if (r.meta.changes === 0) return error('No autorizado', 403);
+      return json({ ok: true, status });
     }
     if (path.startsWith('/api/invoices/') && method === 'DELETE') {
       const { email } = await authenticate(env, request);

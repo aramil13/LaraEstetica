@@ -331,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
         getInvoices() { return this.request('/api/invoices'); },
         addInvoice(data) { return this.request('/api/invoices', { method: 'POST', body: data }); },
         deleteInvoice(id) { return this.request('/api/invoices/' + id, { method: 'DELETE' }); },
+        setInvoiceStatus(id, status) { return this.request('/api/invoices/' + id, { method: 'PATCH', body: { status } }); },
         getPhotos(clientId) { return this.request('/api/photos' + (clientId ? '?clientId=' + encodeURIComponent(clientId) : '')); },
         uploadPhoto({ clientId, photoId, file, photoDate, photoType, notes, photoHash }) {
             return this.request('/api/photos/upload', {
@@ -2390,6 +2391,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             ? true
             : (i.doc_type !== 'factura-salon' && selClients.includes(i.client_id));
         return State.tpv.invoices
+            .filter(i => i.status !== 'cancelled')
             .filter(i => salonOk(i) && fromOk(i) && toOk(i) && clientOk(i))
             .sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
     }
@@ -2420,45 +2422,39 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     function tpvSalesReportRows() {
         const by = State.tpv.salesGroupBy === 'cliente' ? 'cliente' : 'salon';
         if (!State.tpv.salesApplied) {
-            return '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
+            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
         }
         const groups = tpvSalesGroups();
         if (groups.length === 0) {
-            return '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en el período y filtros seleccionados.</td></tr>';
+            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en el período y filtros seleccionados.</td></tr>';
         }
         let html = '';
         let grandTotal = 0;
         groups.forEach(g => {
-            let gBase = 0;
-            html += `<tr class="report-group-header"><td colspan="5">${g.label}</td></tr>`;
+            html += `<tr class="report-group-header"><td colspan="6">${g.label}</td></tr>`;
             g.items.forEach(inv => {
                 const items = Array.isArray(inv.items) ? inv.items : [];
                 const dateStr = (inv.created_at || '').substring(0, 10);
                 const dimVal = by === 'cliente'
                     ? (State.salons.find(s => s.id === inv.salon_id)?.name || 'Sin salón')
                     : (inv.client_name || 'Consumidor final');
-                const lines = items.length > 0 ? items.map(it => ({
-                    name: it.name,
-                    qty: it.qty,
-                    amount: Math.round((parseFloat(it.price) || 0) * (it.qty || 0) * 100) / 100
-                })) : [{ name: '—', qty: '', amount: Number(inv.base_amount) || 0 }];
-                lines.forEach((line, idx) => {
-                    gBase += line.amount;
-                    html += `<tr>
-                        ${idx === 0 ? `<td rowspan="${lines.length}" style="vertical-align:top;">${dateStr}<br><span style="font-size:0.7rem;color:var(--text-secondary);">${tpvInvoiceNum(inv)}</span></td>
-                        <td rowspan="${lines.length}" style="vertical-align:top;"><span class="daily-salon-badge">${dimVal}</span></td>` : ''}
-                        <td>${line.name}</td>
-                        <td style="text-align:center;">${line.qty}</td>
-                        <td style="text-align:right;">${tpvFormatMoney(line.amount)}</td>
-                    </tr>`;
-                });
+                const servicesLabel = items.length > 0
+                    ? items.map(it => `${it.name}${it.qty > 1 ? ` ×${it.qty}` : ''}`).join(', ')
+                    : '—';
+                const total = Number(inv.total_amount) || 0;
+                grandTotal += total;
+                html += `<tr data-sales-row="${inv.id}">
+                    <td style="vertical-align:top;text-align:center;"><input type="checkbox" class="inv-select" data-invoice-id="${inv.id}" title="Marcar para anular" onclick="event.stopPropagation()"></td>
+                    <td style="vertical-align:top;">${tpvInvoiceNum(inv)}</td>
+                    <td style="vertical-align:top;">${dateStr}</td>
+                    <td style="vertical-align:top;">${dimVal}</td>
+                    <td style="vertical-align:top;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${servicesLabel.replace(/"/g, '')}">${servicesLabel}</td>
+                    <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(total)}</td>
+                </tr>`;
             });
-            gBase = Math.round(gBase * 100) / 100;
-            grandTotal += g.items.reduce((acc, i) => acc + (Number(i.total_amount) || 0), 0);
-            html += `<tr class="report-subtotal"><td colspan="4" style="text-align:right;">Subtotal ${g.label} <span style="font-weight:400;font-size:0.75rem;">(sin IVA)</span></td><td style="text-align:right;">${tpvFormatMoney(gBase)}</td></tr>`;
         });
         grandTotal = Math.round(grandTotal * 100) / 100;
-        html += `<tr class="report-grand"><td colspan="4" style="text-align:right;">TOTAL GENERAL (IVA incl.)</td><td style="text-align:right;">${tpvFormatMoney(grandTotal)}</td></tr>`;
+        html += `<tr class="report-grand"><td colspan="5" style="text-align:right;">TOTAL GENERAL (IVA incl.)</td><td style="text-align:right;">${tpvFormatMoney(grandTotal)}</td></tr>`;
         return html;
     }
 
@@ -2552,9 +2548,15 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 </div>
             </div>
             <div class="data-card" style="padding:1.25rem;">
-                <h3 style="margin-bottom:0.75rem;font-size:1rem;">Detalle agrupado por ${groupByCliente ? 'cliente' : 'salón'}</h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
+                    <h3 style="font-size:1rem;margin:0;">Detalle agrupado por ${groupByCliente ? 'cliente' : 'salón'}</h3>
+                    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                        <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;cursor:pointer;"><input type="checkbox" id="inv-select-all"> Seleccionar todos</label>
+                        <button type="button" class="btn btn-sm btn-danger" id="btn-invoices-cancel" style="background:var(--danger,#dc3545);border-color:var(--danger,#dc3545);">Anular seleccionados</button>
+                    </div>
+                </div>
                 <table class="table">
-                    <thead><tr><th>Fecha</th><th>${groupByCliente ? 'Salón' : 'Cliente'}</th><th>Servicio</th><th style="text-align:center">Cant.</th><th style="text-align:right">Subtotal</th></tr></thead>
+                    <thead><tr><th style="width:30px;"></th><th>Nº</th><th>Fecha</th><th>${groupByCliente ? 'Salón' : 'Cliente'}</th><th>Servicio</th><th style="text-align:right">Total</th></tr></thead>
                     <tbody id="tpv-history-body">${tpvSalesReportRows()}</tbody>
                 </table>
             </div>`;
@@ -3023,7 +3025,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (btnGroupCliente) btnGroupCliente.addEventListener('click', () => { State.tpv.salesGroupBy = 'cliente'; renderRoute(); });
         if (btnGroupSalon) btnGroupSalon.addEventListener('click', () => { State.tpv.salesGroupBy = 'salon'; renderRoute(); });
 
-        document.querySelectorAll('[data-invoice-id]').forEach(btn => {
+        document.querySelectorAll('[data-invoice-id]:not(input)').forEach(btn => {
             btn.addEventListener('click', async e => {
                 const invId = btn.dataset.invoiceId;
                 if (btn.classList.contains('delete-btn')) {
@@ -3042,6 +3044,37 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 }
             });
         });
+
+        const selectAllCheck = document.getElementById('inv-select-all');
+        if (selectAllCheck) {
+            selectAllCheck.addEventListener('change', () => {
+                const boxes = document.querySelectorAll('.inv-select');
+                const shouldCheck = selectAllCheck.checked;
+                boxes.forEach(b => { b.checked = shouldCheck; });
+            });
+        }
+
+        const cancelBtn = document.getElementById('btn-invoices-cancel');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', async () => {
+                const selected = Array.from(document.querySelectorAll('.inv-select:checked')).map(b => b.dataset.invoiceId);
+                if (selected.length === 0) {
+                    showToast('Selecciona al menos un ticket/factura para anular.', 'error');
+                    return;
+                }
+                if (!confirm(`¿Anular ${selected.length} documento(s)? Se ocultarán del listado de ventas.`)) return;
+                try {
+                    for (const id of selected) {
+                        await api.setInvoiceStatus(id, 'cancelled');
+                    }
+                    State.tpv.invoices = State.tpv.invoices.map(i => selected.includes(i.id) ? { ...i, status: 'cancelled' } : i);
+                    renderRoute();
+                    showToast(`${selected.length} documento(s) anulado(s) correctamente.`);
+                } catch (err) {
+                    showToast('Error al anular: ' + (err.message || 'error'), 'error');
+                }
+            });
+        }
     }
 
     function tpvBindEvents() {
