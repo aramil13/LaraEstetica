@@ -2630,7 +2630,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los servicios (70%)</span><strong>${tpvFormatMoney(summary.commission)}</strong></div>
                         <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base total</span><strong>${tpvFormatMoney(summary.base)}</strong></div>
                         <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA total</span><strong>${tpvFormatMoney(summary.tax)}</strong></div>
-                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>− Retención (15%)</span><strong>${tpvFormatMoney(summary.retention)}</strong></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>− Retención (15%)</span><strong>−${tpvFormatMoney(summary.retention)}</strong></div>
                         <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL GENERAL (IVA incl.)</span><span>${tpvFormatMoney(grandTotal)}</span></div>
                     </div>
                 </div>
