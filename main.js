@@ -384,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tpv: {
             docType: 'factura-salon',
             cart: [],
+            pendingBills: [],
             clientId: '',
             clientNif: '',
             commissionRate: 30,
@@ -2832,17 +2833,27 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             groups.get(key).items.push({ name: lineName, price: service ? (parseFloat(service.price) || 0) : 0, qty: 1 });
         });
 
-        const salonForBill = (activeSalonId !== 'all')
-            ? State.salons.find(s => s.id === activeSalonId) || null
-            : (groups.size === 1 ? groups.values().next().value.salon : null);
-        if (!salonForBill) {
-            showToast(activeSalonId === 'all' ? 'Selecciona un salón o deja citas de un solo salón para facturar.' : 'Salón no encontrado.', 'error');
+        // Construir una factura por salón con citas hoy
+        const bills = [];
+        groups.forEach((group, key) => {
+            if (group.items.length === 0) return;
+            const salon = (activeSalonId !== 'all') ? State.salons.find(s => s.id === activeSalonId) : group.salon;
+            if (!salon) return;
+            bills.push({ salonId: salon.id, items: group.items });
+        });
+
+        if (bills.length === 0) {
+            showToast('No se pudo preparar ninguna factura de salón.', 'error');
             return;
         }
 
+        State.tpv.pendingBills = bills.slice(1);
         State.tpv.docType = 'factura-salon';
-        State.tpv.salonId = salonForBill.id;
-        State.tpv.cart = salonForBill ? groups.get(salonForBill.id)?.items || groups.values().next().value.items : [];
+        State.tpv.salonId = bills[0].salonId;
+        State.tpv.cart = bills[0].items;
+        if (bills.length > 1) {
+            showToast(`Se cargó la factura del primer salón (${bills.length} en total). Al emitir cada una se cargará la siguiente.`, 'info');
+        }
         navigate('tpv');
     }
 
@@ -2900,6 +2911,15 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             State.tpv.cart = [];
             State.tpv.invoices.unshift(doc);
             await tpvPrintDoc(doc);
+            // Encadenar facturas pendientes de otros salones
+            if (State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
+                const next = State.tpv.pendingBills.shift();
+                State.tpv.docType = 'factura-salon';
+                State.tpv.salonId = next.salonId;
+                State.tpv.cart = next.items;
+                navigate('tpv');
+                await tpvEmit();
+            }
         } catch (err) {
             showToast('Error al emitir: ' + (err.message || 'error'), 'error');
         }
