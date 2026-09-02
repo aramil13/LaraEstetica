@@ -2293,10 +2293,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
     function getTpvCartPanel() {
         const tpvClients = State.clients.filter(c => !c.salon_id || c.salon_id === State.tpv.salonId);
-        const clientOptions = (State.tpv.docType === 'factura'
-            ? '<option value="">— Selecciona un cliente —</option>'
-            : '<option value="">Consumidor final</option>'
-        ).concat(tpvClients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
+        const clientOptions = [
+            (State.tpv.docType === 'factura'
+                ? '<option value="">— Selecciona un cliente —</option>'
+                : '<option value="">Consumidor final</option>')
+        ].concat(tpvClients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
 
         const cartRows = State.tpv.cart.length === 0
             ? '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1rem;">El carrito está vacío. Añade servicios desde la derecha.</td></tr>'
