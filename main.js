@@ -2293,9 +2293,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
     function getTpvCartPanel() {
         const tpvClients = State.clients.filter(c => !c.salon_id || c.salon_id === State.tpv.salonId);
-        const clientOptions = [
-            '<option value="">Consumidor final</option>'
-        ].concat(tpvClients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
+        const clientOptions = (State.tpv.docType === 'factura'
+            ? '<option value="">— Selecciona un cliente —</option>'
+            : '<option value="">Consumidor final</option>'
+        ).concat(tpvClients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
 
         const cartRows = State.tpv.cart.length === 0
             ? '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1rem;">El carrito está vacío. Añade servicios desde la derecha.</td></tr>'
@@ -2330,7 +2331,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 ${showClient ? `
                 <div class="form-group">
                     <label>Cliente</label>
-                    <select class="form-control" id="tpv-client">${clientOptions}</select>
+                    <select class="form-control" id="tpv-client" ${State.tpv.docType === 'factura' ? 'required' : ''}>${clientOptions}</select>
                 </div>` : ''}
                 ${State.tpv.docType === 'factura' ? `
                 <div class="form-group">
@@ -2900,6 +2901,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const clientId = document.getElementById('tpv-client') ? document.getElementById('tpv-client').value : '';
         const nifInput = document.getElementById('tpv-nif');
         const clientNif = nifInput ? nifInput.value.trim() : '';
+        // Obligatorio: la factura para cliente debe llevar un cliente de la BD completo
+        if (State.tpv.docType === 'factura') {
+            const client = State.clients.find(c => c.id === clientId);
+            if (!client || !client.name || !client.fiscal_address || !client.nif) {
+                showToast('Para la Factura de Cliente debes seleccionar un cliente de la base de datos con Nombre, Dirección y CIF/NIF completos.', 'error');
+                return;
+            }
+        }
         const totals = tpvCartTotals();
         const isSalonInvoice = State.tpv.docType === 'factura-salon';
         const salon = isSalonInvoice ? tpvSelectedSalon() : null;
