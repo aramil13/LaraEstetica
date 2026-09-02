@@ -2008,8 +2008,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <button class="btn btn-secondary" id="btn-settings" title="Configuración">
                         Configuración
                     </button>` : ''}
-                    <button class="btn btn-danger" id="btn-bill-today" onclick="tpvBillToday()" title="Genera la factura para el salón con todos los servicios de hoy">
-                        Facturar citas de Hoy
+                    <button class="btn btn-danger" id="btn-bill-today" onclick="tpvBillToday()" title="Genera la factura para el salón con los servicios del día señalado">
+                        Facturar las citas del día señalado
                     </button>
                     <button class="btn btn-primary" id="btn-add-appointment" onclick="showAppointmentForm()">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
@@ -2881,13 +2881,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     async function tpvBillToday() {
-        const todayStr = toLocalDateStr(new Date());
+        const targetStr = State.selectedDate || toLocalDateStr(new Date());
         const activeSalonId = State.activeSalonId || 'all';
         const todayApts = State.appointments
-            .filter(a => a.date === todayStr && (activeSalonId === 'all' || a.salonId === activeSalonId))
+            .filter(a => a.date === targetStr && (activeSalonId === 'all' || a.salonId === activeSalonId))
             .sort((a, b) => a.time.localeCompare(b.time));
         if (todayApts.length === 0) {
-            showToast(activeSalonId === 'all' ? 'No hay citas hoy.' : 'No hay citas de hoy en este salón.', 'error');
+            showToast(activeSalonId === 'all' ? 'No hay citas en el día señalado.' : 'No hay citas del día señalado en este salón.', 'error');
             return;
         }
 
@@ -2918,12 +2918,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         // Control: no facturar más de una vez al día por salón
         const alreadyBilled = (State.tpv.invoices || [])
-            .filter(i => i.doc_type === 'factura-salon' && i.status !== 'cancelled' && (i.created_at || '').substring(0, 10) === todayStr)
+            .filter(i => i.doc_type === 'factura-salon' && i.status !== 'cancelled' && (i.created_at || '').substring(0, 10) === targetStr)
             .reduce((map, i) => { map[i.salon_id] = true; return map; }, {});
         const blocked = bills.filter(b => alreadyBilled[b.salonId]);
         if (blocked.length > 0) {
             const names = blocked.map(b => State.salons.find(s => s.id === b.salonId)?.name || b.salonId).join(', ');
-            showToast(`Este salón ya ha sido facturado hoy: ${names}. Anúlelo en el Listado de Ventas para poder volver a facturarlo.`, 'error');
+            showToast(`Este salón ya ha sido facturado en el día señalado: ${names}. Anúlelo en el Listado de Ventas para poder volver a facturarlo.`, 'error');
             return;
         }
 
