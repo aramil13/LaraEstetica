@@ -2008,9 +2008,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <button class="btn btn-secondary" id="btn-settings" title="Configuración">
                         Configuración
                     </button>` : ''}
+                    ${!State.session?.staff ? `
                     <button class="btn btn-danger" id="btn-bill-today" onclick="tpvBillToday()" title="Genera la factura para el salón con los servicios del día señalado">
                         Facturar las citas del día señalado
-                    </button>
+                    </button>` : ''}
                     <button class="btn btn-primary" id="btn-add-appointment" onclick="showAppointmentForm()">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Nueva Cita
