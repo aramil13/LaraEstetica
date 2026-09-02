@@ -1804,11 +1804,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let eventsHtml = '';
             const maxShow = 2;
+            const showAllSalons = (State.activeSalonId || 'all') === 'all';
             apts.slice(0, maxShow).forEach(apt => {
                 const client = State.clients.find(c => c.id === apt.clientId);
                 const cName = client ? client.name.split(' ')[0] : '??';
-                const aptUserColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
-                eventsHtml += `<span class="cal-event" style="border-left:3px solid ${aptUserColor}">${apt.time} ${cName}${apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : ''}</span>`;
+                const salon = State.salons.find(s => s.id === apt.salonId);
+                const salonColor = salon && salon.color ? salon.color : 'var(--accent-primary)';
+                const salonLabel = (showAllSalons && salon) ? ` <span class="cal-salon-badge" style="background:${salonColor}">${salon.name}</span>` : '';
+                eventsHtml += `<span class="cal-event" style="border-left:3px solid ${salonColor}">${apt.time} ${cName}${salonLabel}${apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : ''}</span>`;
             });
             if (apts.length > maxShow) {
                 eventsHtml += `<span class="cal-more">+${apts.length - maxShow} más</span>`;
@@ -1845,6 +1848,8 @@ const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (servic
                 const endStr = endTime.toTimeString().substring(0, 5);
                 
 const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-primary)';
+const aptSalon = State.salons.find(s => s.id === apt.salonId);
+const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accent-primary)';
                 const userInitial = apt.userEmail ? apt.userEmail.charAt(0).toUpperCase() : '?';
                 const userDisplay = apt.userEmail ? apt.userEmail.split('@')[0] : 'Sistema';
                 
@@ -1880,7 +1885,7 @@ const userColor = apt.userEmail ? getUserColor(apt.userEmail) : 'var(--accent-pr
                         <div class="day-detail-info">
                             <strong>Cliente: ${client.name}</strong>
                             <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
-                            <span style="font-size:0.75rem;color:var(--accent-color);display:block;margin-top:2px"><strong>Salón: ${State.salons.find(s => s.id === apt.salonId)?.name || 'Salón desconocido'}</strong>${apt.isStaffAppointment ? ` <span class="staff-badge" style="color:${userColor}">Staff</span>` : ''}</span>
+                            <span style="font-size:0.75rem;display:block;margin-top:2px"><strong style="color:${aptSalonColor}">Salón: ${aptSalon?.name || 'Salón desconocido'}</strong>${apt.isStaffAppointment ? ` <span class="staff-badge" style="color:${userColor}">Staff</span>` : ''}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
                             </div>
@@ -3485,13 +3490,27 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         `;
     }
 
+    function generateSalonColor() {
+        const palette = ['#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#3B82F6', '#EF4444', '#8B4513', '#14B8A6', '#F97316'];
+        return palette[Math.floor(Math.random() * palette.length)];
+    }
+
     function showSalonForm(info = null) {
         const isEdit = !!info;
+        const salonColor = isEdit ? (info.color || generateSalonColor()) : generateSalonColor();
         const html = `
             <form id="salon-form">
                 <div class="form-group">
                     <label>Nombre del Salón</label>
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
+                </div>
+                <div class="form-group">
+                    <label>Color del Salón</label>
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <input type="color" class="form-control" name="color" id="salon-color-input" value="${salonColor}" style="width:60px;height:40px;padding:2px;cursor:pointer;">
+                        <span id="salon-color-preview" style="display:inline-block;width:28px;height:28px;border-radius:6px;background:${salonColor};border:1px solid var(--border-color);"></span>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:0.8rem;">Elige un color para identificar este salón en el calendario.</small>
                 </div>
                 <div class="form-group">
                     <label>Dirección</label>
@@ -3536,6 +3555,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 const data = {
                     id: isEdit ? info.id : generateId(),
                     name: fd.get('name'),
+                    color: fd.get('color') || generateSalonColor(),
                     address: fd.get('address'),
                     phone: fd.get('phone'),
                     email: fd.get('email'),
@@ -3550,6 +3570,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
                 if (success) { closeModal(); renderRoute(); }
                 else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
+            });
+            const colorInput = document.getElementById('salon-color-input');
+            const colorPreview = document.getElementById('salon-color-preview');
+            if (colorInput && colorPreview) colorInput.addEventListener('input', () => {
+                colorPreview.style.background = colorInput.value;
             });
         });
     }

@@ -422,17 +422,17 @@ export default {
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       const id = b.id || randomHex(16);
-      await env.DB.prepare('INSERT INTO salons (id, name, address, phone, email, business_name, nif, fiscal_address, user_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-        .bind(id, b.name, b.address || null, b.phone || null, b.email || null, b.business_name || null, b.nif || null, b.fiscal_address || null, b.user_email || email).run();
-      return json({ id, name: b.name, address: b.address || null, phone: b.phone || null, email: b.email || null, business_name: b.business_name || null, nif: b.nif || null, fiscal_address: b.fiscal_address || null, user_email: b.user_email || email });
+      await env.DB.prepare('INSERT INTO salons (id, name, address, phone, email, business_name, nif, fiscal_address, color, user_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        .bind(id, b.name, b.address || null, b.phone || null, b.email || null, b.business_name || null, b.nif || null, b.fiscal_address || null, b.color || '#8B5CF6', b.user_email || email).run();
+      return json({ id, name: b.name, address: b.address || null, phone: b.phone || null, email: b.email || null, business_name: b.business_name || null, nif: b.nif || null, fiscal_address: b.fiscal_address || null, color: b.color || '#8B5CF6', user_email: b.user_email || email });
     }
     if (path.startsWith('/api/salons/') && method === 'PUT') {
       const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
-      const r = await env.DB.prepare('UPDATE salons SET name = ?, address = ?, phone = ?, email = ?, business_name = ?, nif = ?, fiscal_address = ? WHERE id = ? AND user_email = ?')
-        .bind(b.name, b.address || null, b.phone || null, b.email || null, b.business_name || null, b.nif || null, b.fiscal_address || null, id, email).run();
+      const r = await env.DB.prepare('UPDATE salons SET name = ?, address = ?, phone = ?, email = ?, business_name = ?, nif = ?, fiscal_address = ?, color = ? WHERE id = ? AND user_email = ?')
+        .bind(b.name, b.address || null, b.phone || null, b.email || null, b.business_name || null, b.nif || null, b.fiscal_address || null, b.color || '#8B5CF6', id, email).run();
       if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }

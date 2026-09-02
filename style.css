@@ -588,6 +588,19 @@ textarea.form-control {
     padding: 0 0.35rem;
 }
 
+.cal-salon-badge {
+    display: inline-block;
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 0 0.3rem;
+    margin-left: 0.25rem;
+    border-radius: 3px;
+    white-space: nowrap;
+    vertical-align: middle;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+}
+
 /* ── Day Detail Panel ── */
 .day-detail {
     background: var(--bg-surface);
