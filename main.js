@@ -1921,52 +1921,46 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         timelineHtml += '<div class="timeline-bar" title="Horario comercial para este día">';
         
         if (totalMinutes > 0) {
-            let cursorMins = startDayMins;
-            const bgPalette = [
-                'linear-gradient(135deg, #8b5cf6, #d946ef)', // Purple
-                'linear-gradient(135deg, #3b82f6, #2dd4bf)', // Blue to Teal
-                'linear-gradient(135deg, #ec4899, #f43f5e)', // Pink to Rose
-                'linear-gradient(135deg, #f59e0b, #ea580c)', // Amber to Orange
-                'linear-gradient(135deg, #6366f1, #a855f7)'  // Indigo to Purple
-            ];
-
-            detailApts.forEach((apt, idx) => {
+            const boundaries = new Set([startDayMins, endDayMins]);
+            const aptIntervals = detailApts.map(apt => {
                 const [h, m] = apt.time.split(':').map(Number);
                 const aptStart = h * 60 + m;
                 const aptServ = State.services.find(s => s.id === apt.serviceId);
                 const aptDur = aptServ ? parseInt(aptServ.duration) : 0;
                 const aptEnd = aptStart + aptDur;
-
                 const clippedStart = Math.max(startDayMins, aptStart);
                 const clippedEnd = Math.min(endDayMins, aptEnd);
+                const salon = State.salons.find(s => s.id === apt.salonId);
+                return {
+                    start: clippedStart,
+                    end: clippedEnd,
+                    color: (salon && salon.color) ? salon.color : '#8B5CF6',
+                    time: apt.time
+                };
+            }).filter(i => i.end > i.start);
+            aptIntervals.forEach(i => { boundaries.add(i.start); boundaries.add(i.end); });
+            const sortedB = Array.from(boundaries).sort((a, b) => a - b);
 
-                if (clippedStart > cursorMins) {
-                    const pct = ((clippedStart - cursorMins) / totalMinutes) * 100;
-                    const stH_str = Math.floor(cursorMins / 60).toString().padStart(2, '0');
-                    const stM_str = (cursorMins % 60).toString().padStart(2, '0');
-                    const endH_str = Math.floor(clippedStart / 60).toString().padStart(2, '0');
-                    const endM_str = (clippedStart % 60).toString().padStart(2, '0');
-                    timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
-                }
-                
-                if (clippedEnd > clippedStart) {
-                    const pct = ((clippedEnd - clippedStart) / totalMinutes) * 100;
-                    const [stH_str, stM_str] = [Math.floor(clippedStart / 60).toString().padStart(2, '0'), (clippedStart % 60).toString().padStart(2, '0')];
-                    const [endH_str, endM_str] = [Math.floor(clippedEnd / 60).toString().padStart(2, '0'), (clippedEnd % 60).toString().padStart(2, '0')];
-                    const bgOption = bgPalette[idx % bgPalette.length];
-                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%; background: ${bgOption}; border-left: 1px solid rgba(255,255,255,0.4); border-right: 1px solid rgba(255,255,255,0.4);" title="Ocupado: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"><span class="segment-time">${stH_str}:${stM_str}-${endH_str}:${endM_str}</span></div>`;
-                }
+            for (let i = 0; i < sortedB.length - 1; i++) {
+                const segStart = sortedB[i];
+                const segEnd = sortedB[i + 1];
+                if (segEnd <= segStart) continue;
+                const pct = ((segEnd - segStart) / totalMinutes) * 100;
+                const stH = Math.floor(segStart / 60).toString().padStart(2, '0');
+                const stM = (segStart % 60).toString().padStart(2, '0');
+                const enH = Math.floor(segEnd / 60).toString().padStart(2, '0');
+                const enM = (segEnd % 60).toString().padStart(2, '0');
+                const covering = aptIntervals.filter(iv => iv.start <= segStart && iv.end >= segEnd);
 
-                cursorMins = Math.max(cursorMins, clippedEnd);
-            });
-            
-            if (cursorMins < endDayMins) {
-                const pct = ((endDayMins - cursorMins) / totalMinutes) * 100;
-                const stH_str = Math.floor(cursorMins / 60).toString().padStart(2, '0');
-                const stM_str = (cursorMins % 60).toString().padStart(2, '0');
-                const endH_str = Math.floor(endDayMins / 60).toString().padStart(2, '0');
-                const endM_str = (endDayMins % 60).toString().padStart(2, '0');
-                timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre: ${stH_str}:${stM_str} - ${endH_str}:${endM_str}"></div>`;
+                if (covering.length === 0) {
+                    timelineHtml += `<div class="timeline-segment free" style="width:${pct}%;" title="Libre: ${stH}:${stM} - ${enH}:${enM}"></div>`;
+                } else if (covering.length === 1) {
+                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%; background:${covering[0].color}; border-left:1px solid rgba(255,255,255,0.4); border-right:1px solid rgba(255,255,255,0.4);" title="Ocupado (${covering[0].time}): ${stH}:${stM} - ${enH}:${enM}"><span class="segment-time">${stH}:${stM}-${enH}:${enM}</span></div>`;
+                } else {
+                    const colors = covering.map(c => c.color);
+                    const stripeColors = colors.map((c, ci) => `${c} ${ci * (100 / colors.length)}%, ${c} ${(ci + 1) * (100 / colors.length)}%`).join(', ');
+                    timelineHtml += `<div class="timeline-segment booked" style="width:${pct}%; background: repeating-linear-gradient(45deg, ${stripeColors}); border-left:1px solid rgba(0,0,0,0.35); border-right:1px solid rgba(0,0,0,0.35);" title="Solapado (${covering.map(c => c.time).join(' / ')}): ${stH}:${stM} - ${enH}:${enM}"><span class="segment-time" style="color:#222;text-shadow:none;">${stH}:${stM}-${enH}:${enM}</span></div>`;
+                }
             }
         }
         timelineHtml += '</div>';
@@ -1989,6 +1983,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <div class="timeline-legend">
                 <div class="legend-item"><span class="legend-color free-color"></span> Libre</div>
                 <div class="legend-item"><span class="legend-color booked-color"></span> Ocupado</div>
+                <div class="legend-item"><span class="legend-color overlap-color"></span> Solapado</div>
             </div>
         </div>`;
 
