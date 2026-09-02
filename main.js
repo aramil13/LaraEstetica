@@ -2545,6 +2545,26 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             </div>`;
     }
 
+    function tpvPrintSelectedInvoices(ids) {
+        const printArea = document.getElementById('print-area');
+        if (!printArea) return;
+        const invoices = State.tpv.invoices.filter(i => ids.includes(i.id));
+        if (invoices.length === 0) {
+            showToast('No se encontraron las facturas seleccionadas.', 'error');
+            return;
+        }
+        const html = invoices.map((inv, idx) =>
+            tpvBuildDocHtml(inv, false) + (idx < invoices.length - 1 ? '<div style="page-break-after:always;"></div>' : '')
+        ).join('');
+        printArea.innerHTML = html;
+        printArea.classList.add('print-active');
+        window.print();
+        setTimeout(() => {
+            printArea.innerHTML = '';
+            printArea.classList.remove('print-active');
+        }, 300);
+    }
+
     function tpvPrintSales() {
         const printArea = document.getElementById('print-area');
         if (!printArea) return;
@@ -3093,7 +3113,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const backBtn = document.getElementById('btn-sales-back');
         if (backBtn) backBtn.addEventListener('click', () => navigate('tpv'));
         const printBtn = document.getElementById('btn-sales-print');
-        if (printBtn) printBtn.addEventListener('click', tpvPrintSales);
+        if (printBtn) printBtn.addEventListener('click', () => {
+            const selected = Array.from(document.querySelectorAll('.inv-select:checked')).map(b => b.dataset.invoiceId);
+            if (selected.length > 0) tpvPrintSelectedInvoices(selected);
+            else tpvPrintSales();
+        });
 
         document.querySelectorAll('[data-invoice-id]:not(input)').forEach(btn => {
             btn.addEventListener('click', async e => {
