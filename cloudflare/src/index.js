@@ -540,8 +540,8 @@ export default {
         payCard = Math.round((total - payCash) * 100) / 100;
       }
       payCash = Math.round(payCash * 100) / 100;
-      const last = await env.DB.prepare('SELECT MAX(number) AS maxNum FROM invoices WHERE user_email = ? AND doc_type IN (\'factura\', \'factura-salon\')').bind(email).first();
-      const nextNumber = isInvoice ? ((last && last.maxNum ? last.maxNum : 0) + 1) : (await env.DB.prepare('SELECT MAX(number) AS maxNum FROM invoices WHERE user_email = ? AND doc_type = \'ticket\'').bind(email).first().then(r => (r && r.maxNum ? r.maxNum : 0) + 1));
+      const last = await env.DB.prepare('SELECT MAX(number) AS maxNum, COUNT(*) AS cnt FROM invoices WHERE user_email = ? AND doc_type IN (\'factura\', \'factura-salon\') AND status = \'active\'').bind(email).first();
+      const nextNumber = isInvoice ? ((last && last.cnt > 0 ? last.maxNum : 0) + 1) : (await env.DB.prepare('SELECT MAX(number) AS maxNum, COUNT(*) AS cnt FROM invoices WHERE user_email = ? AND doc_type = \'ticket\' AND status = \'active\'').bind(email).first().then(r => (r && r.cnt > 0 ? r.maxNum : 0) + 1));
       const id = randomHex(16);
       await env.DB.prepare(
         `INSERT INTO invoices (id, number, doc_type, client_id, client_name, client_nif, salon_id, items, base_amount, tax_amount, retention_amount, commission_rate, commission_amount, total_amount, payment_method, payment_cash, payment_card, user_email)

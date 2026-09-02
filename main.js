@@ -2009,7 +2009,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <button class="btn btn-secondary" id="btn-settings" title="Configuración">
                         Configuración
                     </button>` : ''}
-                    <button class="btn btn-secondary" id="btn-bill-today" onclick="tpvBillToday()" title="Genera la factura para el salón con todos los servicios de hoy">
+                    <button class="btn btn-danger" id="btn-bill-today" onclick="tpvBillToday()" title="Genera la factura para el salón con todos los servicios de hoy">
                         Facturar citas de Hoy
                     </button>
                     <button class="btn btn-primary" id="btn-add-appointment" onclick="showAppointmentForm()">
