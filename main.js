@@ -2543,7 +2543,6 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const salon = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
         const fromLabel = State.tpv.salesFrom || 'inicio';
         const toLabel = State.tpv.salesTo || 'hoy';
-        const summary = tpvSalesSummary();
         const issuer = State.profile || {};
         const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
         const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
@@ -2554,7 +2553,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const groupBlocks = tpvSalesGroups().length === 0
             ? '<div style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</div>'
             : tpvSalesGroups().map(g => {
-                let gBase = 0;
+                let gBase = 0, gCommission = 0, gBaseAmt = 0, gTax = 0, gRetention = 0;
                 const rows = g.items.map(inv => {
                     const items = Array.isArray(inv.items) ? inv.items : [];
                     const dateStr = (inv.created_at || '').substring(0, 10);
@@ -2580,9 +2579,26 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     } else {
                         gBase += Number(inv.base_amount) || 0;
                     }
+                    if (inv.doc_type === 'factura-salon') {
+                        gCommission += Number(inv.commission_amount) || 0;
+                        gBaseAmt += Number(inv.base_amount) || 0;
+                        gTax += Number(inv.tax_amount) || 0;
+                        gRetention += Number(inv.retention_amount) || 0;
+                    }
                     grandTotal += Number(inv.total_amount) || 0;
                 });
                 gBase = Math.round(gBase * 100) / 100;
+                gCommission = Math.round(gCommission * 100) / 100;
+                gBaseAmt = Math.round(gBaseAmt * 100) / 100;
+                gTax = Math.round(gTax * 100) / 100;
+                gRetention = Math.round(gRetention * 100) / 100;
+                const gSalonSummary = gCommission > 0 ? `
+                    <div style="display:flex;justify-content:flex-end;gap:2rem;padding:0.5rem 0.6rem;border-top:1px solid #bbb;font-weight:600;">
+                        <span>Comisión por los servicios (70%): ${tpvFormatMoney(gCommission)}</span>
+                        <span>Base: ${tpvFormatMoney(gBaseAmt)}</span>
+                        <span>IVA (21%): ${tpvFormatMoney(gTax)}</span>
+                        <span>− Retención (15%): −${tpvFormatMoney(gRetention)}</span>
+                    </div>` : '';
                 return `
                 <div style="margin-top:1.25rem;">
                     <div style="background:#f4f4f4;padding:0.45rem 0.6rem;font-weight:800;font-size:1rem;">${g.label}</div>
@@ -2603,6 +2619,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <span>Subtotal ${g.label}</span>
                         <span style="min-width:90px;text-align:right;">${tpvFormatMoney(gBase)}</span>
                     </div>
+                    ${gSalonSummary}
                 </div>`;
             }).join('');
         grandTotal = Math.round(grandTotal * 100) / 100;
@@ -2628,11 +2645,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 ${groupBlocks}
                 <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
                     <div style="width:300px;">
-                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los servicios (70%)</span><strong>${tpvFormatMoney(summary.commission)}</strong></div>
-                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base total</span><strong>${tpvFormatMoney(summary.base)}</strong></div>
-                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA total</span><strong>${tpvFormatMoney(summary.tax)}</strong></div>
-                        <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>− Retención (15%)</span><strong>−${tpvFormatMoney(summary.retention)}</strong></div>
-                        <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL GENERAL (IVA incl.)</span><span>${tpvFormatMoney(grandTotal)}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL GENERAL (IVA incl.)</span><span>${tpvFormatMoney(grandTotal)}</span></div>
                     </div>
                 </div>
             </div>`;
