@@ -966,7 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleStaffSession(account) {
         const adminEmail = account.adminEmail || State.currentUserEmail || '';
-        State.session = { staff: true, email: adminEmail, staffName: account.name, staffSalonId: account.salonId || null };
+        State.session = { staff: true, email: adminEmail, staffName: account.name, staffSalonId: account.salonId || null, staffEmail: account.staffEmail || '' };
         State.currentUserEmail = adminEmail;
         State.currentUserColor = getUserColor(adminEmail);
         if (account.salonId) {
@@ -1067,7 +1067,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         target.style.padding = '';
                     } else {
                         const emailSpan = target.querySelector('.user-email');
-                        if (emailSpan) emailSpan.textContent = State.currentUserEmail;
+                        if (emailSpan) emailSpan.textContent = (State.session && State.session.staff)
+                            ? (State.session.staffEmail || State.currentUserEmail)
+                            : State.currentUserEmail;
                     }
                 }
             }, 3000);
