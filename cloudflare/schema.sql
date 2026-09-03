@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE TABLE IF NOT EXISTS staff (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
+  email TEXT DEFAULT '',
   password_hash TEXT NOT NULL,
   salt TEXT NOT NULL,
   salon_id TEXT,

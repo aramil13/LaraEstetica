@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return res.json();
         },
         login(email, password) { return this.request('/api/auth/login', { method: 'POST', body: { email, password } }); },
-        staffLogin(name, password) { return this.request('/api/auth/staff-login', { method: 'POST', body: { name, password } }); },
+        staffLogin(name, password) { return this.request('/api/auth/staff-login', { method: 'POST', body: { email: name, password } }); },
         getStaff() { return this.request('/api/auth/staff'); },
         addStaff(data) { return this.request('/api/auth/staff', { method: 'POST', body: data }); },
         updateStaff(name, data) { return this.request('/api/auth/staff/' + encodeURIComponent(name), { method: 'PUT', body: data }); },
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await api.getSession();
             if (data.staff) {
-                handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email });
+                handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email, staffEmail: data.staff.email || '' });
             } else {
                 handleSessionUpdate({ email: data.email });
             }
@@ -897,11 +897,11 @@ document.addEventListener('DOMContentLoaded', () => {
             authError.style.display = 'none';
 
             if (authMode === 'staff') {
-                const name = document.getElementById('auth-staff-name').value.trim();
+                const email = document.getElementById('auth-staff-name').value.trim();
                 const staffPwd = document.getElementById('auth-staff-password').value;
 
-                if (!name) {
-                    authError.textContent = 'Introduce tu nombre';
+                if (!email) {
+                    authError.textContent = 'Introduce tu email';
                     authError.style.display = 'block';
                     authSubmitText.style.opacity = '1';
                     authSpinner.style.display = 'none';
@@ -918,13 +918,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    const data = await api.staffLogin(name, staffPwd);
+                    const data = await api.staffLogin(email, staffPwd);
                     setToken(data.token);
                     staffName = data.staff.name;
-                    handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email });
+                    handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email, staffEmail: data.staff.email || '' });
                 } catch (err) {
                     console.error('Staff Auth Error:', err);
-                    authError.textContent = err.message || 'Nombre o contraseña incorrectos';
+                    authError.textContent = err.message || 'Email o contraseña incorrectos';
                     authError.style.display = 'block';
                     authSubmitText.style.opacity = '1';
                     authSpinner.style.display = 'none';
@@ -978,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.display = 'none';
         appLayout.style.display = 'flex';
 
-        if (userEmailEl) userEmailEl.textContent = adminEmail || account.name || '';
+        if (userEmailEl) userEmailEl.textContent = account.staffEmail || adminEmail || account.name || '';
         if (userAvatarEl) {
             userAvatarEl.textContent = account.name.charAt(0).toUpperCase();
             userAvatarEl.style.background = '#10b981';
@@ -5396,7 +5396,7 @@ window.addEventListener('message', async (event) => {
             takenSalonIds = accounts.map(a => a.salon_id).filter(Boolean);
             if (accounts.length > 0) {
                 staffList = accounts.map((acc, i) => `
-            <div class="staff-entry" id="staff-entry-${encodeURIComponent(acc.name)}" data-staff-id="${encodeURIComponent(acc.name)}" data-staff-name="${acc.name}" data-staff-salon="${acc.salon_id || ''}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
+            <div class="staff-entry" id="staff-entry-${encodeURIComponent(acc.name)}" data-staff-id="${encodeURIComponent(acc.name)}" data-staff-name="${acc.name}" data-staff-salon="${acc.salon_id || ''}" data-staff-email="${(acc.email || '').replace(/"/g, '&quot;')}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
                     <strong style="font-size:0.95rem;">${acc.name}</strong>
                     <div style="display:flex;gap:0.5rem;">
@@ -5405,6 +5405,7 @@ window.addEventListener('message', async (event) => {
                     </div>
                 </div>
                 <div style="font-size:0.85rem;color:var(--text-secondary);">Salón: ${State.salons.find(s => s.id === acc.salon_id)?.name || '—'}</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);">Email: ${acc.email || '—'}</div>
             </div>
         `).join('');
             }
@@ -5440,6 +5441,10 @@ window.addEventListener('message', async (event) => {
                     <div class="form-group">
                         <label>Nombre</label>
                         <input type="text" class="form-control" id="new-staff-name" placeholder="Nombre del empleado">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="new-staff-email" placeholder="email@delstaff.com">
                     </div>
                     <div class="form-group">
                         <label>Contraseña</label>
@@ -5581,11 +5586,16 @@ window.addEventListener('message', async (event) => {
 
     window.addStaffFromSettings = async function() {
         const name = document.getElementById('new-staff-name').value.trim();
+        const email = document.getElementById('new-staff-email').value.trim();
         const password = document.getElementById('new-staff-password').value.trim();
         const salonId = document.getElementById('new-staff-salon').value;
 
         if (!name || !password) {
             showToast('Debes introducir nombre y contraseña.', 'error');
+            return;
+        }
+        if (!email) {
+            showToast('Debes introducir el email del empleado.', 'error');
             return;
         }
         if (password.length < 6) {
@@ -5598,7 +5608,7 @@ window.addEventListener('message', async (event) => {
         }
 
         try {
-            await api.addStaff({ name, password, salonId });
+            await api.addStaff({ name, email, password, salonId });
             showToast('Usuario staff añadido correctamente.');
             showSettingsForm();
         } catch (err) {
@@ -5631,6 +5641,10 @@ window.addEventListener('message', async (event) => {
                     <input type="text" class="form-control" id="edit-staff-name-${name}" value="${entry.dataset.staffName}">
                 </div>
                 <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-control" id="edit-staff-email-${name}" value="${(entry.dataset.staffEmail || '').replace(/"/g, '&quot;')}">
+                </div>
+                <div class="form-group">
                     <label>Contraseña</label>
                     <input type="text" class="form-control" id="edit-staff-password-${name}" placeholder="Nueva contraseña (mín. 6 caracteres)">
                 </div>
@@ -5648,6 +5662,7 @@ window.addEventListener('message', async (event) => {
 
     window.saveStaffEdit = async function(name) {
         const newName = document.getElementById('edit-staff-name-' + name).value.trim();
+        const email = document.getElementById('edit-staff-email-' + name).value.trim();
         const password = document.getElementById('edit-staff-password-' + name).value.trim();
         const salonId = document.getElementById('edit-staff-salon-' + name).value;
 
@@ -5657,7 +5672,7 @@ window.addEventListener('message', async (event) => {
         }
 
         try {
-            await api.updateStaff(decodeURIComponent(name), { newName, password, salonId });
+            await api.updateStaff(decodeURIComponent(name), { newName, email, password, salonId });
             showToast('Usuario staff actualizado.');
             showSettingsForm();
         } catch (err) {
