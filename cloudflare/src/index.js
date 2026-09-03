@@ -447,40 +447,48 @@ export default {
 
     /* ── Citas ─────────────────────────────── */
     if (path === '/api/appointments' && method === 'GET') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT * FROM appointments WHERE user_email = ? ORDER BY date, time').bind(email).all();
+      let results;
+      if (isStaff) {
+        results = (await env.DB.prepare('SELECT * FROM appointments WHERE user_email = ? AND salon_id = ? ORDER BY date, time').bind(email, staffSalonId).all()).results;
+      } else {
+        results = (await env.DB.prepare('SELECT * FROM appointments WHERE user_email = ? ORDER BY date, time').bind(email).all()).results;
+      }
       const rows = results.map(r => ({ ...r, appointment_photos: JSON.parse(r.appointment_photos || '[]') }));
       return json(rows);
     }
     if (path === '/api/appointments' && method === 'POST') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       const id = b.id || randomHex(16);
+      const salonId = isStaff ? staffSalonId : (b.salon_id || null);
+      if (!salonId) return error('Debes asignar un salón a la cita', 400);
       await env.DB.prepare(
         `INSERT INTO appointments (id, client_id, service_id, salon_id, date, time, notes, user_email, appointment_photos, is_staff_appointment, whatsapp_sent)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
-        id, b.client_id, b.service_id, b.salon_id || null, b.date, b.time, b.notes || '',
+        id, b.client_id, b.service_id, salonId, b.date, b.time, b.notes || '',
         b.user_email || email, JSON.stringify(b.appointment_photos || []),
         b.is_staff_appointment ? 1 : 0, b.whatsapp_sent ? 1 : 0
       ).run();
       return json({ id });
     }
     if (path.startsWith('/api/appointments/') && method === 'PUT') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
       const b = await readJson(request);
+      const salonId = isStaff ? staffSalonId : (b.salon_id || null);
       const r = await env.DB.prepare(
         `UPDATE appointments SET client_id = ?, service_id = ?, salon_id = ?, date = ?, time = ?, notes = ?, appointment_photos = ?, staff_modified_by = ? WHERE id = ? AND user_email = ?`
-      ).bind(b.client_id, b.service_id, b.salon_id || null, b.date, b.time, b.notes || '', JSON.stringify(b.appointment_photos || []), b.staff_modified_by || '', id, email).run();
+      ).bind(b.client_id, b.service_id, salonId, b.date, b.time, b.notes || '', JSON.stringify(b.appointment_photos || []), b.staff_modified_by || '', id, email).run();
       if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }
     if (path.startsWith('/api/appointments/') && method === 'PATCH') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const parts = path.split('/');
       const id = parts[3];
@@ -498,10 +506,12 @@ export default {
       return error('Ruta no encontrada', 404);
     }
     if (path.startsWith('/api/appointments/') && method === 'DELETE') {
-      const { email } = await authenticate(env, request);
+      const { email, isStaff, staffSalonId } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
       const id = path.split('/')[3];
-      const r = await env.DB.prepare('DELETE FROM appointments WHERE id = ? AND user_email = ?').bind(id, email).run();
+      const r = isStaff
+        ? await env.DB.prepare('DELETE FROM appointments WHERE id = ? AND user_email = ? AND salon_id = ?').bind(id, email, staffSalonId).run()
+        : await env.DB.prepare('DELETE FROM appointments WHERE id = ? AND user_email = ?').bind(id, email).run();
       if (r.meta.changes === 0) return error('No autorizado', 403);
       return json({ ok: true });
     }

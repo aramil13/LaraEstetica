@@ -978,13 +978,13 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.display = 'none';
         appLayout.style.display = 'flex';
 
-        if (userEmailEl) userEmailEl.textContent = 'Staff: ' + account.name;
+        if (userEmailEl) userEmailEl.textContent = adminEmail || account.name || '';
         if (userAvatarEl) {
             userAvatarEl.textContent = account.name.charAt(0).toUpperCase();
             userAvatarEl.style.background = '#10b981';
         }
         const roleEl = document.querySelector('.user-role');
-        if (roleEl) roleEl.textContent = 'Staff';
+        if (roleEl) roleEl.textContent = 'STAFF';
 
         // Hide restricted nav items for staff
         document.querySelectorAll('.nav-item').forEach(item => {
