@@ -3958,7 +3958,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     if (await deleteSalon(id)) renderRoute();
                 } else {
                     const apt = State.appointments.find(a => a.id === id);
-                    if (State.session?.staff && !isStaffAppointment(id)) {
+                    if (State.session?.staff && !(apt && apt.isStaffAppointment) && !isStaffAppointment(id)) {
                         showToast('No tienes permiso para eliminar esta cita', 'error');
                         delBtn.disabled = false;
                         delBtn.dataset.confirming = 'false';
@@ -4118,7 +4118,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     if (typeof editSalon === 'function') editSalon(id);
                 } else {
                     const apt = State.appointments.find(a => a.id === id);
-                    if (State.session?.staff && !isStaffAppointment(id)) {
+                    if (State.session?.staff && !(apt && apt.isStaffAppointment) && !isStaffAppointment(id)) {
                         showToast('No tienes permiso para editar esta cita', 'error');
                         return;
                     }
