@@ -2328,7 +2328,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             ? '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1rem;">El carrito está vacío. Añade servicios desde la derecha.</td></tr>'
             : State.tpv.cart.map((item, i) => `
                 <tr>
-                    <td style="font-weight:600">${item.name}</td>
+                    <td style="font-weight:600">
+                        <div>${item.name}</div>
+                        ${item.notes ? `<div style="font-size:0.72rem;font-style:italic;color:var(--text-secondary);font-weight:400;">Notas: ${item.notes}</div>` : ''}
+                    </td>
                     <td style="text-align:center">
                         <button type="button" class="tpv-qty-btn" data-act="dec" data-idx="${i}">−</button>
                         <span style="margin:0 0.5rem;font-weight:600">${item.qty}</span>
@@ -2801,44 +2804,44 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 ? '<tr><td colspan="5" style="padding:0.6rem;color:#777;">—</td></tr>'
                 : items.map((i, idx) => `
                     <tr>
-                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;">
+                        <td style="padding:0.35rem 0.5rem;border-bottom:1px solid #ddd;">
                             <div>${i.name}</div>
-                            ${i.notes ? `<div style="font-size:0.75rem;color:#777;font-style:italic;margin-top:0.15rem;">Notas: ${i.notes}</div>` : ''}
+                            ${i.notes ? `<div style="font-size:0.68rem;color:#777;font-style:italic;margin-top:0.1rem;">Notas: ${i.notes}</div>` : ''}
                         </td>
-                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:center;">${i.qty}</td>
-                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(parseFloat(i.price) || 0)}</td>
-                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney((parseFloat(i.price) || 0) * i.qty)}</td>
+                        <td style="padding:0.35rem 0.5rem;border-bottom:1px solid #ddd;text-align:center;">${i.qty}</td>
+                        <td style="padding:0.35rem 0.5rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(parseFloat(i.price) || 0)}</td>
+                        <td style="padding:0.35rem 0.5rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney((parseFloat(i.price) || 0) * i.qty)}</td>
                     </tr>`).join('');
             return `
                 <div class="invoice-a4">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:1rem;margin-bottom:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:0.6rem;margin-bottom:0.8rem;">
                         <div>
-                            <div style="font-size:1.6rem;font-weight:800;">${issuerName}</div>
+                            <div style="font-size:1.35rem;font-weight:800;">${issuerName}</div>
                             ${issuerNif}
                             ${issuerAddress}
                         </div>
-                        <div style="text-align:right;font-size:0.95rem;">
-                            <div style="font-size:1.3rem;font-weight:800;">FACTURA</div>
+                        <div style="text-align:right;font-size:0.8rem;">
+                            <div style="font-size:1.1rem;font-weight:800;">FACTURA</div>
                             <div>Nº ${num}</div>
                             <div>${dateStr}</div>
                         </div>
                     </div>
-                    <div style="font-size:0.95rem;margin-bottom:1.5rem;">
+                    <div style="font-size:0.82rem;margin-bottom:0.8rem;">
                         <strong>Cliente:</strong> ${clientName}${nifLine ? '<br>' + nifLine : ''}${addressLine}
                     </div>
-                    <table style="width:100%;font-size:0.9rem;border-collapse:collapse;">
+                    <table style="width:100%;font-size:0.8rem;border-collapse:collapse;">
                         <thead>
                             <tr style="background:#f4f4f4;">
-                                <th style="padding:0.6rem 0.75rem;text-align:left;border-bottom:2px solid #000;">Servicio</th>
-                                <th style="padding:0.6rem 0.75rem;text-align:center;border-bottom:2px solid #000;">Cantidad</th>
-                                <th style="padding:0.6rem 0.75rem;text-align:right;border-bottom:2px solid #000;">Precio</th>
-                                <th style="padding:0.6rem 0.75rem;text-align:right;border-bottom:2px solid #000;">Importe</th>
+                                <th style="padding:0.35rem 0.5rem;text-align:left;border-bottom:2px solid #000;">Servicio</th>
+                                <th style="padding:0.35rem 0.5rem;text-align:center;border-bottom:2px solid #000;">Cantidad</th>
+                                <th style="padding:0.35rem 0.5rem;text-align:right;border-bottom:2px solid #000;">Precio</th>
+                                <th style="padding:0.35rem 0.5rem;text-align:right;border-bottom:2px solid #000;">Importe</th>
                             </tr>
                         </thead>
                         <tbody>${lines}</tbody>
                     </table>
-                    <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
-                        <div style="width:280px;">
+                    <div style="display:flex;justify-content:flex-end;margin-top:0.8rem;font-size:0.82rem;">
+                        <div style="width:260px;">
                     ${(() => {
                         if (inv.doc_type === 'factura-salon') {
                             const itemsArr = Array.isArray(inv.items) ? inv.items : [];
@@ -2852,28 +2855,28 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                             const salonForSalon = Math.round(imports * 0.30 * 100) / 100;
                             const totalEntregar = Math.round((salonForSalon + retentionSalon) * 100) / 100;
                             return `
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Comisión por los Servicios (70%)</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>BASE Imponible:</span><strong>${tpvFormatMoney(baseSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>+IVA (21%)</span><strong>${tpvFormatMoney(taxSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>−Retención (15%)</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL FACTURA:</span><span>${tpvFormatMoney(totalFactura)}</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;font-size:0.9rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>
-                            <div style="border:2px solid #000;border-radius:6px;padding:0.75rem;margin-top:1rem;">
-                                <div style="font-weight:800;text-align:center;font-size:0.95rem;margin-bottom:0.5rem;border-bottom:1px solid #ccc;padding-bottom:0.4rem;">A ENTREGAR AL SALÓN</div>
-                                <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>30% PARA EL SALÓN</span><strong>${tpvFormatMoney(salonForSalon)}</strong></div>
-                                <div style="display:flex;justify-content:space-between;padding:0.2rem 0;"><span>+RETENCIÓN</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
-                                <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:1px solid #000;margin-top:0.3rem;font-weight:800;"><span>IMPORTE TOTAL</span><span>${tpvFormatMoney(totalEntregar)}</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>Comisión por los Servicios (70%)</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>BASE Imponible:</span><strong>${tpvFormatMoney(baseSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>+IVA (21%)</span><strong>${tpvFormatMoney(taxSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>−Retención (15%)</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;font-size:0.9rem;"><span>TOTAL FACTURA:</span><span>${tpvFormatMoney(totalFactura)}</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;font-size:0.8rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>
+                            <div style="border:2px solid #000;border-radius:6px;padding:0.45rem;margin-top:0.55rem;">
+                                <div style="font-weight:800;text-align:center;font-size:0.88rem;margin-bottom:0.3rem;border-bottom:1px solid #ccc;padding-bottom:0.25rem;">A ENTREGAR AL SALÓN</div>
+                                <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>30% PARA EL SALÓN</span><strong>${tpvFormatMoney(salonForSalon)}</strong></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>+RETENCIÓN</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-top:1px solid #000;margin-top:0.2rem;font-weight:800;"><span>IMPORTE TOTAL</span><span>${tpvFormatMoney(totalEntregar)}</span></div>
                             </div>`;
                         }
                         return `
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>Base</span><strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.5rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL</span><span>${tpvFormatMoney(inv.total_amount)}</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;font-size:0.9rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>`;
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>Base</span><strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>IVA (21%)</span><strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;font-size:0.9rem;"><span>TOTAL</span><span>${tpvFormatMoney(inv.total_amount)}</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;font-size:0.8rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>`;
                     })()}
                         </div>
                     </div>
-                    <div style="margin-top:2.5rem;text-align:center;font-size:0.8rem;color:#555;border-top:1px solid #ddd;padding-top:0.75rem;">¡Gracias por su visita!</div>
+                    <div style="margin-top:1.25rem;text-align:center;font-size:0.7rem;color:#555;border-top:1px solid #ddd;padding-top:0.4rem;">¡Gracias por su visita!</div>
                 </div>`;
         }
 
