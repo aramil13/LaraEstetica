@@ -363,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         salons: [],
         clientPhotos: {},
         clientSearch: '',
+        appointmentSearch: '',
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
@@ -1859,7 +1860,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Day detail panel
         const detailDate = State.selectedDate || todayStr;
-        const detailApts = getAppointmentsForDate(detailDate);
+        const searchTerm = (State.appointmentSearch || '').toLowerCase().trim();
+        const detailAptsAll = getAppointmentsForDate(detailDate);
+        const detailApts = searchTerm
+            ? detailAptsAll.filter(apt => {
+                const client = State.clients.find(c => c.id === apt.clientId);
+                const salon = State.salons.find(s => s.id === apt.salonId);
+                return (
+                    (client && client.name && client.name.toLowerCase().includes(searchTerm)) ||
+                    (salon && salon.name && salon.name.toLowerCase().includes(searchTerm))
+                );
+            })
+            : detailAptsAll;
         console.log('Agenda view: appointments count in State:', State.appointments.length, 'selectedDate:', State.selectedDate, 'detailDate:', detailDate, 'apts for date:', detailApts.length);
         const detailDateObj = new Date(detailDate + 'T00:00:00');
         const detailLabel = detailDateObj.toLocaleDateString('es-ES', {
@@ -1870,7 +1882,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (detailApts.length === 0) {
             detailHtml = `
                 <div class="empty-state" style="padding:2rem">
-                    <p>No hay citas para este día.</p>
+                    <p>${searchTerm ? 'No hay citas que coincidan con "' + searchTerm + '" para este día.' : 'No hay citas para este día.'}</p>
                 </div>`;
         } else {
             detailHtml = `<div class="day-detail-list">`;
@@ -2104,6 +2116,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
                         Nueva Cita
                     </button>
+                </div>
+                <div class="client-search-wrapper" style="position:relative;margin:0.5rem 0 0.75rem;max-width:340px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary);pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="appointments-search-input" class="form-control" placeholder="Buscar cita por cliente o salón..." value="${searchTerm}" autocomplete="off" style="padding-left:34px;padding-right:30px">
+                    ${searchTerm ? `<button id="appointments-search-clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:1.1rem;line-height:1;padding:2px" title="Limpiar búsqueda">&times;</button>` : ''}
                 </div>
                 ${timelineHtml}
                 ${detailHtml}
@@ -4172,6 +4189,27 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 State.clientSearch = '';
                 renderRoute();
                 const newInput = document.getElementById('clients-search-input');
+                if (newInput) newInput.focus();
+            });
+        }
+
+        const appointmentsSearchInput = document.getElementById('appointments-search-input');
+        if (appointmentsSearchInput) {
+            appointmentsSearchInput.addEventListener('input', e => {
+                State.appointmentSearch = e.target.value;
+                const pos = e.target.selectionStart;
+                renderRoute();
+                const newInput = document.getElementById('appointments-search-input');
+                if (newInput) { newInput.focus(); newInput.setSelectionRange(pos, pos); }
+            });
+        }
+
+        const appointmentsSearchClear = document.getElementById('appointments-search-clear');
+        if (appointmentsSearchClear) {
+            appointmentsSearchClear.addEventListener('click', () => {
+                State.appointmentSearch = '';
+                renderRoute();
+                const newInput = document.getElementById('appointments-search-input');
                 if (newInput) newInput.focus();
             });
         }
