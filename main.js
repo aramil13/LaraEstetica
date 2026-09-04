@@ -1899,7 +1899,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <div class="day-detail-time" style="color:${userColor}">${apt.time} – ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>Cliente: ${client.name}</strong>
-                            <span>${service.name} · ${service.duration} min${apt.notes ? ' · ' + apt.notes : ''}</span>
+                            <span>${service.name} · ${service.duration} min</span>
+                            ${apt.notes ? `<span style="font-size:0.8rem;color:var(--text-secondary);display:block;margin-top:2px"><em>${apt.notes}</em></span>` : ''}
                             <span style="font-size:0.75rem;display:block;margin-top:2px"><strong style="color:${aptSalonColor}">Salón: ${aptSalon?.name || 'Salón desconocido'}</strong>${apt.isStaffAppointment ? ` <span class="staff-badge" style="color:${userColor}">Staff</span>` : ''}${apt.isStaffAppointment && apt.staffModifiedBy ? ` <span style="color:var(--text-secondary)">· modificado por <strong style="color:${userColor}">${apt.staffModifiedBy}</strong></span>` : ''}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
