@@ -395,7 +395,10 @@ document.addEventListener('DOMContentLoaded', () => {
             historySalonId: 'all',
             invoices: [],
             paymentMethod: 'contado',
-            paymentCash: ''
+            paymentCash: '',
+            paymentCard: '',
+            salesTab: 'facturas',
+            controlSheetDate: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })()
         }
     };
 
@@ -2532,9 +2535,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 const items = Array.isArray(inv.items) ? inv.items : [];
                 const dateStr = (inv.created_at || '').substring(0, 10);
                 const clientLabel = inv.client_name || 'Consumidor final';
-                const servicesLabel = items.length > 0
+                let servicesLabel = items.length > 0
                     ? items.map(it => `${it.name}${it.qty > 1 ? ` ×${it.qty}` : ''}`).join(', ')
                     : '—';
+                if (inv.doc_type === 'factura-salon') {
+                    servicesLabel = 'Depilación y otros tratamientos';
+                }
                 const total = Number(inv.total_amount) || 0;
                 grandTotal += total;
                 html += `<tr data-sales-row="${inv.id}">
@@ -2570,6 +2576,76 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         return { count, base, total, tax, commission, retention };
     }
 
+    // Hoja de Control: todos los servicios de un día determinado con importes parciales y total
+    function tpvControlSheetRows() {
+        const dateStr = State.tpv.controlSheetDate;
+        if (!dateStr) return '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un día para ver la hoja de control.</td></tr>';
+
+        const salonId = State.tpv.historySalonId || 'all';
+        const dayApts = State.appointments
+            .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
+            .sort((a, b) => a.time.localeCompare(b.time));
+
+        if (dayApts.length === 0) {
+            return `<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay citas en este día${salonId === 'all' ? '' : ' para el salón seleccionado'}.</td></tr>`;
+        }
+
+        const groups = new Map();
+        dayApts.forEach(apt => {
+            const key = apt.salonId || '__sin_salon__';
+            if (!groups.has(key)) groups.set(key, { label: State.salons.find(s => s.id === key)?.name || 'Sin salón', items: [] });
+            const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
+            const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
+            groups.get(key).items.push({ name: `${client.name} → ${service.name}`, amount: Math.round((parseFloat(service.price) || 0) * 100) / 100 });
+        });
+
+        let html = '';
+        let grandTotal = 0;
+        groups.forEach(g => {
+            html += `<tr class="report-group-header"><td colspan="5">${g.label}</td></tr>`;
+            g.items.forEach(it => {
+                html += `
+                    <tr>
+                        <td style="vertical-align:top;padding-left:1.25rem;">${it.name}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(it.amount)}</td>
+                    </tr>`;
+            });
+            const subtotal = Math.round(g.items.reduce((a, it) => a + it.amount, 0) * 100) / 100;
+            grandTotal += subtotal;
+            const commission = Math.round(subtotal * 0.70 * 100) / 100;
+            const base = Math.round(commission / 1.21 * 100) / 100;
+            const tax = Math.round(base * 0.21 * 100) / 100;
+            const retention = Math.round(base * 0.15 * 100) / 100;
+            const salonForSalon = Math.round(subtotal * 0.30 * 100) / 100;
+            const totalTecnico = Math.round((base + tax - retention) * 100) / 100;
+            const totalEntregar = Math.round((salonForSalon + retention) * 100) / 100;
+            html += `
+                <tr class="report-subtotal"><td colspan="4" style="text-align:right;">SUBTOTAL ${g.label}</td><td style="text-align:right;">${tpvFormatMoney(subtotal)}</td></tr>
+                <tr class="report-grand" style="line-height:1.6;">
+                    <td colspan="5" style="padding:0.4rem 0.6rem;">
+                        <div style="font-size:0.85rem;">
+                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>Comisión por los servicios (70% Técnico):</span><strong>${tpvFormatMoney(commission)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>Base:</span><span>${tpvFormatMoney(base)}</span></div>
+                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>+IVA (21%):</span><span>${tpvFormatMoney(tax)}</span></div>
+                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>−Retención (15%):</span><span>−${tpvFormatMoney(retention)}</span></div>
+                            <div style="display:flex;justify-content:space-between;max-width:360px;"><strong>→ TOTAL 70% TÉCNICO:</strong><strong>${tpvFormatMoney(totalTecnico)}</strong></div>
+                            <div style="border-top:1px solid #999;margin:0.3rem 0;"></div>
+                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>30% PARA EL SALÓN:</span><strong>${tpvFormatMoney(salonForSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>+RETENCIÓN (15%):</span><strong>${tpvFormatMoney(retention)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;max-width:360px;"><strong>→ TOTAL 30% SALÓN:</strong><strong>${tpvFormatMoney(totalEntregar)}</strong></div>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+
+        grandTotal = Math.round(grandTotal * 100) / 100;
+        html += `<tr class="report-grand"><td colspan="4" style="text-align:right;">TOTAL GENERAL DÍA</td><td style="text-align:right;">${tpvFormatMoney(grandTotal)}</td></tr>`;
+        return html;
+    }
+
     function getSalesView() {
         if (State.tpv.salesFrom === undefined) {
             const now = new Date();
@@ -2582,6 +2658,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             '<option value="all">Todos los salones</option>'
         ].concat(State.salons.map(s => `<option value="${s.id}"${State.tpv.historySalonId === s.id ? ' selected' : ''}>${s.name}</option>`)).join('');
         const summary = tpvSalesSummary();
+        const tab = State.tpv.salesTab === 'hojas-control' ? 'hojas-control' : 'facturas';
+        const controlDate = State.tpv.controlSheetDate;
 
         return `
             <div class="section-header">
@@ -2589,7 +2667,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                     <button type="button" class="btn btn-primary" id="btn-sales-print">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Imprimir
+                        ${tab === 'hojas-control' ? 'Imprimir Hoja de Control' : 'Imprimir'}
                     </button>
                     <button type="button" class="btn btn-secondary" id="btn-sales-back">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
@@ -2597,6 +2675,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     </button>
                 </div>
             </div>
+            <div class="list-mode-toggle" style="margin-bottom:1rem;width:fit-content;">
+                <button type="button" class="list-mode-btn${tab !== 'hojas-control' ? ' active' : ''}" id="sales-tab-facturas">Facturas</button>
+                <button type="button" class="list-mode-btn${tab === 'hojas-control' ? ' active' : ''}" id="sales-tab-hojas">Hojas de Control</button>
+            </div>
+            ${tab === 'facturas' ? `
             <div class="daily-controls" style="justify-content:flex-start;flex-wrap:wrap;gap:0.75rem;">
                 <div class="form-group" style="margin:0;">
                     <label style="font-size:0.75rem;font-weight:600;">Salón</label>
@@ -2641,7 +2724,28 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <thead><tr><th style="width:30px;"></th><th>Nº</th><th>Fecha</th><th>Cliente</th><th>Servicio</th><th style="text-align:right">Total</th></tr></thead>
                     <tbody id="tpv-history-body">${tpvSalesReportRows()}</tbody>
                 </table>
-            </div>`;
+            </div>` : `
+            <div class="daily-controls" style="justify-content:flex-start;flex-wrap:wrap;gap:0.75rem;">
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:0.75rem;font-weight:600;">Salón</label>
+                    <select class="form-control" id="sales-salon-select" style="min-width:180px;">${salonFilterOptions}</select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:0.75rem;font-weight:600;">Día (Hoja de Control)</label>
+                    <input type="date" class="form-control" id="control-sheet-date" value="${controlDate}" style="min-width:150px;">
+                </div>
+            </div>
+            <div class="data-card" style="padding:1.25rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
+                    <h3 style="font-size:1rem;margin:0;">Hoja de Control · ${controlDate ? formatDateEU(controlDate) : '—'}</h3>
+                    <div style="font-size:0.85rem;color:var(--text-secondary);">Todos los servicios del día con importes parciales y totales (70% Técnico / 15% Retención / 30% Salón)</div>
+                </div>
+                <table class="table">
+                    <thead><tr><th>Servicio</th><th></th><th></th><th></th><th style="text-align:right">Importe</th></tr></thead>
+                    <tbody id="tpv-control-body">${tpvControlSheetRows()}</tbody>
+                </table>
+            </div>`
+        }`;
     }
 
     function tpvPrintSelectedInvoices(ids) {
@@ -2687,11 +2791,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     const items = Array.isArray(inv.items) ? inv.items : [];
                     const dateStr = (inv.created_at || '').substring(0, 10);
                     const dimVal = inv.client_name || 'Consumidor final';
-                    const lines = items.length > 0 ? items.map(it => ({
+                    let lines = items.length > 0 ? items.map(it => ({
                         name: it.name,
                         qty: it.qty,
                         amount: Math.round((parseFloat(it.price) || 0) * (it.qty || 0) * 100) / 100
                     })) : [{ name: '—', qty: '', amount: Number(inv.base_amount) || 0 }];
+                    if (inv.doc_type === 'factura-salon') {
+                        lines = [{ name: 'Depilación y otros tratamientos', qty: '', amount: Number(inv.total_amount) || 0 }];
+                    }
                     const lineRows = lines.map((line, idx) => `
                         <tr>
                             ${idx === 0 ? `<td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${formatDateEU(dateStr)}<br><span style="font-size:0.7rem;color:#777;">${tpvInvoiceNum(inv)}</span></td>
@@ -2812,6 +2919,115 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         }, 300);
     }
 
+    function tpvPrintControlSheet() {
+        const printArea = document.getElementById('print-area');
+        if (!printArea) return;
+        const dateStr = State.tpv.controlSheetDate;
+        if (!dateStr) { showToast('Selecciona un día para la hoja de control.', 'error'); return; }
+        const dObj = new Date(dateStr + 'T00:00:00');
+        const dateLabel = dObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const salonFilter = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
+        const issuer = State.profile || {};
+        const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
+        const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
+        const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
+
+        const salonId = State.tpv.historySalonId || 'all';
+        const dayApts = State.appointments
+            .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
+            .sort((a, b) => a.time.localeCompare(b.time));
+
+        const groups = new Map();
+        dayApts.forEach(apt => {
+            const key = apt.salonId || '__sin_salon__';
+            if (!groups.has(key)) groups.set(key, { label: State.salons.find(s => s.id === key)?.name || 'Sin salón', items: [] });
+            const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
+            const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
+            groups.get(key).items.push({ name: `${client.name} → ${service.name}`, amount: Math.round((parseFloat(service.price) || 0) * 100) / 100 });
+        });
+
+        let grandTotal = 0;
+        const groupHtml = groups.size === 0
+            ? '<div style="padding:1rem;color:#777;text-align:center;">No hay citas en este día.</div>'
+            : Array.from(groups.values()).map(g => {
+                let subtotal = 0;
+                const rows = g.items.map(it => {
+                    subtotal += it.amount;
+                    return `
+                        <tr>
+                            <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #eee;">${it.name}</td>
+                            <td style="padding:0.4rem 0.6rem;text-align:right;border-bottom:1px solid #eee;width:100px;">${tpvFormatMoney(it.amount)}</td>
+                        </tr>`;
+                }).join('');
+                subtotal = Math.round(subtotal * 100) / 100;
+                grandTotal += subtotal;
+                const commission = Math.round(subtotal * 0.70 * 100) / 100;
+                const base = Math.round(commission / 1.21 * 100) / 100;
+                const tax = Math.round(base * 0.21 * 100) / 100;
+                const retention = Math.round(base * 0.15 * 100) / 100;
+                const salonForSalon = Math.round(subtotal * 0.30 * 100) / 100;
+                const totalTecnico = Math.round((base + tax - retention) * 100) / 100;
+                const totalEntregar = Math.round((salonForSalon + retention) * 100) / 100;
+                return `
+                    <div style="margin-top:1.25rem;">
+                        <div style="background:#f4f4f4;padding:0.45rem 0.6rem;font-weight:800;font-size:1rem;">${g.label}</div>
+                        <table style="width:100%;font-size:0.85rem;border-collapse:collapse;margin-top:0.4rem;">
+                            <thead>
+                                <tr style="color:#555;">
+                                    <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;">Servicio</th>
+                                    <th style="padding:0.35rem 0.6rem;text-align:right;border-bottom:1px solid #999;width:100px;">Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                        <div style="display:flex;justify-content:flex-end;padding:0.4rem 0.6rem;border-top:2px solid #000;font-weight:700;">
+                            <span>SUBTOTAL ${g.label}</span>
+                            <span style="min-width:100px;text-align:right;">${tpvFormatMoney(subtotal)}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:flex-start;padding:0.5rem 0.6rem 0;font-weight:600;white-space:nowrap;">
+                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
+                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
+                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
+                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
+                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
+                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;margin-top:0.3rem;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
+                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
+                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
+                        </div>
+                    </div>`;
+            }).join('');
+        grandTotal = Math.round(grandTotal * 100) / 100;
+
+        printArea.innerHTML = `
+            <div class="invoice-a4">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:1rem;margin-bottom:1.25rem;">
+                    <div>
+                        <div style="font-size:1.6rem;font-weight:800;">${issuerName}</div>
+                        ${issuerNif}
+                        ${issuerAddress}
+                    </div>
+                    <div style="text-align:right;font-size:0.95rem;">
+                        <div style="font-size:1.3rem;font-weight:800;">HOJA DE CONTROL</div>
+                        <div>${dateLabel}</div>
+                        <div>Salón: <strong>${salonFilter}</strong></div>
+                        <div>Emitido: ${formatDateEU(new Date())}</div>
+                    </div>
+                </div>
+                ${groupHtml}
+                <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
+                    <div style="width:300px;">
+                        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL GENERAL DÍA</span><span>${tpvFormatMoney(grandTotal)}</span></div>
+                    </div>
+                </div>
+            </div>`;
+        printArea.classList.add('print-active');
+        window.print();
+        setTimeout(() => {
+            printArea.innerHTML = '';
+            printArea.classList.remove('print-active');
+        }, 300);
+    }
+
     function tpvRenderCartPanel() {
         const panel = document.getElementById('tpv-cart-panel');
         if (!panel) return;
@@ -2822,7 +3038,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     function tpvRenderHistory() {
         const tbody = document.getElementById('tpv-history-body');
         if (!tbody) return;
-        tbody.innerHTML = tpvHistoryRows();
+        tbody.innerHTML = tpvSalesReportRows();
         tpvBindHistoryEvents();
     }
 
@@ -3070,13 +3286,19 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         }
         payCash = Math.round(payCash * 100) / 100;
         payCard = Math.round(payCard * 100) / 100;
+        // For factura-salon use a single summary line with the total
+        let cartItems = State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty, notes: i.notes || '' }));
+        if (isSalonInvoice) {
+            const totalImports = Math.round(cartItems.reduce((a, i) => a + (i.price * i.qty), 0) * 100) / 100;
+            cartItems = [{ name: 'Depilación y otros tratamientos', price: totalImports, qty: 1, notes: '' }];
+        }
         const payload = {
             doc_type: State.tpv.docType,
             salon_id: State.tpv.salonId || null,
             client_id: isSalonInvoice ? (salon ? salon.id : null) : (clientId || null),
             client_name: isSalonInvoice ? (salon ? (salon.business_name || salon.name) : (State.profile?.full_name || 'Estética y Bienestar Lara')) : tpvClientName(clientId),
             client_nif: isSalonInvoice ? (salon && salon.nif ? salon.nif : null) : (clientNif || null),
-            items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty, notes: i.notes || '' })),
+            items: cartItems,
             base_amount: Math.round(totals.base * 100) / 100,
             commission_rate: Math.round(totals.commissionRate * 100) / 100,
             commission_amount: Math.round(totals.commission * 100) / 100,
@@ -3195,6 +3417,17 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     function tpvBindHistoryEvents() {
+        const tabFacturas = document.getElementById('sales-tab-facturas');
+        const tabHojas = document.getElementById('sales-tab-hojas');
+        if (tabFacturas) tabFacturas.addEventListener('click', () => { State.tpv.salesTab = 'facturas'; renderRoute(); });
+        if (tabHojas) tabHojas.addEventListener('click', () => { State.tpv.salesTab = 'hojas-control'; renderRoute(); });
+
+        const controlDateInput = document.getElementById('control-sheet-date');
+        if (controlDateInput) controlDateInput.addEventListener('change', e => {
+            State.tpv.controlSheetDate = e.target.value;
+            renderRoute();
+        });
+
         const salesSalonSel = document.getElementById('sales-salon-select');
         if (salesSalonSel) salesSalonSel.addEventListener('change', e => {
             State.tpv.historySalonId = e.target.value;
@@ -3225,6 +3458,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (backBtn) backBtn.addEventListener('click', () => navigate('tpv'));
         const printBtn = document.getElementById('btn-sales-print');
         if (printBtn) printBtn.addEventListener('click', () => {
+            if (State.tpv.salesTab === 'hojas-control') {
+                tpvPrintControlSheet();
+                return;
+            }
             const selected = Array.from(document.querySelectorAll('.inv-select:checked')).map(b => b.dataset.invoiceId);
             if (selected.length > 0) tpvPrintSelectedInvoices(selected);
             else tpvPrintSales();
