@@ -525,6 +525,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${y}-${m}-${d}`;
     }
 
+    /** Convierte 'YYYY-MM-DD' o un Date a formato europeo 'DD-MM-YYYY' para mostrar */
+    function euDateStr(value) {
+        if (!value) return '';
+        if (value instanceof Date) value = toLocalDateStr(value);
+        const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value));
+        if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+        return String(value);
+    }
+
     const WEEKDAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     const MONTH_NAMES = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -1881,7 +1890,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
                                 <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
-                                <div style="font-size:0.6rem;color:var(--text-secondary)">${photoDate}</div>
+                                <div style="font-size:0.6rem;color:var(--text-secondary)">${euDateStr(photoDate)}</div>
                                 <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px">
                                     <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
                                     <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
@@ -2133,7 +2142,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                                          return `<div style="position:relative;text-align:center">
                                              <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                              <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
-                                             <div style="font-size:0.55rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+                                             <div style="font-size:0.55rem;color:var(--text-secondary)">${euDateStr(p.photo_date || '')}</div>
                                          </div>`;
                                      }).join('')}
                                      ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === '${c.id}'))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
@@ -2474,7 +2483,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 html += `<tr data-sales-row="${inv.id}">
                     <td style="vertical-align:top;text-align:center;"><input type="checkbox" class="inv-select" data-invoice-id="${inv.id}" title="Marcar para anular" onclick="event.stopPropagation()"></td>
                     <td style="vertical-align:top;">${tpvInvoiceNum(inv)}</td>
-                    <td style="vertical-align:top;">${dateStr}</td>
+                    <td style="vertical-align:top;">${euDateStr(dateStr)}</td>
                     <td style="vertical-align:top;">${clientLabel}</td>
                     <td style="vertical-align:top;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${servicesLabel.replace(/"/g, '')}">${servicesLabel}</td>
                     <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(total)}</td>
@@ -2602,8 +2611,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const printArea = document.getElementById('print-area');
         if (!printArea) return;
         const salon = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
-        const fromLabel = State.tpv.salesFrom || 'inicio';
-        const toLabel = State.tpv.salesTo || 'hoy';
+        const fromLabel = euDateStr(State.tpv.salesFrom) || 'inicio';
+        const toLabel = euDateStr(State.tpv.salesTo) || 'hoy';
         const issuer = State.profile || {};
         const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
         const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
@@ -2628,7 +2637,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     })) : [{ name: '—', qty: '', amount: Number(inv.base_amount) || 0 }];
                     const lineRows = lines.map((line, idx) => `
                         <tr>
-                            ${idx === 0 ? `<td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dateStr}<br><span style="font-size:0.7rem;color:#777;">${tpvInvoiceNum(inv)}</span></td>
+                            ${idx === 0 ? `<td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${euDateStr(dateStr)}<br><span style="font-size:0.7rem;color:#777;">${tpvInvoiceNum(inv)}</span></td>
                             <td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dimVal}</td>` : ''}
                             <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;">${line.name}</td>
                             <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${line.qty}</td>
@@ -2725,7 +2734,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <div style="font-size:1.3rem;font-weight:800;">LISTADO DE VENTAS</div>
                         <div>Agrupado por: <strong>Salón</strong></div>
                         <div>Período: ${fromLabel} → ${toLabel}</div>
-                        <div>Emitido: ${toLocalDateStr(new Date())}</div>
+                        <div>Emitido: ${euDateStr(new Date())}</div>
                     </div>
                 </div>
                 <div style="font-size:0.85rem;color:#333;margin-bottom:0.75rem;">
@@ -2787,7 +2796,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const items = Array.isArray(inv.items) ? inv.items : [];
         const isInvoice = inv.doc_type !== 'ticket';
         const num = (isInvoice ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
-        const dateStr = (inv.created_at || new Date().toISOString()).substring(0, 16).replace('T', ' ');
+        const dateStr = (inv.created_at || new Date().toISOString()).substring(0, 16).replace('T', ' ').trim();
+        const dateDisplay = dateStr.length >= 10 ? `${euDateStr(dateStr)}${dateStr.length > 10 ? ' ' + dateStr.slice(11) : ''}` : dateStr;
         const clientName = inv.client_name || 'Consumidor final';
         const nifLine = inv.client_nif ? `<strong>NIF:</strong> ${inv.client_nif}` : '';
         const clientRecord = State.clients.find(c => c.id === inv.client_id);
@@ -2823,7 +2833,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <div style="text-align:right;font-size:0.8rem;">
                             <div style="font-size:1.1rem;font-weight:800;">FACTURA</div>
                             <div>Nº ${num}</div>
-                            <div>${dateStr}</div>
+                            <div>${dateDisplay}</div>
                         </div>
                     </div>
                     <div style="font-size:0.82rem;margin-bottom:0.8rem;">
@@ -2896,7 +2906,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     ${issuerAddress}
                     <div style="font-size:0.8rem;color:#555;">TICKET</div>
                     <div style="font-size:0.8rem;color:#555;">Nº ${num}</div>
-                    <div style="font-size:0.8rem;color:#555;">${dateStr}</div>
+                    <div style="font-size:0.8rem;color:#555;">${dateDisplay}</div>
                 </div>
                 <div style="font-size:0.85rem;margin-bottom:0.5rem;">
                     <strong>Cliente:</strong> ${clientName}${nifLine ? '<br>' + nifLine : ''}
@@ -5125,7 +5135,7 @@ window.addEventListener('message', async (event) => {
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
-                            <div style="font-size:0.6rem;color:var(--text-secondary)">${p.photo_date || ''}</div>
+                            <div style="font-size:0.6rem;color:var(--text-secondary)">${euDateStr(p.photo_date || '')}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
                                 <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:12px;opacity:0.9">✏️</button>
                                 <button type="button" class="client-photo-remove-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(220,53,69,0.8);color:white;border:none;border-radius:4px;min-width:24px;height:24px;padding:0 4px;cursor:pointer;font-size:12px;opacity:0.9;transition:all 0.2s">🗑️</button>
@@ -5138,7 +5148,7 @@ window.addEventListener('message', async (event) => {
                         <div style="position:relative;text-align:center">
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
-                            <div style="font-size:0.6rem;color:var(--text-secondary)">${toLocalDateStr(new Date())}</div>
+                            <div style="font-size:0.6rem;color:var(--text-secondary)">${euDateStr(new Date())}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
                                 <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
                             </div>
