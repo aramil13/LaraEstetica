@@ -2799,9 +2799,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (isInvoice) {
             const lines = items.length === 0
                 ? '<tr><td colspan="5" style="padding:0.6rem;color:#777;">—</td></tr>'
-                : items.map(i => `
+                : items.map((i, idx) => `
                     <tr>
-                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;">${i.name}</td>
+                        <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;">
+                            <div>${i.name}</div>
+                            ${i.notes ? `<div style="font-size:0.75rem;color:#777;font-style:italic;margin-top:0.15rem;">Notas: ${i.notes}</div>` : ''}
+                        </td>
                         <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:center;">${i.qty}</td>
                         <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney(parseFloat(i.price) || 0)}</td>
                         <td style="padding:0.6rem 0.75rem;border-bottom:1px solid #ddd;text-align:right;">${tpvFormatMoney((parseFloat(i.price) || 0) * i.qty)}</td>
@@ -2928,7 +2931,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             const client = State.clients.find(c => c.id === apt.clientId);
             const service = State.services.find(s => s.id === apt.serviceId);
             const lineName = `${client ? client.name : 'Cliente'} → ${service ? service.name : 'Servicio'}`;
-            groups.get(key).items.push({ name: lineName, price: service ? (parseFloat(service.price) || 0) : 0, qty: 1 });
+            groups.get(key).items.push({ name: lineName, price: service ? (parseFloat(service.price) || 0) : 0, qty: 1, notes: apt.notes || '' });
         });
 
         // Construir una factura por salón con citas del día señalado (todos los salones)
@@ -3006,7 +3009,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             client_id: isSalonInvoice ? (salon ? salon.id : null) : (clientId || null),
             client_name: isSalonInvoice ? (salon ? (salon.business_name || salon.name) : (State.profile?.full_name || 'Estética y Bienestar Lara')) : tpvClientName(clientId),
             client_nif: isSalonInvoice ? (salon && salon.nif ? salon.nif : null) : (clientNif || null),
-            items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty })),
+            items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty, notes: i.notes || '' })),
             base_amount: Math.round(totals.base * 100) / 100,
             commission_rate: Math.round(totals.commissionRate * 100) / 100,
             commission_amount: Math.round(totals.commission * 100) / 100,
