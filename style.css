@@ -657,6 +657,11 @@ textarea.form-control {
     border-left: 3px solid var(--accent-primary);
 }
 
+.day-detail-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .day-detail-time {
     font-size: 0.9rem;
     font-weight: 700;
@@ -1789,6 +1794,7 @@ textarea.form-control {
 }
 
 .day-detail-actions {
+    margin-left: auto;
     display: flex;
     gap: 4px;
 }
