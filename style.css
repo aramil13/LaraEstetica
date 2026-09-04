@@ -1978,6 +1978,25 @@ textarea.form-control {
     opacity: 1;
 }
 
+/* Clients grouped by salon */
+.clients-salon-group {
+    margin-bottom: 1.5rem;
+}
+
+.clients-salon-heading {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    padding: 0.5rem 0.75rem;
+    margin: 0 0 0.5rem 0;
+    border-bottom: 2px solid var(--accent-primary, #6366f1);
+    letter-spacing: 0.02em;
+}
+
+.client-search-wrapper .form-control {
+    width: 100%;
+}
+
 .client-photo-item:hover .client-photo-badge,
 .client-photo-item:hover .client-photo-date {
     opacity: 0;

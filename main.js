@@ -362,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appointments: [],
         salons: [],
         clientPhotos: {},
+        clientSearch: '',
         // Calendar state
         calYear: new Date().getFullYear(),
         calMonth: new Date().getMonth(),
@@ -2109,24 +2110,48 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
        CLIENTS VIEW
        ═══════════════════════════════════════ */
     function getClientsView() {
-        const filteredClients = State.clients;
+        const searchTerm = (State.clientSearch || '').toLowerCase().trim();
+        const allClients = State.clients.filter(c => {
+            if (!searchTerm) return true;
+            const salonName = State.salons.find(s => s.id === c.salon_id)?.name || '';
+            return (
+                (c.name || '').toLowerCase().includes(searchTerm) ||
+                (c.phone || '').toLowerCase().includes(searchTerm) ||
+                (c.email || '').toLowerCase().includes(searchTerm) ||
+                (c.nif || '').toLowerCase().includes(searchTerm) ||
+                salonName.toLowerCase().includes(searchTerm)
+            );
+        });
 
         let rows = '';
-        if (filteredClients.length === 0) {
+        if (allClients.length === 0 && State.clients.length === 0) {
             rows = `
             <div class="empty-state data-card">
                 <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 <h3>No hay clientes registrados</h3>
                 <p>Añade tu primer cliente pulsando el botón superior.</p>
             </div>`;
+        } else if (allClients.length === 0 && searchTerm) {
+            rows = `
+            <div class="empty-state data-card">
+                <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <h3>No se encontraron resultados</h3>
+                <p>No hay clientes que coincidan con "${searchTerm}".</p>
+            </div>`;
         } else {
-            rows = `<div class="clients-list">${filteredClients.map(c => {
-                const salonName = State.salons.find(s => s.id === c.salon_id)?.name;
-                return `
+            const salonGroups = new Map();
+            allClients.forEach(c => {
+                const salonId = c.salon_id || '__sin_salon__';
+                if (!salonGroups.has(salonId)) salonGroups.set(salonId, []);
+                salonGroups.get(salonId).push(c);
+            });
+            salonGroups.forEach(clients => clients.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es')));
+
+            const clientCardHtml = (c) => `
                 <div class="client-card" data-client-id="${c.id}">
                     <div class="client-header">
                         <div class="client-info">
-                            <h3 style="margin:0;font-weight:600">${c.name}${salonName ? ` <span class="salon-badge" style="font-size:0.7rem;font-weight:600;color:var(--accent-color);border:1px solid var(--accent-color);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle">${salonName}</span>` : ''}</h3>
+                            <h3 style="margin:0;font-weight:600">${c.name}</h3>
                             <div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;color:var(--text-secondary)">
                                 ${c.phone ? `<span><a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">📱 ${c.phone}</a></span>` : ''}
                                 ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
@@ -2166,16 +2191,43 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         </div>
                     </div>
                 </div>`;
-            }).join('')}</div>`;
+
+            let salonHtml = '';
+            const sortedSalonIds = [...salonGroups.keys()].sort((a, b) => {
+                if (a === '__sin_salon__') return 1;
+                if (b === '__sin_salon__') return -1;
+                const sa = State.salons.find(s => s.id === a);
+                const sb = State.salons.find(s => s.id === b);
+                return (sa?.name || '').localeCompare(sb?.name || '', 'es');
+            });
+
+            sortedSalonIds.forEach(salonId => {
+                const clients = salonGroups.get(salonId);
+                const salonName = salonId === '__sin_salon__' ? 'Sin salón asignado' : (State.salons.find(s => s.id === salonId)?.name || salonId);
+                salonHtml += `
+                    <div class="clients-salon-group">
+                        <h2 class="clients-salon-heading">${salonName} <span style="font-weight:400;font-size:0.8rem;color:var(--text-secondary)">(${clients.length})</span></h2>
+                        <div class="clients-list">${clients.map(clientCardHtml).join('')}</div>
+                    </div>`;
+            });
+
+            rows = salonHtml;
         }
 
         return `
-            <div class="section-header">
-                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
-                <button class="btn btn-primary" id="btn-add-client">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    Añadir Cliente
-                </button>
+            <div class="section-header" style="flex-wrap:wrap;gap:0.75rem">
+                <div style="flex:1;min-width:180px"><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
+                <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:240px;justify-content:flex-end">
+                    <div class="client-search-wrapper" style="position:relative;flex:1;max-width:340px">
+                        <svg class="client-search-icon" width="18" height="18" fill="none" stroke="var(--text-secondary)" stroke-width="2" viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" id="clients-search-input" class="form-control" placeholder="Buscar por nombre, teléfono, email, NIF o salón..." value="${searchTerm}" autocomplete="off" style="padding-left:34px;padding-right:30px">
+                        ${searchTerm ? `<button id="clients-search-clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:1.1rem;line-height:1;padding:2px" title="Limpiar búsqueda">&times;</button>` : ''}
+                    </div>
+                    <button class="btn btn-primary" id="btn-add-client">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        Añadir Cliente
+                    </button>
+                </div>
             </div>
             ${rows}`;
     }
@@ -3768,6 +3820,28 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
         const btnAddClient = document.getElementById('btn-add-client');
         if (btnAddClient) btnAddClient.addEventListener('click', () => showClientForm());
+
+        const clientsSearchInput = document.getElementById('clients-search-input');
+        if (clientsSearchInput) {
+            clientsSearchInput.addEventListener('input', e => {
+                State.clientSearch = e.target.value;
+                const pos = e.target.selectionStart;
+                renderRoute();
+                const newInput = document.getElementById('clients-search-input');
+                if (newInput) { newInput.focus(); newInput.setSelectionRange(pos, pos); }
+            });
+            clientsSearchInput.focus();
+        }
+
+        const clientsSearchClear = document.getElementById('clients-search-clear');
+        if (clientsSearchClear) {
+            clientsSearchClear.addEventListener('click', () => {
+                State.clientSearch = '';
+                renderRoute();
+                const newInput = document.getElementById('clients-search-input');
+                if (newInput) newInput.focus();
+            });
+        }
 
         const btnAddService = document.getElementById('btn-add-service');
         if (btnAddService) btnAddService.addEventListener('click', () => showServiceForm());
