@@ -2958,10 +2958,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         return `
             <div class="ticket-print">
                 <div style="text-align:center;border-bottom:1px dashed #999;padding-bottom:0.5rem;margin-bottom:0.5rem;">
-                    <div style="font-size:1.1rem;font-weight:800;">${issuerName}</div>
-                    ${issuerNif}
-                    ${issuerAddress}
-                    <div style="font-size:0.8rem;color:#555;">TICKET</div>
+                    <div style="font-size:1.1rem;font-weight:800;">TICKET</div>
                     <div style="font-size:0.8rem;color:#555;">Nº ${num}</div>
                     <div style="font-size:0.8rem;color:#555;">${dateDisplay}</div>
                 </div>
