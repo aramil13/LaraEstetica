@@ -371,6 +371,8 @@ document.addEventListener('DOMContentLoaded', () => {
         isLoading: false,
         // Daily listing state
         dailyDate: (() => { const d = new Date(); const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${day}`; })(),
+        listMode: 'day',
+        listMonth: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); })(),
         activeSalonId: localStorage.getItem('nymara_agenda_salon') || 'all',
         // Auth state
         session: null,
@@ -3297,116 +3299,76 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
        DAILY LISTING VIEW
        ═══════════════════════════════════════ */
     function getMonthlyView() {
-        const dateStr = State.dailyDate;
-        const dateObj = new Date(dateStr + 'T00:00:00');
-        const dayLabel = dateObj.toLocaleDateString('es-ES', {
-            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-        });
-
         const salonId = State.activeSalonId || 'all';
         const isAdmin = !State.session?.staff;
         const showSalonCol = (salonId === 'all' || isAdmin) && State.salons.length > 0;
+        const isMonthMode = State.listMode === 'month';
 
-        const dayAppointments = State.appointments
-            .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
-            .sort((a, b) => a.time.localeCompare(b.time));
-
-        // Summary stats
-        const totalCitas = dayAppointments.length;
-        let totalMinutos = 0;
-        const clientesUnicos = new Set();
-        dayAppointments.forEach(apt => {
-            const service = State.services.find(s => s.id === apt.serviceId);
-            if (service) {
-                totalMinutos += parseInt(service.duration) || 0;
-            }
-            clientesUnicos.add(apt.clientId);
-        });
-        const totalHoras = Math.floor(totalMinutos / 60);
-        const remainMin = totalMinutos % 60;
+        const buildAptRows = (appointments) => appointments.map(apt => {
+            const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
+            const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Eliminado', duration: 0, price: 0 };
+            const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
+            const endStr = endTime.toTimeString().substring(0, 5);
+            const salon = State.salons.find(s => s.id === apt.salonId);
+            const staffClass = apt.isStaffAppointment ? ' staff-apt' : '';
+            const staffBadge = apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>${apt.staffModifiedBy ? ` <span style="color:var(--text-secondary);font-size:0.75rem;">· modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}` : '';
+            return `
+                <tr class="monthly-apt-row${staffClass}">
+                    <td class="monthly-time-cell">
+                        <span class="monthly-time">${apt.time}</span>
+                        <span class="monthly-time-end">– ${endStr}</span>
+                    </td>
+                    <td><div style="font-weight:600">${client.name}${staffBadge}</div></td>
+                    ${showSalonCol ? `<td>${salon ? `<span class="daily-salon-badge" style="background:${salon.color || '#8B5CF6'};color:#fff;border:1px solid ${salon.color || '#8B5CF6'}">${salon.name}</span>` : '<span class="daily-salon-badge">—</span>'}</td>` : ''}
+                    <td><span class="monthly-service-badge">${service.name}</span></td>
+                    <td>${service.duration} min</td>
+                    <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '—'}</td>
+                    <td style="white-space:nowrap">
+                        <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-secondary)">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-secondary)">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </td>
+                </tr>`;
+        }).join('');
 
         const colCount = showSalonCol ? 7 : 6;
 
-        let tableRows = '';
-        if (dayAppointments.length === 0) {
-            tableRows = `
-                <tr>
-                    <td colspan="${colCount}" style="text-align:center;padding:3rem;color:var(--text-secondary)">
-                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:0.75rem;opacity:0.35;display:block;margin-left:auto;margin-right:auto;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        No hay citas registradas en este día.
-                    </td>
-                </tr>`;
-        } else {
-            dayAppointments.forEach(apt => {
-                const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
-                const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Eliminado', duration: 0, price: 0 };
-                const endTime = new Date(new Date(`${apt.date}T${apt.time}`).getTime() + (service.duration || 0) * 60000);
-                const endStr = endTime.toTimeString().substring(0, 5);
-                const salon = State.salons.find(s => s.id === apt.salonId);
-                const staffClass = apt.isStaffAppointment ? ' staff-apt' : '';
-                const staffBadge = apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>${apt.staffModifiedBy ? ` <span style="color:var(--text-secondary);font-size:0.75rem;">· modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}` : '';
-
-                tableRows += `
-                    <tr class="monthly-apt-row${staffClass}">
-                        <td class="monthly-time-cell">
-                            <span class="monthly-time">${apt.time}</span>
-                            <span class="monthly-time-end">– ${endStr}</span>
-                        </td>
-                        <td><div style="font-weight:600">${client.name}${staffBadge}</div></td>
-                        ${showSalonCol ? `<td>${salon ? `<span class="daily-salon-badge" style="background:${salon.color || '#8B5CF6'};color:#fff;border:1px solid ${salon.color || '#8B5CF6'}">${salon.name}</span>` : '<span class="daily-salon-badge">—</span>'}</td>` : ''}
-                        <td><span class="monthly-service-badge">${service.name}</span></td>
-                        <td>${service.duration} min</td>
-                        <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '—'}</td>
-                        <td style="white-space:nowrap">
-                            <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-secondary)">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                            </button>
-                            <button class="delete-btn" data-id="${apt.id}" title="Eliminar cita" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-secondary)">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        return `
-            ${State.salons.length > 0 ? `
-            <div style="text-align:center; margin-bottom: 1.5rem;">
-                ${State.session?.staff
-                    ? `<span class="salon-title">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
-                    : `<select id="daily-salon-select" class="salon-title-select">
-                    <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
-                    ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
-                </select>`}
-            </div>
-            ` : ''}
-            <div class="section-header">
-                <div>
-                    <h1 class="section-title">Listado Diario</h1>
-                    <p style="color:var(--text-secondary)">Detalle de citas por día · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
-                </div>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
-                    <button class="btn btn-primary" id="btn-print-daily">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Imprimir
-                    </button>
-                </div>
-            </div>
-
-            <!-- Date Selector -->
+        const controlsHtml = `
             <div class="daily-controls">
-                <button class="cal-nav-btn" id="daily-prev">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <div class="daily-selectors">
-                    <input type="date" class="form-control daily-date-input" id="daily-date-input" value="${dateStr}">
+                <div class="list-mode-toggle">
+                    <button type="button" class="list-mode-btn${!isMonthMode ? ' active' : ''}" id="list-mode-day">Día</button>
+                    <button type="button" class="list-mode-btn${isMonthMode ? ' active' : ''}" id="list-mode-month">Mes</button>
                 </div>
-                <button class="cal-nav-btn" id="daily-next">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
-                </button>
-            </div>
+                ${!isMonthMode ? `
+                    <button class="cal-nav-btn" id="daily-prev">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <div class="daily-selectors">
+                        <input type="date" class="form-control daily-date-input" id="daily-date-input" value="${State.dailyDate}">
+                    </div>
+                    <button class="cal-nav-btn" id="daily-next">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                ` : `
+                    <button class="cal-nav-btn" id="month-prev">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <div class="daily-selectors">
+                        <input type="month" class="form-control daily-date-input" id="month-input" value="${State.listMonth}">
+                    </div>
+                    <button class="cal-nav-btn" id="month-next">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                `}
+            </div>`;
 
-            <!-- Summary Cards -->
+        const statsHtml = (totalCitas, totalMinutos, clientesUnicos) => {
+            const totalHoras = Math.floor(totalMinutos / 60);
+            const remainMin = totalMinutos % 60;
+            return `
             <div class="stats-row monthly-stats">
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -3426,13 +3388,47 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     </div>
                     <div class="stat-content"><h3>Tiempo Total</h3><p>${totalHoras}h ${remainMin}m</p></div>
                 </div>
-            </div>
+            </div>`;
+        };
 
-            <!-- Listing Table -->
+        const emptyRows = () => `
+            <tr>
+                <td colspan="${colCount}" style="text-align:center;padding:3rem;color:var(--text-secondary)">
+                    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:0.75rem;opacity:0.35;display:block;margin-left:auto;margin-right:auto;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        ${isMonthMode ? 'No hay citas registradas en este mes.' : 'No hay citas registradas en este día.'}
+                    </td>
+            </tr>`;
+
+        let statsHtmlStr = '';
+        let listingHtml = '';
+
+        if (!isMonthMode) {
+            // ── DAY MODE ──
+            const dateStr = State.dailyDate;
+            const dateObj = new Date(dateStr + 'T00:00:00');
+            const dayLabel = dateObj.toLocaleDateString('es-ES', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+
+            const dayAppointments = State.appointments
+                .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
+                .sort((a, b) => a.time.localeCompare(b.time));
+
+            let totalMinutos = 0;
+            const clientesUnicos = new Set();
+            dayAppointments.forEach(apt => {
+                const service = State.services.find(s => s.id === apt.serviceId);
+                if (service) totalMinutos += parseInt(service.duration) || 0;
+                clientesUnicos.add(apt.clientId);
+            });
+
+            statsHtmlStr = statsHtml(dayAppointments.length, totalMinutos, clientesUnicos);
+
+            listingHtml = `
             <div class="data-card monthly-table-card" id="daily-print-area">
                 <div class="monthly-table-header">
                     <h3>📋 ${dayLabel}</h3>
-                    <span class="monthly-count-badge">${totalCitas} cita${totalCitas !== 1 ? 's' : ''}</span>
+                    <span class="monthly-count-badge">${dayAppointments.length} cita${dayAppointments.length !== 1 ? 's' : ''}</span>
                 </div>
                 <table class="table monthly-table">
                     <thead>
@@ -3447,10 +3443,113 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         </tr>
                     </thead>
                     <tbody>
-                        ${tableRows}
+                        ${dayAppointments.length === 0 ? emptyRows() : buildAptRows(dayAppointments)}
                     </tbody>
                 </table>
+            </div>`;
+        } else {
+            // ── MONTH MODE ──
+            const monthStr = State.listMonth;
+            const [year, mon] = monthStr.split('-').map(Number);
+            const prefix = monthStr;
+            const monthObj = new Date(year, mon - 1, 1);
+            const monthLabel = monthObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+
+            const monthAppointments = State.appointments
+                .filter(a => a.date && a.date.startsWith(prefix) && (salonId === 'all' || a.salonId === salonId))
+                .sort((a, b) => a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
+
+            const dayCount = new Set(monthAppointments.map(a => a.date)).size;
+
+            let totalMinutos = 0;
+            const clientesUnicos = new Set();
+            monthAppointments.forEach(apt => {
+                const service = State.services.find(s => s.id === apt.serviceId);
+                if (service) totalMinutos += parseInt(service.duration) || 0;
+                clientesUnicos.add(apt.clientId);
+            });
+
+            statsHtmlStr = statsHtml(monthAppointments.length, totalMinutos, clientesUnicos);
+
+            const groups = new Map();
+            monthAppointments.forEach(apt => {
+                if (!groups.has(apt.date)) groups.set(apt.date, []);
+                groups.get(apt.date).push(apt);
+            });
+            const sortedDates = [...groups.keys()].sort();
+
+            if (monthAppointments.length === 0) {
+                listingHtml = `
+                <div class="data-card monthly-table-card">
+                    <div class="monthly-table-header">
+                        <h3>📅 ${monthLabel}</h3>
+                        <span class="monthly-count-badge">${dayCount} día${dayCount !== 1 ? 's' : ''} con citas</span>
+                    </div>
+                    <table class="table monthly-table">
+                        <tbody>${emptyRows()}</tbody>
+                    </table>
+                </div>`;
+            } else {
+                listingHtml = sortedDates.map(dateStr => {
+                    const apps = groups.get(dateStr);
+                    const dObj = new Date(dateStr + 'T00:00:00');
+                    const dLabel = dObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                    return `
+                    <div style="margin-bottom:1.75rem;">
+                        <div class="data-card monthly-table-card">
+                            <div class="monthly-table-header">
+                                <h3>📋 ${dLabel}</h3>
+                                <span class="monthly-count-badge">${apps.length} cita${apps.length !== 1 ? 's' : ''}</span>
+                            </div>
+                            <table class="table monthly-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hora</th>
+                                        <th>Cliente</th>
+                                        ${showSalonCol ? '<th>Salón</th>' : ''}
+                                        <th>Servicio</th>
+                                        <th>Duración</th>
+                                        <th>Notas</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${buildAptRows(apps)}</tbody>
+                            </table>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        return `
+            ${State.salons.length > 0 ? `
+            <div style="text-align:center; margin-bottom: 1.5rem;">
+                ${State.session?.staff
+                    ? `<span class="salon-title">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
+                    : `<select id="daily-salon-select" class="salon-title-select">
+                    <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
+                    ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+                </select>`}
             </div>
+            ` : ''}
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">Listado de Citas</h1>
+                    <p style="color:var(--text-secondary)">${isMonthMode ? 'Todas las citas del mes' : 'Detalle de citas por día'} · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
+                </div>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                    <button class="btn btn-primary" id="btn-print-daily">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Imprimir
+                    </button>
+                </div>
+            </div>
+
+            ${controlsHtml}
+
+            ${statsHtmlStr}
+
+            ${listingHtml}
         `;
     }
 
@@ -3945,7 +4044,24 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             });
         }
 
-        // Daily listing controls
+        // Listado de Citas: mode toggle
+        const listModeDay = document.getElementById('list-mode-day');
+        const listModeMonth = document.getElementById('list-mode-month');
+        if (listModeDay) listModeDay.addEventListener('click', () => {
+            State.listMode = 'day';
+            State.dailyDate = State.dailyDate || toLocalDateStr(new Date());
+            renderRoute();
+        });
+        if (listModeMonth) listModeMonth.addEventListener('click', () => {
+            State.listMode = 'month';
+            if (!State.listMonth) {
+                const d = new Date();
+                State.listMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            }
+            renderRoute();
+        });
+
+        // Day navigation
         const dailyPrev = document.getElementById('daily-prev');
         const dailyNext = document.getElementById('daily-next');
         const dailyDateInput = document.getElementById('daily-date-input');
@@ -3964,6 +4080,24 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         });
         if (dailyDateInput) dailyDateInput.addEventListener('change', e => {
             State.dailyDate = e.target.value;
+            renderRoute();
+        });
+
+        // Month navigation
+        const monthPrev = document.getElementById('month-prev');
+        const monthNext = document.getElementById('month-next');
+        const monthInput = document.getElementById('month-input');
+
+        const shiftMonth = delta => {
+            const [y, m] = State.listMonth.split('-').map(Number);
+            const d = new Date(y, m - 1 + delta, 1);
+            State.listMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            renderRoute();
+        };
+        if (monthPrev) monthPrev.addEventListener('click', () => shiftMonth(-1));
+        if (monthNext) monthNext.addEventListener('click', () => shiftMonth(1));
+        if (monthInput) monthInput.addEventListener('change', e => {
+            State.listMonth = e.target.value;
             renderRoute();
         });
 
