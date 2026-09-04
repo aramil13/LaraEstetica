@@ -1,4 +1,4 @@
-﻿// Base de datos de productos Maria Nila
+// Base de datos de productos Maria Nila
 const MARIA_NILA_PRODUCTS = {
     // ==================== HEAD & HAIR HEAL (Cuero cabelludo sensible) ====================
     headHairHealShampoo: { name: "Head & Hair Heal Shampoo", desc: "Calma cuero cabelludo sensible con aloe vera y piroctona olamina.", img: "https://marianila.com/cdn/shop/files/13650-packshot.jpg", url: "https://marianila.com/products/head-hair-heal-shampoo-350-ml", category: "scalp" },
@@ -26,7 +26,7 @@ const MARIA_NILA_PRODUCTS = {
     pureVolumeMousse: { name: "Pure Volume Mousse", desc: "Espuma nutritiva y voluminizadora para cabello fino.", img: "https://marianila.com/cdn/shop/files/3613-packshot.jpg", url: "https://marianila.com/products/pure-volume-mousse-300-ml", category: "fine" },
     pureVolumeLeaveInCream: { name: "Pure Volume Leave In Cream", desc: "Crema ligera sin enjuague para dar cuerpo al cabello fino.", img: "https://marianila.com/cdn/shop/files/3614-packshot.jpg", url: "https://marianila.com/products/pure-volume-leave-in-cream-100-ml", category: "fine" },
 
-    // ==================== LUMINOUS COLOUR (Cabello teñido) ====================
+    // ==================== LUMINOUS COLOUR (Cabello te�ido) ====================
     luminousColourShampoo: { name: "Luminous Colour Shampoo", desc: "Preserva color con extracto de Granada.", img: "https://marianila.com/cdn/shop/files/3625-packshot.jpg", url: "https://marianila.com/products/luminous-colour-shampoo-350-ml", category: "colored" },
     luminousColourConditioner: { name: "Luminous Colour Conditioner", desc: "Acondicionador preservador de color.", img: "https://marianila.com/cdn/shop/files/3626-packshot.jpg", url: "https://marianila.com/products/luminous-colour-conditioner-300-ml", category: "colored" },
     luminousColourMasque: { name: "Luminous Colour Masque", desc: "Mascarilla protectora del color con extracto de granada.", img: "https://marianila.com/cdn/shop/files/3627-packshot.jpg", url: "https://marianila.com/products/luminous-colour-masque-250-ml", category: "colored" },
@@ -38,11 +38,11 @@ const MARIA_NILA_PRODUCTS = {
     purifyingCleanseExfoliatingSerum: { name: "Purifying Cleansing Serum", desc: "Serum exfoliante detox para el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3616-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-exfoliating-serum-150-ml", category: "oily" },
     purifyingCleanseDetoxMasque: { name: "Purifying Cleanse Detox Masque", desc: "Mascarilla detox purificante para cuero cabelludo graso.", img: "https://marianila.com/cdn/shop/files/3617-packshot.jpg", url: "https://marianila.com/products/purifying-cleanse-detox-masque-250-ml", category: "oily" },
 
-    // ==================== STRUCTURE REPAIR (Cabello dañado) ====================
-    structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello dañado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
+    // ==================== STRUCTURE REPAIR (Cabello da�ado) ====================
+    structureRepairShampoo: { name: "Structure Repair Shampoo", desc: "Repara cabello da�ado con keratina.", img: "https://marianila.com/cdn/shop/files/3600-packshot.jpg", url: "https://marianila.com/products/structure-repair-shampoo-350-ml", category: "damaged" },
     structureRepairConditioner: { name: "Structure Repair Conditioner", desc: "Acondicionador reparador con keratina.", img: "https://marianila.com/cdn/shop/files/3601-packshot.jpg", url: "https://marianila.com/products/structure-repair-conditioner-300-ml", category: "damaged" },
     structureRepairMasque: { name: "Structure Repair Masque", desc: "Mascarilla reparadora intensiva con keratina.", img: "https://marianila.com/cdn/shop/files/3602-packshot.jpg", url: "https://marianila.com/products/structure-repair-masque-250-ml", category: "damaged" },
-    structureRepairLeaveInCream: { name: "Structure Repair Leave In Cream", desc: "Crema sin enjuague reparadora para cabello dañado.", img: "https://marianila.com/cdn/shop/files/3603-packshot.jpg", url: "https://marianila.com/products/structure-repair-leave-in-cream-100-ml", category: "damaged" },
+    structureRepairLeaveInCream: { name: "Structure Repair Leave In Cream", desc: "Crema sin enjuague reparadora para cabello da�ado.", img: "https://marianila.com/cdn/shop/files/3603-packshot.jpg", url: "https://marianila.com/products/structure-repair-leave-in-cream-100-ml", category: "damaged" },
     bondBuilder: { name: "Bond Builder", desc: "Reparador de enlaces capilares intensivo.", img: "https://marianila.com/cdn/shop/files/3604-packshot.jpg", url: "https://marianila.com/products/bond-builder-100-ml", category: "damaged" },
     structureRepairBondingBooster: { name: "Structure Repair Bonding Booster", desc: "Potenciador de union que refuerza enlaces capilares en tratamientos quimicos.", img: "https://marianila.com/cdn/shop/files/3605-packshot.jpg", url: "https://marianila.com/products/structure-repair-bonding-booster-100-ml", category: "damaged" },
 
@@ -54,7 +54,7 @@ const MARIA_NILA_PRODUCTS = {
     sheerSilverToneFixerSpray: { name: "Sheer Silver Tone Fixer Spray", desc: "Spray fijador con pigmentos violeta para neutralizar tonos amarillos entre lavados.", img: "https://marianila.com/cdn/shop/files/3645-packshot.jpg", url: "https://marianila.com/products/sheer-silver-tone-fixer-spray-150-ml", category: "blonde" },
     sheerSilverDuo: { name: "Sheer Silver Shampoo + Conditioner Duo", desc: "Pack champu y acondicionador con pigmentos violeta para rubios.", img: "https://marianila.com/cdn/shop/files/3644-packshot.jpg", url: "https://marianila.com/products/sheer-silver-shampoo-conditioner-duo", category: "blonde" },
     
-    // ==================== COLOUR REFRESH (Máscaras de color) ====================
+    // ==================== COLOUR REFRESH (M�scaras de color) ====================
     colourRefreshAutumnRed: { name: "Colour Refresh Autumn Red", desc: "Mascara de color rojo intenso con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3650-packshot.jpg", url: "https://marianila.com/products/colour-refresh-autumn-red-100-ml", category: "color-mask" },
     colourRefreshCacao: { name: "Colour Refresh Cacao", desc: "Mascara de color marron oscuro con aceite de argan.", img: "https://marianila.com/cdn/shop/files/3651-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cacao-100-ml", category: "color-mask" },
     colourRefreshCacaoIntense: { name: "Colour Refresh Cacao Intense", desc: "Mascara de color marron muy oscuro.", img: "https://marianila.com/cdn/shop/files/3652-packshot.jpg", url: "https://marianila.com/products/colour-refresh-cacao-intense-100-ml", category: "color-mask" },
@@ -113,15 +113,15 @@ const MARIA_NILA_PRODUCTS = {
     scalpTreatment: { name: "Scalp Treatment", desc: "Tratamiento intensivo para equilibrar y calmar el cuero cabelludo.", img: "https://marianila.com/cdn/shop/files/3706-packshot.jpg", url: "https://marianila.com/products/scalp-treatment-100-ml", category: "treatment" }
 };
 
-// Tratamiento Premium Olaplex del Salón
+// Tratamiento Premium Olaplex del Sal�n
 const OLAPLEX_TREATMENTS = {
     treatmentPremium: { 
         name: "Tratamiento Premium Olaplex", 
-        desc: "Régenera puentes de disulfuro. Protocolo: 1) Broad Spectrum Chelating (3 min) - elimina minerales. 2) Olaplex N°1 (5 min) - recupera enlaces. 3) Olaplex N°2 (3 min) - sella enlaces. 4) Champú N°4 (1 min). 5) Mascarilla N°5 (3 min - encapsulado sin oxígeno).",
+        desc: "R�genera puentes de disulfuro. Protocolo: 1) Broad Spectrum Chelating (3 min) - elimina minerales. 2) Olaplex N�1 (5 min) - recupera enlaces. 3) Olaplex N�2 (3 min) - sella enlaces. 4) Champ� N�4 (1 min). 5) Mascarilla N�5 (3 min - encapsulado sin ox�geno).",
     },
     treatmentExpress: { 
         name: "Tratamiento Olaplex Express", 
-        desc: "Tratamiento 3 veces más fuerte, 3 veces más suave, 3 veces más elástico en 3 min. Paso 1: Prechampu. Paso 2: Olaplex N°3 Plus aplicado con las manos de raíces a puntas.",
+        desc: "Tratamiento 3 veces m�s fuerte, 3 veces m�s suave, 3 veces m�s el�stico en 3 min. Paso 1: Prechampu. Paso 2: Olaplex N�3 Plus aplicado con las manos de ra�ces a puntas.",
     }
 };
 
@@ -129,7 +129,7 @@ function getMariaNilaRecommendations(diagnosis) {
     const recommendations = [];
     const { density, thickness, hydration, sebum, isColored, isBlonde, isCurly, isDamaged } = diagnosis;
     
-    // Cabello seco (hidratación baja)
+    // Cabello seco (hidrataci�n baja)
     if (hydration < 50) {
         recommendations.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.trueSoftConditioner);
@@ -154,7 +154,7 @@ function getMariaNilaRecommendations(diagnosis) {
         recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseDetoxMasque);
     }
     
-    // Cabello teñido
+    // Cabello te�ido
     if (isColored) {
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourConditioner);
@@ -182,7 +182,7 @@ function getMariaNilaRecommendations(diagnosis) {
         recommendations.push(MARIA_NILA_PRODUCTS.coilsCurlsCurlCream);
     }
     
-    // Cabello dañado
+    // Cabello da�ado
     if (isDamaged || thickness < 65) {
         recommendations.push(MARIA_NILA_PRODUCTS.structureRepairShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.structureRepairConditioner);
@@ -199,7 +199,7 @@ function getMariaNilaRecommendations(diagnosis) {
         recommendations.push(MARIA_NILA_PRODUCTS.headHairHealScalpTonic);
     }
     
-    // Protectores térmicos (siempre útiles)
+    // Protectores t�rmicos (siempre �tiles)
     recommendations.push(MARIA_NILA_PRODUCTS.shapingHeatSpray);
     recommendations.push(MARIA_NILA_PRODUCTS.creamHeatSpray);
     
@@ -245,7 +245,7 @@ function displayDiagnosisProducts(products) {
         html += '<img src="' + p.img + '" alt="" style="width:60px;height:60px;object-fit:cover;border-radius:8px;background:white;" onerror="this.style.display=\'none\'">';
         html += '<div style="flex:1;"><strong style="color:#fff;">' + p.name + '</strong>';
         html += '<p style="font-size:0.75rem;color:rgba(255,255,255,0.6);">' + p.desc + '</p>';
-        html += '<a href="' + p.url + '" target="_blank" style="color:#a78bfa;">Ver producto →</a></div></div>';
+        html += '<a href="' + p.url + '" target="_blank" style="color:#a78bfa;">Ver producto ?</a></div></div>';
     }
     container.innerHTML = html || '<p style="color:#888;">No hay recomendaciones</p>';
 }
@@ -258,7 +258,7 @@ function displayDiagnosisTreatments(treatments) {
     for (const t of treatments) {
         if (!t) continue;
         html += '<div style="display:flex;gap:1rem;padding:1rem;background:rgba(255,255,255,0.05);border-radius:12px;border-left:3px solid #10b981;">';
-        html += '<div style="font-size:1.5rem;">💊</div>';
+        html += '<div style="font-size:1.5rem;">??</div>';
         html += '<div style="flex:1;"><strong style="color:#fff;">' + t.name + '</strong>';
         html += '<p style="font-size:0.75rem;color:rgba(255,255,255,0.6);">' + (t.desc || '') + '</p></div></div>';
     }
@@ -266,7 +266,7 @@ function displayDiagnosisTreatments(treatments) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('--- Nymara App: Diagnóstico Capilar Integrado ---');
+    console.log('--- Nymara App: Diagn�stico Capilar Integrado ---');
 
     // One-time migration: remove old saved admin email so field starts empty
     if (!localStorage.getItem('nymara_migrated_admin_email')) {
@@ -274,9 +274,9 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('nymara_migrated_admin_email', '1');
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        API CLIENT (Cloudflare Worker)
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     const API_URL = 'https://lara-estetica-api.agenda-estetica.workers.dev';
 
     function getToken() { return localStorage.getItem('nymara_session_token'); }
@@ -353,9 +353,9 @@ document.addEventListener('DOMContentLoaded', () => {
         deletePhoto(id) { return this.request('/api/photos/' + id, { method: 'DELETE' }); },
     };
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        STATE
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     const State = {
         clients: [],
         services: [],
@@ -396,9 +396,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        DOM REFERENCES
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     const appContent = document.getElementById('app-content');
     const navItems = document.querySelectorAll('.nav-item');
     const modalOverlay = document.getElementById('modal-overlay');
@@ -482,9 +482,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return getStaffServiceIds().includes(id);
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        HELPERS
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     const USER_COLORS = [
         '#e74c3c', '#2ecc71', '#3498db', '#9b59b6', '#f39c12',
         '#1abc9c', '#e67e22', '#e91e63', '#00bcd4', '#8bc34a',
@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    /** Returns 'YYYY-MM-DD' in local time */
+    /** Returns 'YYYY-MM-DD' in local time (formato interno: BD, inputs type=date, comparaciones) */
     function toLocalDateStr(date) {
         const y = date.getFullYear();
         const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -525,27 +525,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${y}-${m}-${d}`;
     }
 
-    /** Convierte 'YYYY-MM-DD' o un Date a formato europeo 'DD-MM-YYYY' para mostrar */
-    function euDateStr(value) {
-        if (!value) return '';
+    /** FORMATO EUROPEO DE FECHA PARA MOSTRAR AL USUARIO.
+     *  Convierte 'YYYY-MM-DD' o un Date a 'DD-MM-YYYY'.
+     *  ?? REGLA: para mostrar cualquier fecha en pantalla/impresi�n usar SIEMPRE esta funci�n.
+     *  No usar toLocalDateStr ni substring(0,10) directamente en texto visible al usuario. */
+    function formatDateEU(value) {
+        if (!value && value !== 0) return '';
         if (value instanceof Date) value = toLocalDateStr(value);
         const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value));
         if (m) return `${m[3]}-${m[2]}-${m[1]}`;
         return String(value);
     }
 
-    const WEEKDAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const WEEKDAY_NAMES = ['Lun', 'Mar', 'Mi�', 'Jue', 'Vie', 'S�b', 'Dom'];
     const MONTH_NAMES = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
 
-    const DEFAULT_WA_TEMPLATE = 'Hola {cliente}, desde Estética y Bienestar Lara, en colaboración con {salon}, te recordamos tu cita para el día {fecha} a las {hora}. Si necesitas cambiar o anular su cita por favor hágamelo saber. Para confirmarla agradecería un OK. Gracias y te esperamos';
+    const DEFAULT_WA_TEMPLATE = 'Hola {cliente}, desde Est�tica y Bienestar Lara, en colaboraci�n con {salon}, te recordamos tu cita para el d�a {fecha} a las {hora}. Si necesitas cambiar o anular su cita por favor h�gamelo saber. Para confirmarla agradecer�a un OK. Gracias y te esperamos';
 
     /** Helper to send specialized WhatsApp messages */
     function sendWASMessage(phone, name, date = null, time = null, template = null, salonName = '', serviceName = '') {
         if (!phone) {
-            showToast('El cliente no tiene un teléfono configurado.', 'error');
+            showToast('El cliente no tiene un tel�fono configurado.', 'error');
             return;
         }
         
@@ -592,9 +595,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        TOAST NOTIFICATIONS
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function showToast(message, type = 'success') {
         // Remove existing toast
         const existing = document.querySelector('.toast-notification');
@@ -603,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toast = document.createElement('div');
         toast.className = `toast-notification toast-${type}`;
         toast.innerHTML = `
-            <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
+            <span class="toast-icon">${type === 'success' ? '?' : type === 'error' ? '?' : '?'}</span>
             <span>${message}</span>
         `;
         document.body.appendChild(toast);
@@ -617,9 +620,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        API DATA OPERATIONS
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
 
     /** Loads all data from the API into our local State cache */
     async function loadAllData() {
@@ -639,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (allSalons && allSalons.length > 0) State.salons = allSalons;
             }
 
-            // Validar que activeSalonId siga siendo un salón existente
+            // Validar que activeSalonId siga siendo un sal�n existente
             if (State.activeSalonId !== 'all' && !State.salons.some(s => s.id === State.activeSalonId)) {
                 State.activeSalonId = 'all';
                 localStorage.setItem('nymara_agenda_salon', 'all');
@@ -658,7 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 serviceId: a.service_id,
                 salonId: a.salon_id || null,
                 date: a.date,
-                time: a.time.substring(0, 5), // "HH:MM:SS" → "HH:MM"
+                time: a.time.substring(0, 5), // "HH:MM:SS" ? "HH:MM"
                 notes: a.notes || '',
                 whatsappSent: a.whatsapp_sent || false,
                 whatsappSentCount: a.whatsapp_sent_count || 0,
@@ -679,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderRoute();
             updateRemindersBadge();
             
-            // Verificación post-carga: ¿Hay recordatorios para los próximos 3 días?
+            // Verificaci�n post-carga: �Hay recordatorios para los pr�ximos 3 d�as?
             if (State.session && !State.session.staff) {
                 const today = new Date();
                 const futureLimit = new Date(today);
@@ -691,21 +694,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const count = State.appointments.filter(apt => {
                     if (apt.date < todayStr || apt.date > limitStr) return false;
-                    if (apt.date === todayStr && apt.time <= nowTime) return false; // Ya pasó la hora
+                    if (apt.date === todayStr && apt.time <= nowTime) return false; // Ya pas� la hora
                     const client = State.clients.find(c => c.id === apt.clientId);
                     return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
                 }).length;
                 
                 if (count > 0) {
-                    showToast(`Tienes ${count} recordatorio${count !== 1 ? 's' : ''} WhatsApp pendiente${count !== 1 ? 's' : ''} para los próximos días.`, 'info');
+                    showToast(`Tienes ${count} recordatorio${count !== 1 ? 's' : ''} WhatsApp pendiente${count !== 1 ? 's' : ''} para los pr�ximos d�as.`, 'info');
                 }
             }
         }
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        AUTHENTICATION LOGIC
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
 
     // Check existing session
     async function checkSession() {
@@ -781,8 +784,8 @@ document.addEventListener('DOMContentLoaded', () => {
         authResetSuccess.style.display = 'none';
         authResetEmailGroup.style.display = 'block';
         authResetPasswordGroup.style.display = 'none';
-        authResetTitle.textContent = 'Restablecer Contraseña';
-        authResetSubtitle.textContent = 'Te enviaremos un código de 6 dígitos a tu correo';
+        authResetTitle.textContent = 'Restablecer Contrase�a';
+        authResetSubtitle.textContent = 'Te enviaremos un c�digo de 6 d�gitos a tu correo';
     }
 
     function showResetForm() {
@@ -792,8 +795,8 @@ document.addEventListener('DOMContentLoaded', () => {
         authResetSuccess.style.display = 'none';
         authResetEmailGroup.style.display = 'block';
         authResetPasswordGroup.style.display = 'none';
-        authResetTitle.textContent = 'Restablecer Contraseña';
-        authResetSubtitle.textContent = 'Te enviaremos un código de 6 dígitos a tu correo';
+        authResetTitle.textContent = 'Restablecer Contrase�a';
+        authResetSubtitle.textContent = 'Te enviaremos un c�digo de 6 d�gitos a tu correo';
         document.getElementById('auth-reset-email').value = '';
     }
 
@@ -804,8 +807,8 @@ document.addEventListener('DOMContentLoaded', () => {
         authResetSuccess.style.display = 'none';
         authResetEmailGroup.style.display = 'none';
         authResetPasswordGroup.style.display = 'block';
-        authResetTitle.textContent = 'Establecer Nueva Contraseña';
-        authResetSubtitle.textContent = 'Elige una nueva contraseña para tu cuenta';
+        authResetTitle.textContent = 'Establecer Nueva Contrase�a';
+        authResetSubtitle.textContent = 'Elige una nueva contrase�a para tu cuenta';
     }
 
     // Auth mode tabs
@@ -818,7 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authTabStaff.style.color = 'var(--text-secondary)';
             authAdminFields.style.display = 'block';
             authStaffFields.style.display = 'none';
-            authFormTitle.textContent = 'Iniciar Sesión';
+            authFormTitle.textContent = 'Iniciar Sesi�n';
             authFormSubtitle.textContent = 'Accede a tu panel de control';
             authSubmitText.textContent = 'Entrar';
             btnForgotPassword.style.display = '';
@@ -831,7 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authStaffFields.style.display = 'block';
             btnForgotPassword.style.display = 'none';
             authFormTitle.textContent = 'Acceso Staff';
-            authFormSubtitle.textContent = 'Introduce tu nombre y contraseña';
+            authFormSubtitle.textContent = 'Introduce tu nombre y contrase�a';
             authSubmitText.textContent = 'Entrar como Staff';
         }
         authError.style.display = 'none';
@@ -845,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnSendReset) btnSendReset.addEventListener('click', async () => {
         const email = document.getElementById('auth-reset-email').value.trim();
-        if (!email) { authResetError.textContent = 'Introduce tu correo electrónico'; authResetError.style.display = 'block'; return; }
+        if (!email) { authResetError.textContent = 'Introduce tu correo electr�nico'; authResetError.style.display = 'block'; return; }
         btnSendReset.disabled = true;
         document.getElementById('auth-reset-btn-text').style.opacity = '0';
         document.getElementById('auth-reset-spinner').style.display = 'block';
@@ -856,10 +859,10 @@ document.addEventListener('DOMContentLoaded', () => {
             authResetSuccess.style.display = 'block';
             authResetEmailGroup.style.display = 'none';
             authResetPasswordGroup.style.display = 'block';
-            authResetTitle.textContent = 'Código de verificación';
-            authResetSubtitle.textContent = 'Te hemos enviado un código a tu correo. Introdúcelo junto con tu nueva contraseña.';
+            authResetTitle.textContent = 'C�digo de verificaci�n';
+            authResetSubtitle.textContent = 'Te hemos enviado un c�digo a tu correo. Introd�celo junto con tu nueva contrase�a.';
         } catch (err) {
-            authResetError.textContent = err.message || 'Error al enviar el código';
+            authResetError.textContent = err.message || 'Error al enviar el c�digo';
             authResetError.style.display = 'block';
         } finally {
             btnSendReset.disabled = false;
@@ -871,21 +874,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnUpdatePassword) btnUpdatePassword.addEventListener('click', async () => {
         const code = document.getElementById('auth-reset-code').value.trim();
         const pwd = document.getElementById('auth-reset-new-password').value;
-        if (!code) { authResetError.textContent = 'Introduce el código de verificación'; authResetError.style.display = 'block'; return; }
-        if (!pwd || pwd.length < 6) { authResetError.textContent = 'La contraseña debe tener al menos 6 caracteres'; authResetError.style.display = 'block'; return; }
+        if (!code) { authResetError.textContent = 'Introduce el c�digo de verificaci�n'; authResetError.style.display = 'block'; return; }
+        if (!pwd || pwd.length < 6) { authResetError.textContent = 'La contrase�a debe tener al menos 6 caracteres'; authResetError.style.display = 'block'; return; }
         btnUpdatePassword.disabled = true;
         document.getElementById('auth-update-btn-text').style.opacity = '0';
         document.getElementById('auth-update-spinner').style.display = 'block';
         authResetError.style.display = 'none';
         try {
             await api.resetPassword(resetEmail || document.getElementById('auth-reset-email').value.trim(), code, pwd);
-            showToast('Contraseña actualizada correctamente.');
+            showToast('Contrase�a actualizada correctamente.');
             resetEmail = '';
             State.session = null;
             showLoginForm();
             setAuthMode('admin');
         } catch (err) {
-            authResetError.textContent = err.message || 'Error al actualizar la contraseña';
+            authResetError.textContent = err.message || 'Error al actualizar la contrase�a';
             authResetError.style.display = 'block';
         } finally {
             btnUpdatePassword.disabled = false;
@@ -918,7 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 if (!staffPwd) {
-                    authError.textContent = 'Introduce tu contraseña';
+                    authError.textContent = 'Introduce tu contrase�a';
                     authError.style.display = 'block';
                     authSubmitText.style.opacity = '1';
                     authSpinner.style.display = 'none';
@@ -933,7 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email, staffEmail: data.staff.email || '' });
                 } catch (err) {
                     console.error('Staff Auth Error:', err);
-                    authError.textContent = err.message || 'Email o contraseña incorrectos';
+                    authError.textContent = err.message || 'Email o contrase�a incorrectos';
                     authError.style.display = 'block';
                     authSubmitText.style.opacity = '1';
                     authSpinner.style.display = 'none';
@@ -948,7 +951,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     handleSessionUpdate({ email: data.email });
                 } catch (err) {
                     console.error('Auth Error:', err);
-                    authError.textContent = err.message || 'Error en la autenticación';
+                    authError.textContent = err.message || 'Error en la autenticaci�n';
                     authError.style.display = 'block';
                     authSubmitText.style.opacity = '1';
                     authSpinner.style.display = 'none';
@@ -967,7 +970,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!input) return;
         const isPassword = input.type === 'password';
         input.type = isPassword ? 'text' : 'password';
-        btn.setAttribute('aria-label', isPassword ? 'Ocultar contraseña' : 'Mostrar contraseña');
+        btn.setAttribute('aria-label', isPassword ? 'Ocultar contrase�a' : 'Mostrar contrase�a');
         btn.innerHTML = isPassword
             ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
             : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -1028,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 State.clients = [];
                 State.services = [];
                 State.appointments = [];
-                try { await api.logout(); } catch (e) { console.error('Error al cerrar sesión staff:', e); }
+                try { await api.logout(); } catch (e) { console.error('Error al cerrar sesi�n staff:', e); }
                 setToken(null);
                 // Restore all nav items
                 document.querySelectorAll('.nav-item').forEach(item => { item.style.display = ''; });
@@ -1059,12 +1062,12 @@ document.addEventListener('DOMContentLoaded', () => {
             target.dataset.confirming = 'true';
             const originalHtml = target.innerHTML;
             if (target.id === 'btn-logout') {
-                target.innerHTML = '<span>¿Salir?</span>';
+                target.innerHTML = '<span>�Salir?</span>';
                 target.style.width = 'auto';
                 target.style.padding = '0 8px';
             } else {
                 const emailSpan = target.querySelector('.user-email');
-                if (emailSpan) emailSpan.textContent = '¿Cerrar sesión?';
+                if (emailSpan) emailSpan.textContent = '�Cerrar sesi�n?';
             }
             
             setTimeout(() => {
@@ -1090,7 +1093,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (userProfileEl) {
         userProfileEl.style.cursor = 'pointer';
-        userProfileEl.title = 'Cerrar sesión';
+        userProfileEl.title = 'Cerrar sesi�n';
         userProfileEl.addEventListener('click', handleLogoutClick);
     }
 
@@ -1102,10 +1105,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const created = await api.addClient(data);
             State.clients.push(created);
             if (State.session?.staff) addStaffClientId(created.id);
-            showToast('Cliente añadido correctamente');
+            showToast('Cliente a�adido correctamente');
             return true;
         } catch (err) {
-            showToast('Error al añadir cliente: ' + err.message, 'error');
+            showToast('Error al a�adir cliente: ' + err.message, 'error');
             return false;
         }
     }
@@ -1230,7 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── Services CRUD ──
+    // -- Services CRUD --
 
     async function addService(data) {
         data.user_email = State.currentUserEmail;
@@ -1238,10 +1241,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const created = await api.addService(data);
             State.services.push(created);
             if (State.session?.staff) addStaffServiceId(created.id);
-            showToast('Servicio añadido correctamente');
+            showToast('Servicio a�adido correctamente');
             return true;
         } catch (err) {
-            showToast('Error al añadir servicio: ' + err.message, 'error');
+            showToast('Error al a�adir servicio: ' + err.message, 'error');
             return false;
         }
     }
@@ -1270,7 +1273,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── Salons CRUD ──
+    // -- Salons CRUD --
 
     async function addSalon(data) {
         data.user_email = State.currentUserEmail;
@@ -1279,11 +1282,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await api.addSalon(data);
             console.log('Salon added:', result);
             State.salons.push(result);
-            showToast('Salón añadido correctamente');
+            showToast('Sal�n a�adido correctamente');
             return true;
         } catch (err) {
             console.error('Error adding salon:', err);
-            showToast('Error al añadir salón: ' + err.message, 'error');
+            showToast('Error al a�adir sal�n: ' + err.message, 'error');
             return false;
         }
     }
@@ -1293,11 +1296,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await api.updateSalon(data);
             State.salons = State.salons.map(s => s.id === data.id ? data : s);
-            showToast('Salón actualizado correctamente');
+            showToast('Sal�n actualizado correctamente');
             return true;
         } catch (err) {
             console.error('Error updating salon:', err);
-            showToast('Error al actualizar salón: ' + err.message, 'error');
+            showToast('Error al actualizar sal�n: ' + err.message, 'error');
             return false;
         }
     }
@@ -1307,16 +1310,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await api.deleteSalon(id);
             State.salons = State.salons.filter(s => s.id !== id);
-            showToast('Salón eliminado');
+            showToast('Sal�n eliminado');
             return true;
         } catch (err) {
             console.error('Error deleting salon:', err);
-            showToast('Error al eliminar salón: ' + err.message, 'error');
+            showToast('Error al eliminar sal�n: ' + err.message, 'error');
             return false;
         }
     }
 
-    // ── Appointments CRUD ──
+    // -- Appointments CRUD --
 
     function adminDisplayName() {
         if (State.profile && State.profile.full_name) return State.profile.full_name;
@@ -1363,7 +1366,7 @@ document.addEventListener('DOMContentLoaded', () => {
             appointment_photos: data.appointmentPhotos || [],
         };
         if (data.salonId) dbRow.salon_id = data.salonId;
-        // Si el administrador modifica una cita creada por un staff, dejar constancia de quién la modificó
+        // Si el administrador modifica una cita creada por un staff, dejar constancia de qui�n la modific�
         if (original && original.isStaffAppointment && State.session && !State.session.staff) {
             dbRow.staff_modified_by = adminDisplayName();
         }
@@ -1387,12 +1390,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label>Tipo</label>
                     <select class="form-control" id="edit-client-photo-type">
                         <option value="before" ${currentType === 'before' ? 'selected' : ''}>Antes</option>
-                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Después</option>
+                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Despu�s</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Fecha</label>
-                    <div class="form-control" id="edit-client-photo-date" style="background:rgba(0,0,0,0.03);color:var(--text-secondary);cursor:default">${currentDate || '—'}</div>
+                    <div class="form-control" id="edit-client-photo-date" style="background:rgba(0,0,0,0.03);color:var(--text-secondary);cursor:default">${currentDate || '�'}</div>
                 </div>
                 <div class="form-group">
                     <label>Notas</label>
@@ -1408,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const newType = document.getElementById('edit-client-photo-type').value;
                 const dateDiv = document.getElementById('edit-client-photo-date');
-                const newDate = dateDiv.textContent.trim() === '—' ? null : dateDiv.textContent.trim();
+                const newDate = dateDiv.textContent.trim() === '�' ? null : dateDiv.textContent.trim();
                 const newNotes = document.getElementById('edit-client-photo-notes').value;
                 
                 try {
@@ -1435,12 +1438,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label>Tipo</label>
                     <select class="form-control" id="edit-apt-photo-type">
                         <option value="before" ${currentType === 'before' ? 'selected' : ''}>Antes</option>
-                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Después</option>
+                        <option value="after" ${currentType === 'after' ? 'selected' : ''}>Despu�s</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Fecha</label>
-                    <div class="form-control" id="edit-apt-photo-date" style="background:rgba(0,0,0,0.03);color:var(--text-secondary);cursor:default">${currentDate || '—'}</div>
+                    <div class="form-control" id="edit-apt-photo-date" style="background:rgba(0,0,0,0.03);color:var(--text-secondary);cursor:default">${currentDate || '�'}</div>
                 </div>
                 <div class="form-group">
                     <label>Notas</label>
@@ -1456,7 +1459,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const newType = document.getElementById('edit-apt-photo-type').value;
                 const newDateDiv = document.getElementById('edit-apt-photo-date');
-                const newDate = newDateDiv.textContent.trim() === '—' ? null : newDateDiv.textContent.trim();
+                const newDate = newDateDiv.textContent.trim() === '�' ? null : newDateDiv.textContent.trim();
                 const newNotes = document.getElementById('edit-apt-photo-notes').value;
                 
                 const apt = State.appointments.find(a => a.id === aptId);
@@ -1498,7 +1501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await api.markAppointmentReminded(id);
         } catch (err) {
-            console.error('Error al marcar como avisado (¿columna whatsapp_sent_count existe?):', err);
+            console.error('Error al marcar como avisado (�columna whatsapp_sent_count existe?):', err);
         }
         const apt = State.appointments.find(a => a.id === id);
         if (apt) apt.whatsappSentCount = (apt.whatsappSentCount || 0) + 1;
@@ -1542,9 +1545,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        ROUTING
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     let currentRoute = 'agenda';
 
     const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -1578,9 +1581,9 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', () => navigate(item.dataset.target));
     });
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        MODAL
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function openModal(title, htmlContent, onMount) {
         modalTitle.textContent = title;
         modalBody.innerHTML = htmlContent;
@@ -1593,7 +1596,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => (modalBody.innerHTML = ''), 300);
     }
 
-    function openBeforeAfterCompare(photos, title = 'Comparativa Antes / Después', context = null) {
+    function openBeforeAfterCompare(photos, title = 'Comparativa Antes / Despu�s', context = null) {
         const list = Array.isArray(photos) ? photos : [];
         const before = list.filter(p => p.photo_type !== 'after' && p.photo_type !== 'diagnosis');
         const after = list.filter(p => p.photo_type === 'after');
@@ -1615,20 +1618,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3 style="text-align:center;font-size:1rem;font-weight:700;margin-bottom:0.75rem;color:${color}">${label} (${items.length})</h3>
                 ${items.length
                     ? items.map(p => photoCard(p, label, color)).join('')
-                    : `<div style="border:1px dashed var(--border-color);border-radius:8px;padding:2rem;text-align:center;color:var(--text-secondary);font-size:0.85rem">Arrastra aquí una foto</div>`}
+                    : `<div style="border:1px dashed var(--border-color);border-radius:8px;padding:2rem;text-align:center;color:var(--text-secondary);font-size:0.85rem">Arrastra aqu� una foto</div>`}
             </div>`;
 
         const extra = diagnosis.length ? `
             <hr style="margin:1.25rem 0;border:none;border-top:1px solid var(--border-color)">
-            <h3 style="text-align:center;font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;color:var(--text-secondary)">Diagnóstico (${diagnosis.length})</h3>
+            <h3 style="text-align:center;font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;color:var(--text-secondary)">Diagn�stico (${diagnosis.length})</h3>
             <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
-                ${diagnosis.map(p => photoCard(p, 'Diagnóstico', '#94a3b8', true)).join('')}
+                ${diagnosis.map(p => photoCard(p, 'Diagn�stico', '#94a3b8', true)).join('')}
             </div>` : '';
 
         openModal(title, `
             <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;align-items:flex-start">
                 ${colHtml(before, 'Antes', '#38bdf8')}
-                ${colHtml(after, 'Después', '#34d399')}
+                ${colHtml(after, 'Despu�s', '#34d399')}
             </div>
             ${extra}
             ${context ? `<p style="text-align:center;font-size:0.75rem;color:var(--text-secondary);margin-top:1rem">Arrastra una foto a la otra columna para reclasificarla</p>` : ''}
@@ -1667,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function setPhotoCompareType(photoId, targetType, context) {
-        const newType = targetType === 'Después' ? 'after' : targetType === 'Diagnóstico' ? 'diagnosis' : 'before';
+        const newType = targetType === 'Despu�s' ? 'after' : targetType === 'Diagn�stico' ? 'diagnosis' : 'before';
         try {
             if (context.aptId) {
                 const apt = State.appointments.find(a => a.id === context.aptId);
@@ -1717,13 +1720,13 @@ document.addEventListener('DOMContentLoaded', () => {
         overlayMouseDownTarget = null;
     });
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        RENDER DISPATCHER
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function renderRoute() {
         if (currentRoute === 'agenda') content = getAgendaView();
         else if (currentRoute === 'clients') {
-            // Recargar fotos de clientes al entrar a la pestaña
+            // Recargar fotos de clientes al entrar a la pesta�a
             loadAllClientPhotos().then(() => {
                 const clientsContent = getClientsView();
                 const fadeInDiv = appContent.querySelector('.fade-in');
@@ -1752,15 +1755,15 @@ document.addEventListener('DOMContentLoaded', () => {
         attachEvents();
         updateRemindersBadge();
 
-        // Cargar lista de clientes para diagnóstico
+        // Cargar lista de clientes para diagn�stico
         if (currentRoute === 'diagnosis') {
             loadDiagnosisClients();
         }
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        CALENDAR HELPERS
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getCalendarDays(year, month) {
         const firstDay = new Date(year, month, 1);
         let startWeekday = firstDay.getDay(); // 0=Sun
@@ -1803,9 +1806,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .sort((a, b) => a.time.localeCompare(b.time));
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        AGENDA VIEW  (Calendar + Day Detail)
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getAgendaView() {
         const todayStr = toLocalDateStr(new Date());
         const todaysAppointments = getAppointmentsForDate(todayStr);
@@ -1838,7 +1841,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 eventsHtml += `<span class="cal-event" style="border-left:3px solid ${salonColor}">${apt.time} ${cName}${salonLabel}${apt.isStaffAppointment ? ' <span class="staff-badge">Staff</span>' : ''}</span>`;
             });
             if (apts.length > maxShow) {
-                eventsHtml += `<span class="cal-more">+${apts.length - maxShow} más</span>`;
+                eventsHtml += `<span class="cal-more">+${apts.length - maxShow} m�s</span>`;
             }
 
             calCells += `
@@ -1861,7 +1864,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (detailApts.length === 0) {
             detailHtml = `
                 <div class="empty-state" style="padding:2rem">
-                    <p>No hay citas para este día.</p>
+                    <p>No hay citas para este d�a.</p>
                 </div>`;
         } else {
             detailHtml = `<div class="day-detail-list">`;
@@ -1884,33 +1887,33 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     const hasAfter = appointmentPhotos.some(p => p.photo_type === 'after');
                     photosHtml = '<div class="day-detail-photos" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">';
                     appointmentPhotos.forEach(p => {
-                        const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
+                        const photoType = (p.photo_type === 'after') ? 'Despu�s' : (p.photo_type === 'diagnosis' ? 'Diagn�stico' : 'Antes');
                         const photoDate = p.photo_date || '';
                         photosHtml += `
                             <div class="apt-mini-photo" data-apt-id="${apt.id}" data-photo-id="${p.id}" style="position:relative;text-align:center">
                                 <img src="${p.photo_url}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                 <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
-                                <div style="font-size:0.6rem;color:var(--text-secondary)">${euDateStr(photoDate)}</div>
+                                <div style="font-size:0.6rem;color:var(--text-secondary)">${formatDateEU(photoDate)}</div>
                                 <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:2px">
-                                    <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">✏️</button>
-                                    <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
+                                    <button type="button" class="apt-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">??</button>
+                                    <button type="button" class="apt-photo-delete-btn" data-photo-id="${p.id}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">???</button>
                                 </div>
                             </div>`;
                     });
                     photosHtml += '</div>';
                     if (hasBefore && hasAfter) {
-                        photosHtml += `<button type="button" class="btn btn-sm btn-secondary compare-btn" data-apt-id="${apt.id}" style="margin-top:8px;">Antes / Después</button>`;
+                        photosHtml += `<button type="button" class="btn btn-sm btn-secondary compare-btn" data-apt-id="${apt.id}" style="margin-top:8px;">Antes / Despu�s</button>`;
                     }
                 }
                  
                 detailHtml += `
                     <div class="day-detail-item">
-                        <div class="day-detail-time" style="color:${userColor}">${apt.time} – ${endStr}</div>
+                        <div class="day-detail-time" style="color:${userColor}">${apt.time} � ${endStr}</div>
                         <div class="day-detail-info">
                             <strong>Cliente: ${client.name}</strong>
-                            <span>${service.name} · ${service.duration} min</span>
+                            <span>${service.name} � ${service.duration} min</span>
                             ${apt.notes ? `<span style="font-size:0.8rem;color:var(--text-secondary);display:block;margin-top:2px"><em>${apt.notes}</em></span>` : ''}
-                            <span style="font-size:0.75rem;display:block;margin-top:2px"><strong style="color:${aptSalonColor}">Salón: ${aptSalon?.name || 'Salón desconocido'}</strong>${apt.isStaffAppointment ? ` <span class="staff-badge" style="color:${userColor}">Staff</span>` : ''}${apt.isStaffAppointment && apt.staffModifiedBy ? ` <span style="color:var(--text-secondary)">· modificado por <strong style="color:${userColor}">${apt.staffModifiedBy}</strong></span>` : ''}</span>
+                            <span style="font-size:0.75rem;display:block;margin-top:2px"><strong style="color:${aptSalonColor}">Sal�n: ${aptSalon?.name || 'Sal�n desconocido'}</strong>${apt.isStaffAppointment ? ` <span class="staff-badge" style="color:${userColor}">Staff</span>` : ''}${apt.isStaffAppointment && apt.staffModifiedBy ? ` <span style="color:var(--text-secondary)">� modificado por <strong style="color:${userColor}">${apt.staffModifiedBy}</strong></span>` : ''}</span>
                             <span class="apt-user-key" style="color:${userColor}" title="${apt.userEmail}">${userDisplay}</span>
                             ${photosHtml}
                         </div>
@@ -1942,7 +1945,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         
         let timelineHtml = '<div class="timeline-wrapper">';
         timelineHtml += `<div class="timeline-header"><span>${State.settings.startTime}</span><span>${State.settings.endTime}</span></div>`;
-        timelineHtml += '<div class="timeline-bar" title="Horario comercial para este día">';
+        timelineHtml += '<div class="timeline-bar" title="Horario comercial para este d�a">';
         
         if (totalMinutes > 0) {
             const boundaries = new Set([startDayMins, endDayMins]);
@@ -2015,7 +2018,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             ${State.salons.length > 0 ? `
             <div style="text-align:center; margin-bottom: 1.5rem;">
                 ${State.session?.staff
-                    ? `<span class="salon-title">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
+                    ? `<span class="salon-title">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Sal�n'}</span>`
                     : `<select id="agenda-salon-select" class="salon-title-select">
                     <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
                     ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
@@ -2025,16 +2028,16 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Agenda</h1>
-                    <p style="color:var(--text-secondary)">Calendario de citas · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
+                    <p style="color:var(--text-secondary)">Calendario de citas � <span class="cloudflare-badge">? Cloudflare</span></p>
                 </div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
                     ${!State.session?.staff ? `
-                    <button class="btn btn-secondary" id="btn-settings" title="Configuración">
-                        Configuración
+                    <button class="btn btn-secondary" id="btn-settings" title="Configuraci�n">
+                        Configuraci�n
                     </button>` : ''}
                     ${!State.session?.staff ? `
-                    <button class="btn btn-danger" id="btn-bill-today" onclick="tpvBillToday()" title="Genera la factura para el salón con los servicios del día señalado">
-                        Facturar las citas del día señalado
+                    <button class="btn btn-danger" id="btn-bill-today" onclick="tpvBillToday()" title="Genera la factura para el sal�n con los servicios del d�a se�alado">
+                        Facturar las citas del d�a se�alado
                     </button>` : ''}
                     <button class="btn btn-primary" id="btn-add-appointment" onclick="showAppointmentForm()">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
@@ -2069,9 +2072,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <!-- Calendar -->
             <div class="calendar-wrapper">
                 <div class="calendar-nav">
-                    <button id="cal-prev">◀</button>
+                    <button id="cal-prev">?</button>
                     <h2>${monthLabel}</h2>
-                    <button id="cal-next">▶</button>
+                    <button id="cal-next">?</button>
                 </div>
                 <div class="calendar-grid">
                     ${WEEKDAY_NAMES.map(n => `<div class="cal-header">${n}</div>`).join('')}
@@ -2083,11 +2086,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <div class="day-detail">
                 <div class="day-detail-header">
                     <div class="day-detail-nav">
-                        <button class="cal-nav-btn" id="day-prev" title="Día anterior" aria-label="Día anterior">
+                        <button class="cal-nav-btn" id="day-prev" title="D�a anterior" aria-label="D�a anterior">
                             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
                         </button>
-                        <h3>📋 ${detailLabel}</h3>
-                        <button class="cal-nav-btn" id="day-next" title="Día siguiente" aria-label="Día siguiente">
+                        <h3>?? ${detailLabel}</h3>
+                        <button class="cal-nav-btn" id="day-next" title="D�a siguiente" aria-label="D�a siguiente">
                             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
                         </button>
                     </div>
@@ -2102,9 +2105,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         `;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        CLIENTS VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getClientsView() {
         const filteredClients = State.clients;
 
@@ -2114,7 +2117,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <div class="empty-state data-card">
                 <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                 <h3>No hay clientes registrados</h3>
-                <p>Añade tu primer cliente pulsando el botón superior.</p>
+                <p>A�ade tu primer cliente pulsando el bot�n superior.</p>
             </div>`;
         } else {
             rows = `<div class="clients-list">${filteredClients.map(c => {
@@ -2125,29 +2128,29 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <div class="client-info">
                             <h3 style="margin:0;font-weight:600">${c.name}${salonName ? ` <span class="salon-badge" style="font-size:0.7rem;font-weight:600;color:var(--accent-color);border:1px solid var(--accent-color);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle">${salonName}</span>` : ''}</h3>
                             <div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;color:var(--text-secondary)">
-                                ${c.phone ? `<span><a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">📱 ${c.phone}</a></span>` : ''}
-                                ${c.email ? `<span>✉️ ${c.email}</span>` : ''}
-                                <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'Sí' : 'No'}</span>
+                                ${c.phone ? `<span><a href="https://wa.me/${c.phone.replace(/\D/g, '')}" target="_blank" style="color:var(--text-secondary)">?? ${c.phone}</a></span>` : ''}
+                                ${c.email ? `<span>?? ${c.email}</span>` : ''}
+                                <span class="${c.enviar_was ? 'status-success' : 'status-danger'}" style="font-size:0.75rem">WA: ${c.enviar_was ? 'S�' : 'No'}</span>
                             </div>
                             <div style="display:flex;align-items:center;gap:12px;font-size:0.8rem;color:var(--text-secondary);margin-top:2px;">
                                 ${c.nif ? `<span><strong>NIF/CIF:</strong> ${c.nif}</span>` : ''}
                                 ${c.fiscal_address ? `<span><strong>Dir. fiscal:</strong> ${c.fiscal_address}</span>` : ''}
                             </div>
                              ${c.observations ? `<p style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0 0;font-style:italic">"${c.observations}"</p>` : ''}
-                             ${(() => { try { const th = JSON.parse(c.technical_history || '{}'); const hasLaser = th.laser && (th.laser.zone || (th.laser.sessions && th.laser.sessions.length)); const hasRf = th.rf && (th.rf.zone || (th.rf.sessions && th.rf.sessions.length)); if (!hasLaser && !hasRf) return ''; const badges = []; if (hasLaser) badges.push(`<span style="background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:1px 8px;font-size:0.7rem">Láser: ${th.laser.zone || (th.laser.sessions?.length + ' sesiones')}</span>`); if (hasRf) badges.push(`<span style="background:#e3f2fd;color:#1565c0;border-radius:12px;padding:1px 8px;font-size:0.7rem">RF: ${th.rf.zone || (th.rf.sessions?.length + ' sesiones')}</span>`); return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${badges.join('')}</div>`; } catch(e) { return ''; } })()}
+                             ${(() => { try { const th = JSON.parse(c.technical_history || '{}'); const hasLaser = th.laser && (th.laser.zone || (th.laser.sessions && th.laser.sessions.length)); const hasRf = th.rf && (th.rf.zone || (th.rf.sessions && th.rf.sessions.length)); if (!hasLaser && !hasRf) return ''; const badges = []; if (hasLaser) badges.push(`<span style="background:#e8f5e9;color:#2e7d32;border-radius:12px;padding:1px 8px;font-size:0.7rem">L�ser: ${th.laser.zone || (th.laser.sessions?.length + ' sesiones')}</span>`); if (hasRf) badges.push(`<span style="background:#e3f2fd;color:#1565c0;border-radius:12px;padding:1px 8px;font-size:0.7rem">RF: ${th.rf.zone || (th.rf.sessions?.length + ' sesiones')}</span>`); return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${badges.join('')}</div>`; } catch(e) { return ''; } })()}
                              ${State.clientPhotos && State.clientPhotos[c.id] && State.clientPhotos[c.id].length > 0 ? `
                                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
                                      ${State.clientPhotos[c.id].slice(0, 4).map(p => {
-                                         const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
+                                         const photoType = (p.photo_type === 'after') ? 'Despu�s' : (p.photo_type === 'diagnosis' ? 'Diagn�stico' : 'Antes');
                                          return `<div style="position:relative;text-align:center">
                                              <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--border-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                                              <div style="font-size:0.6rem;color:var(--text-secondary);margin-top:2px">${photoType}</div>
-                                             <div style="font-size:0.55rem;color:var(--text-secondary)">${euDateStr(p.photo_date || '')}</div>
+                                             <div style="font-size:0.55rem;color:var(--text-secondary)">${formatDateEU(p.photo_date || '')}</div>
                                          </div>`;
                                      }).join('')}
-                                     ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === '${c.id}'))">+${State.clientPhotos[c.id].length - 4} más</button>` : ''}
+                                     ${State.clientPhotos[c.id].length > 4 ? `<button style="font-size:0.75rem;color:var(--primary-color);align-self:center;cursor:pointer;background:none;border:none;padding:0" onclick="showClientForm(State.clients.find(c => c.id === '${c.id}'))">+${State.clientPhotos[c.id].length - 4} m�s</button>` : ''}
                                      ${State.clientPhotos[c.id].some(p => p.photo_type !== 'after' && p.photo_type !== 'diagnosis') && State.clientPhotos[c.id].some(p => p.photo_type === 'after') ? `
-                                     <button type="button" class="btn btn-sm btn-secondary compare-btn" data-client-id="${c.id}" style="align-self:center;">Antes / Después</button>` : ''}
+                                     <button type="button" class="btn btn-sm btn-secondary compare-btn" data-client-id="${c.id}" style="align-self:center;">Antes / Despu�s</button>` : ''}
                                  </div>
                              ` : ''}
                          </div>
@@ -2168,18 +2171,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
+                <div><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes � <span class="cloudflare-badge">? Cloudflare</span></p></div>
                 <button class="btn btn-primary" id="btn-add-client">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    Añadir Cliente
+                    A�adir Cliente
                 </button>
             </div>
             ${rows}`;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        SERVICES VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getServicesView() {
         let rows = '';
         if (State.services.length === 0) {
@@ -2193,13 +2196,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             rows = `
             <div class="data-card">
                 <table class="table">
-                    <thead><tr><th>Servicio</th><th>Duración</th><th>Precio</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Servicio</th><th>Duraci�n</th><th>Precio</th><th>Acciones</th></tr></thead>
                     <tbody>
                     ${State.services.map(s => `
                         <tr>
                             <td style="font-weight:600">${s.name}</td>
                             <td>${s.duration} min</td>
-                            <td>${parseFloat(s.price).toFixed(2)} €</td>
+                            <td>${parseFloat(s.price).toFixed(2)} �</td>
                             <td>
                                 <div class="actions">
                                     ${(!State.session?.staff || isStaffService(s.id)) ? `
@@ -2220,18 +2223,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Catálogo de servicios · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
+                <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Cat�logo de servicios � <span class="cloudflare-badge">? Cloudflare</span></p></div>
                 <button class="btn btn-primary" id="btn-add-service">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    Añadir Servicio
+                    A�adir Servicio
                 </button>
             </div>
             ${rows}`;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        TPV VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function tpvClientName(id) {
         if (!id) return 'Consumidor final';
         const c = State.clients.find(x => x.id === id);
@@ -2240,7 +2243,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
     function tpvSalonOptions() {
         const salons = State.salons;
-        if (salons.length === 0) return '<option value="">— Sin salones —</option>';
+        if (salons.length === 0) return '<option value="">� Sin salones �</option>';
         if (!State.tpv.salonId || !salons.some(s => s.id === State.tpv.salonId)) State.tpv.salonId = salons[0].id;
         return salons.map(s => `<option value="${s.id}"${s.id === State.tpv.salonId ? ' selected' : ''}>${s.name}</option>`).join('');
     }
@@ -2270,7 +2273,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     function tpvFormatMoney(v) {
-        return v.toFixed(2) + ' €';
+        return v.toFixed(2) + ' �';
     }
 
     function tpvPaymentShort(inv) {
@@ -2299,7 +2302,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">TPV · Punto de Venta</h1><p style="color:var(--text-secondary)">Tickets y facturas simplificadas · <span class="cloudflare-badge">⚡ IVA 21%</span></p></div>
+                <div><h1 class="section-title">TPV � Punto de Venta</h1><p style="color:var(--text-secondary)">Tickets y facturas simplificadas � <span class="cloudflare-badge">? IVA 21%</span></p></div>
                 <button type="button" class="btn btn-secondary" id="btn-tpv-sales">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Listado de Ventas
@@ -2317,8 +2320,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     function getTpvCartPanel() {
-        // Cargar automáticamente la factura de salón del día señalado para el salón seleccionado
-        // al entrar al TPV (el select no dispara 'change' si solo hay un salón ya preseleccionado)
+        // Cargar autom�ticamente la factura de sal�n del d�a se�alado para el sal�n seleccionado
+        // al entrar al TPV (el select no dispara 'change' si solo hay un sal�n ya preseleccionado)
         if (State.tpv.pendingBills && State.tpv.pendingBills.length > 0 && State.tpv.cart.length === 0) {
             const pend = State.tpv.pendingBills.find(b => b.salonId === State.tpv.salonId);
             if (pend) {
@@ -2329,12 +2332,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const tpvClients = State.clients.filter(c => !c.salon_id || c.salon_id === State.tpv.salonId);
         const clientOptions = [
             (State.tpv.docType === 'factura'
-                ? '<option value="">— Selecciona un cliente —</option>'
+                ? '<option value="">� Selecciona un cliente �</option>'
                 : '<option value="">Consumidor final</option>')
         ].concat(tpvClients.map(c => `<option value="${c.id}"${State.tpv.clientId === c.id ? ' selected' : ''}>${c.name}</option>`)).join('');
 
         const cartRows = State.tpv.cart.length === 0
-            ? '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1rem;">El carrito está vacío. Añade servicios desde la derecha.</td></tr>'
+            ? '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:1rem;">El carrito est� vac�o. A�ade servicios desde la derecha.</td></tr>'
             : State.tpv.cart.map((item, i) => `
                 <tr>
                     <td style="font-weight:600">
@@ -2342,17 +2345,17 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         ${item.notes ? `<div style="font-size:0.72rem;font-style:italic;color:var(--text-secondary);font-weight:400;">Notas: ${item.notes}</div>` : ''}
                     </td>
                     <td style="text-align:center">
-                        <button type="button" class="tpv-qty-btn" data-act="dec" data-idx="${i}">−</button>
+                        <button type="button" class="tpv-qty-btn" data-act="dec" data-idx="${i}">-</button>
                         <span style="margin:0 0.5rem;font-weight:600">${item.qty}</span>
                         <button type="button" class="tpv-qty-btn" data-act="inc" data-idx="${i}">+</button>
                     </td>
                     <td style="text-align:right">${tpvFormatMoney((parseFloat(item.price) || 0) * item.qty)}</td>
-                    <td style="text-align:center"><button type="button" class="btn btn-danger btn-sm" data-act="remove" data-idx="${i}" style="padding:0.2rem 0.5rem;font-size:0.7rem;">✕</button></td>
+                    <td style="text-align:center"><button type="button" class="btn btn-danger btn-sm" data-act="remove" data-idx="${i}" style="padding:0.2rem 0.5rem;font-size:0.7rem;">?</button></td>
                 </tr>`).join('');
 
         const totals = tpvCartTotals();
         const isSalonInvoice = State.tpv.docType === 'factura-salon';
-        const docTypeLabel = State.tpv.docType === 'ticket' ? 'Ticket' : (isSalonInvoice ? 'Factura para el Salón' : 'Factura para Cliente');
+        const docTypeLabel = State.tpv.docType === 'ticket' ? 'Ticket' : (isSalonInvoice ? 'Factura para el Sal�n' : 'Factura para Cliente');
         const showClient = State.tpv.docType !== 'factura-salon';
 
         return `
@@ -2360,7 +2363,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div style="display:flex;gap:0.4rem;margin-bottom:1rem;flex-wrap:nowrap;width:100%;">
                     <button type="button" class="btn ${State.tpv.docType === 'ticket' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-ticket" style="flex:0 0 auto;">Ticket</button>
                     <button type="button" class="btn ${State.tpv.docType === 'factura' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura" style="flex:0 0 auto;">Factura para Cliente</button>
-                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon" style="font-size:1.15rem;font-weight:700;flex:0 0 auto;">Factura-Salón</button>
+                    <button type="button" class="btn ${State.tpv.docType === 'factura-salon' ? 'btn-primary' : 'btn-secondary'}" id="tpv-doc-factura-salon" style="font-size:1.15rem;font-weight:700;flex:0 0 auto;">Factura-Sal�n</button>
                     ${State.tpv.pendingBills && State.tpv.pendingBills.length > 0 ? `
                     <span style="display:inline-flex;align-items:center;gap:0.35rem;background:var(--danger);color:#fff;border-radius:999px;padding:0.15rem 0.7rem;font-size:0.95rem;font-weight:800;white-space:nowrap;flex:0 0 auto;margin-left:0.25rem;">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
@@ -2368,7 +2371,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     </span>` : ''}
                 </div>
                 <div class="form-group">
-                    <label>Salón de la venta</label>
+                    <label>Sal�n de la venta</label>
                     <select class="form-control" id="tpv-sale-salon">${tpvSalonOptions()}</select>
                 </div>
                 ${showClient ? `
@@ -2387,15 +2390,15 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 </table>
                 <div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.35rem;align-items:flex-end;font-size:0.95rem;">
                     ${isSalonInvoice ? `
-                    <div style="color:var(--text-secondary)">Comisión por los Servicios (70%): <strong>${tpvFormatMoney(totals.commission)}</strong></div>
+                    <div style="color:var(--text-secondary)">Comisi�n por los Servicios (70%): <strong>${tpvFormatMoney(totals.commission)}</strong></div>
                     <div style="color:var(--text-secondary)">BASE Imponible: <strong>${tpvFormatMoney(totals.base)}</strong></div>
                     <div style="color:var(--text-secondary)">+IVA (21%): <strong>${tpvFormatMoney(totals.tax)}</strong></div>
-                    <div style="color:var(--text-secondary)">−Retención (15%): <strong style="color:var(--danger)">${tpvFormatMoney(totals.retention)}</strong></div>
+                    <div style="color:var(--text-secondary)">-Retenci�n (15%): <strong style="color:var(--danger)">${tpvFormatMoney(totals.retention)}</strong></div>
                     <div style="font-size:1.2rem;font-weight:700;">TOTAL FACTURA: ${tpvFormatMoney(totals.total)}</div>
                     <div style="border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.75rem;margin-top:0.4rem;width:100%;">
-                        <div style="font-weight:700;text-align:center;font-size:0.95rem;margin-bottom:0.35rem;">A ENTREGAR AL SALÓN</div>
-                        <div style="display:flex;justify-content:space-between;">30% PARA EL SALÓN: <strong>${tpvFormatMoney(totals.salonForSalon)}</strong></div>
-                        <div style="display:flex;justify-content:space-between;">+RETENCIÓN: <strong>${tpvFormatMoney(totals.salonRetention)}</strong></div>
+                        <div style="font-weight:700;text-align:center;font-size:0.95rem;margin-bottom:0.35rem;">A ENTREGAR AL SAL�N</div>
+                        <div style="display:flex;justify-content:space-between;">30% PARA EL SAL�N: <strong>${tpvFormatMoney(totals.salonForSalon)}</strong></div>
+                        <div style="display:flex;justify-content:space-between;">+RETENCI�N: <strong>${tpvFormatMoney(totals.salonRetention)}</strong></div>
                         <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:0.3rem;padding-top:0.3rem;font-weight:800;">IMPORTE TOTAL: <strong>${tpvFormatMoney(totals.salonForSalon + totals.salonRetention)}</strong></div>
                     </div>
                     ` : `
@@ -2415,7 +2418,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 ${State.tpv.paymentMethod === 'mixto' ? `
                 <div style="display:flex;gap:0.75rem;align-items:flex-end;margin-top:0.75rem;">
                     <div class="form-group" style="margin:0;flex:1;">
-                        <label>Importe en efectivo (€)</label>
+                        <label>Importe en efectivo (�)</label>
                         <input type="number" class="form-control" id="tpv-payment-cash" min="0" max="${totals.total.toFixed(2)}" step="0.01" placeholder="0.00" value="${State.tpv.paymentCash}">
                     </div>
                     <div style="padding-bottom:0.6rem;font-size:0.9rem;color:var(--text-secondary);white-space:nowrap;">Tarjeta: <strong id="tpv-payment-card-label">${tpvFormatMoney(totals.total - (parseFloat(State.tpv.paymentCash) || 0))}</strong></div>
@@ -2432,7 +2435,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const salonOk = i => {
             if (State.tpv.historySalonId === 'all') return true;
             if (i.salon_id === State.tpv.historySalonId) return true;
-            // Incluir tickets/facturas de cliente que no tienen salón asignado
+            // Incluir tickets/facturas de cliente que no tienen sal�n asignado
             if (!i.salon_id && i.doc_type !== 'factura-salon') return true;
             return false;
         };
@@ -2448,7 +2451,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const map = new Map();
         tpvSalesFiltered().forEach(inv => {
             const key = inv.salon_id || '__sin_salon__';
-            const label = State.salons.find(s => s.id === key)?.name || 'Sin salón';
+            const label = State.salons.find(s => s.id === key)?.name || 'Sin sal�n';
             if (!map.has(key)) map.set(key, { label, items: [] });
             map.get(key).items.push(inv);
         });
@@ -2461,11 +2464,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
     function tpvSalesReportRows() {
         if (!State.tpv.salesApplied) {
-            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un período y pulsa "Aplicar" para ver el detalle.</td></tr>';
+            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un per�odo y pulsa "Aplicar" para ver el detalle.</td></tr>';
         }
         const groups = tpvSalesGroups();
         if (groups.length === 0) {
-            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en el período y filtros seleccionados.</td></tr>';
+            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay ventas en el per�odo y filtros seleccionados.</td></tr>';
         }
         let html = '';
         let grandTotal = 0;
@@ -2476,14 +2479,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 const dateStr = (inv.created_at || '').substring(0, 10);
                 const clientLabel = inv.client_name || 'Consumidor final';
                 const servicesLabel = items.length > 0
-                    ? items.map(it => `${it.name}${it.qty > 1 ? ` ×${it.qty}` : ''}`).join(', ')
-                    : '—';
+                    ? items.map(it => `${it.name}${it.qty > 1 ? ` �${it.qty}` : ''}`).join(', ')
+                    : '�';
                 const total = Number(inv.total_amount) || 0;
                 grandTotal += total;
                 html += `<tr data-sales-row="${inv.id}">
                     <td style="vertical-align:top;text-align:center;"><input type="checkbox" class="inv-select" data-invoice-id="${inv.id}" title="Marcar para anular" onclick="event.stopPropagation()"></td>
                     <td style="vertical-align:top;">${tpvInvoiceNum(inv)}</td>
-                    <td style="vertical-align:top;">${euDateStr(dateStr)}</td>
+                    <td style="vertical-align:top;">${formatDateEU(dateStr)}</td>
                     <td style="vertical-align:top;">${clientLabel}</td>
                     <td style="vertical-align:top;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${servicesLabel.replace(/"/g, '')}">${servicesLabel}</td>
                     <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(total)}</td>
@@ -2528,7 +2531,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         return `
             <div class="section-header">
-                <div><h1 class="section-title">Listado de Ventas</h1><p style="color:var(--text-secondary)">Ventas entre fechas · filtro por salón · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
+                <div><h1 class="section-title">Listado de Ventas</h1><p style="color:var(--text-secondary)">Ventas entre fechas � filtro por sal�n � <span class="cloudflare-badge">? Cloudflare</span></p></div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                     <button type="button" class="btn btn-primary" id="btn-sales-print">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
@@ -2542,7 +2545,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             </div>
             <div class="daily-controls" style="justify-content:flex-start;flex-wrap:wrap;gap:0.75rem;">
                 <div class="form-group" style="margin:0;">
-                    <label style="font-size:0.75rem;font-weight:600;">Salón</label>
+                    <label style="font-size:0.75rem;font-weight:600;">Sal�n</label>
                     <select class="form-control" id="sales-salon-select" style="min-width:180px;">${salonFilterOptions}</select>
                 </div>
                 <div class="form-group" style="margin:0;">
@@ -2574,14 +2577,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             </div>
             <div class="data-card" style="padding:1.25rem;">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
-                    <h3 style="font-size:1rem;margin:0;">Detalle agrupado por salón</h3>
+                    <h3 style="font-size:1rem;margin:0;">Detalle agrupado por sal�n</h3>
                     <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
                         <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;cursor:pointer;"><input type="checkbox" id="inv-select-all"> Seleccionar todos</label>
                         <button type="button" class="btn btn-sm btn-danger" id="btn-invoices-cancel" style="background:var(--danger,#dc3545);border-color:var(--danger,#dc3545);">Anular seleccionados</button>
                     </div>
                 </div>
                 <table class="table">
-                    <thead><tr><th style="width:30px;"></th><th>Nº</th><th>Fecha</th><th>Cliente</th><th>Servicio</th><th style="text-align:right">Total</th></tr></thead>
+                    <thead><tr><th style="width:30px;"></th><th>N�</th><th>Fecha</th><th>Cliente</th><th>Servicio</th><th style="text-align:right">Total</th></tr></thead>
                     <tbody id="tpv-history-body">${tpvSalesReportRows()}</tbody>
                 </table>
             </div>`;
@@ -2610,18 +2613,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     function tpvPrintSales() {
         const printArea = document.getElementById('print-area');
         if (!printArea) return;
-        const salon = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
-        const fromLabel = euDateStr(State.tpv.salesFrom) || 'inicio';
-        const toLabel = euDateStr(State.tpv.salesTo) || 'hoy';
+        const salon = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Sal�n');
+        const fromLabel = formatDateEU(State.tpv.salesFrom) || 'inicio';
+        const toLabel = formatDateEU(State.tpv.salesTo) || 'hoy';
         const issuer = State.profile || {};
-        const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
+        const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Est�tica y Bienestar Lara';
         const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
         const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
 
         const dimHead = 'Cliente';
         let grandTotal = 0;
         const groupBlocks = tpvSalesGroups().length === 0
-            ? '<div style="padding:1rem;color:#777;text-align:center;">No hay ventas en el período seleccionado.</div>'
+            ? '<div style="padding:1rem;color:#777;text-align:center;">No hay ventas en el per�odo seleccionado.</div>'
             : tpvSalesGroups().map(g => {
                 const salonInvs = g.items.filter(i => i.doc_type === 'factura-salon');
                 const clientInvs = g.items.filter(i => i.doc_type !== 'factura-salon');
@@ -2634,10 +2637,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         name: it.name,
                         qty: it.qty,
                         amount: Math.round((parseFloat(it.price) || 0) * (it.qty || 0) * 100) / 100
-                    })) : [{ name: '—', qty: '', amount: Number(inv.base_amount) || 0 }];
+                    })) : [{ name: '�', qty: '', amount: Number(inv.base_amount) || 0 }];
                     const lineRows = lines.map((line, idx) => `
                         <tr>
-                            ${idx === 0 ? `<td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${euDateStr(dateStr)}<br><span style="font-size:0.7rem;color:#777;">${tpvInvoiceNum(inv)}</span></td>
+                            ${idx === 0 ? `<td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${formatDateEU(dateStr)}<br><span style="font-size:0.7rem;color:#777;">${tpvInvoiceNum(inv)}</span></td>
                             <td rowspan="${lines.length + 1}" style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;vertical-align:top;">${dimVal}</td>` : ''}
                             <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;">${line.name}</td>
                             <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #ddd;text-align:center;">${line.qty}</td>
@@ -2651,7 +2654,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     return lineRows + totalRow;
                 };
 
-                // Totales de las facturas de salón
+                // Totales de las facturas de sal�n
                 const sCommission = Math.round(salonInvs.reduce((a, i) => a + (Number(i.commission_amount) || 0), 0) * 100) / 100;
                 const sBase = Math.round(salonInvs.reduce((a, i) => a + (Number(i.base_amount) || 0), 0) * 100) / 100;
                 const sTax = Math.round(salonInvs.reduce((a, i) => a + (Number(i.tax_amount) || 0), 0) * 100) / 100;
@@ -2683,10 +2686,10 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <span style="min-width:90px;text-align:right;">${tpvFormatMoney(sTotal)}</span>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-start;padding:0.5rem 0.6rem 0;font-weight:600;white-space:nowrap;">
-                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">Comisión por los servicios (70%): <span>${tpvFormatMoney(sCommission)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">Comisi�n por los servicios (70%): <span>${tpvFormatMoney(sCommission)}</span></div>
                         <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(sBase)}</span></div>
                         <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(sTax)}</span></div>
-                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(sRetention)}</span></div>
+                        <div style="display:flex;justify-content:space-between;width:330px;padding:0.15rem 0;">-Retenci�n (15%): <span>-${tpvFormatMoney(sRetention)}</span></div>
                         <div style="display:flex;justify-content:space-between;width:330px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL GENERAL (IVA incl.): <span>${tpvFormatMoney(sTotal)}</span></div>
                     </div>` : '';
 
@@ -2732,13 +2735,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     </div>
                     <div style="text-align:right;font-size:0.95rem;">
                         <div style="font-size:1.3rem;font-weight:800;">LISTADO DE VENTAS</div>
-                        <div>Agrupado por: <strong>Salón</strong></div>
-                        <div>Período: ${fromLabel} → ${toLabel}</div>
-                        <div>Emitido: ${euDateStr(new Date())}</div>
+                        <div>Agrupado por: <strong>Sal�n</strong></div>
+                        <div>Per�odo: ${fromLabel} ? ${toLabel}</div>
+                        <div>Emitido: ${formatDateEU(new Date())}</div>
                     </div>
                 </div>
                 <div style="font-size:0.85rem;color:#333;margin-bottom:0.75rem;">
-                    Salón: <strong>${salon}</strong>
+                    Sal�n: <strong>${salon}</strong>
                 </div>
                 ${groupBlocks}
                 <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
@@ -2797,21 +2800,21 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const isInvoice = inv.doc_type !== 'ticket';
         const num = (isInvoice ? 'F' : 'T') + '-' + String(inv.number).padStart(4, '0');
         const dateStr = (inv.created_at || new Date().toISOString()).substring(0, 16).replace('T', ' ').trim();
-        const dateDisplay = dateStr.length >= 10 ? `${euDateStr(dateStr)}${dateStr.length > 10 ? ' ' + dateStr.slice(11) : ''}` : dateStr;
+        const dateDisplay = dateStr.length >= 10 ? `${formatDateEU(dateStr)}${dateStr.length > 10 ? ' ' + dateStr.slice(11) : ''}` : dateStr;
         const clientName = inv.client_name || 'Consumidor final';
         const nifLine = inv.client_nif ? `<strong>NIF:</strong> ${inv.client_nif}` : '';
         const clientRecord = State.clients.find(c => c.id === inv.client_id);
         const salonRecord = State.salons.find(s => s.id === inv.client_id);
         const fiscalRec = (inv.doc_type === 'factura-salon' ? salonRecord : null) || clientRecord;
-        const addressLine = fiscalRec && fiscalRec.fiscal_address ? `<br><strong>Dirección fiscal:</strong> ${fiscalRec.fiscal_address}` : '';
+        const addressLine = fiscalRec && fiscalRec.fiscal_address ? `<br><strong>Direcci�n fiscal:</strong> ${fiscalRec.fiscal_address}` : '';
         const issuer = State.profile || {};
-        const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
+        const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Est�tica y Bienestar Lara';
         const issuerNif = issuer.nif ? `<div style="font-size:0.85rem;color:#555;margin-top:0.2rem;">NIF: ${issuer.nif}</div>` : '';
         const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
 
         if (isInvoice) {
             const lines = items.length === 0
-                ? '<tr><td colspan="5" style="padding:0.6rem;color:#777;">—</td></tr>'
+                ? '<tr><td colspan="5" style="padding:0.6rem;color:#777;">�</td></tr>'
                 : items.map((i, idx) => `
                     <tr>
                         <td style="padding:0.35rem 0.5rem;border-bottom:1px solid #ddd;">
@@ -2832,7 +2835,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         </div>
                         <div style="text-align:right;font-size:0.8rem;">
                             <div style="font-size:1.1rem;font-weight:800;">FACTURA</div>
-                            <div>Nº ${num}</div>
+                            <div>N� ${num}</div>
                             <div>${dateDisplay}</div>
                         </div>
                     </div>
@@ -2865,16 +2868,16 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                             const salonForSalon = Math.round(imports * 0.30 * 100) / 100;
                             const totalEntregar = Math.round((salonForSalon + retentionSalon) * 100) / 100;
                             return `
-                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>Comisión por los Servicios (70%)</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>Comisi�n por los Servicios (70%)</span><strong>${tpvFormatMoney(commissionSalon)}</strong></div>
                             <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>BASE Imponible:</span><strong>${tpvFormatMoney(baseSalon)}</strong></div>
                             <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>+IVA (21%)</span><strong>${tpvFormatMoney(taxSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>−Retención (15%)</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
+                            <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"><span>-Retenci�n (15%)</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
                             <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;font-size:0.9rem;"><span>TOTAL FACTURA:</span><span>${tpvFormatMoney(totalFactura)}</span></div>
                             <div style="display:flex;justify-content:space-between;padding:0.15rem 0;font-size:0.8rem;"><span>Forma de pago</span><strong>${tpvPaymentDetail(inv)}</strong></div>
                             <div style="border:2px solid #000;border-radius:6px;padding:0.45rem;margin-top:0.55rem;">
-                                <div style="font-weight:800;text-align:center;font-size:0.88rem;margin-bottom:0.3rem;border-bottom:1px solid #ccc;padding-bottom:0.25rem;">A ENTREGAR AL SALÓN</div>
-                                <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>30% PARA EL SALÓN</span><strong>${tpvFormatMoney(salonForSalon)}</strong></div>
-                                <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>+RETENCIÓN</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
+                                <div style="font-weight:800;text-align:center;font-size:0.88rem;margin-bottom:0.3rem;border-bottom:1px solid #ccc;padding-bottom:0.25rem;">A ENTREGAR AL SAL�N</div>
+                                <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>30% PARA EL SAL�N</span><strong>${tpvFormatMoney(salonForSalon)}</strong></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.12rem 0;"><span>+RETENCI�N</span><strong>${tpvFormatMoney(retentionSalon)}</strong></div>
                                 <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-top:1px solid #000;margin-top:0.2rem;font-weight:800;"><span>IMPORTE TOTAL</span><span>${tpvFormatMoney(totalEntregar)}</span></div>
                             </div>`;
                         }
@@ -2886,12 +2889,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     })()}
                         </div>
                     </div>
-                    <div style="margin-top:1.25rem;text-align:center;font-size:0.7rem;color:#555;border-top:1px solid #ddd;padding-top:0.4rem;">¡Gracias por su visita!</div>
+                    <div style="margin-top:1.25rem;text-align:center;font-size:0.7rem;color:#555;border-top:1px solid #ddd;padding-top:0.4rem;">�Gracias por su visita!</div>
                 </div>`;
         }
 
         const lines = items.length === 0
-            ? '<tr><td colspan="3" style="padding:0.5rem;color:var(--text-secondary);">—</td></tr>'
+            ? '<tr><td colspan="3" style="padding:0.5rem;color:var(--text-secondary);">�</td></tr>'
             : items.map(i => `
                 <tr>
                     <td style="padding:0.25rem 0.5rem;">${i.name}</td>
@@ -2905,7 +2908,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     ${issuerNif}
                     ${issuerAddress}
                     <div style="font-size:0.8rem;color:#555;">TICKET</div>
-                    <div style="font-size:0.8rem;color:#555;">Nº ${num}</div>
+                    <div style="font-size:0.8rem;color:#555;">N� ${num}</div>
                     <div style="font-size:0.8rem;color:#555;">${dateDisplay}</div>
                 </div>
                 <div style="font-size:0.85rem;margin-bottom:0.5rem;">
@@ -2918,11 +2921,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div style="margin-top:0.5rem;font-size:0.85rem;text-align:right;">
                     <div>Base: <strong>${tpvFormatMoney(inv.base_amount)}</strong></div>
                     <div>IVA (21%): <strong>${tpvFormatMoney(inv.tax_amount)}</strong></div>
-                    ${inv.doc_type === 'factura-salon' ? `<div>Retención (15%): <strong>−${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>` : ''}
+                    ${inv.doc_type === 'factura-salon' ? `<div>Retenci�n (15%): <strong>-${tpvFormatMoney(inv.retention_amount || 0)}</strong></div>` : ''}
                     <div style="font-size:1rem;font-weight:800;">TOTAL: ${tpvFormatMoney(inv.total_amount)}</div>
                 </div>
                 <div style="margin-top:0.4rem;font-size:0.8rem;text-align:right;"><strong>Forma de pago:</strong> ${tpvPaymentDetail(inv)}</div>
-                <div style="margin-top:0.75rem;text-align:center;font-size:0.8rem;color:#555;">¡Gracias por su visita!</div>
+                <div style="margin-top:0.75rem;text-align:center;font-size:0.8rem;color:#555;">�Gracias por su visita!</div>
             </div>`;
     }
 
@@ -2932,7 +2935,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             .filter(a => a.date === targetStr)
             .sort((a, b) => a.time.localeCompare(b.time));
         if (dayApts.length === 0) {
-            showToast('No hay citas en el día señalado.', 'error');
+            showToast('No hay citas en el d�a se�alado.', 'error');
             return;
         }
 
@@ -2943,11 +2946,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             if (!groups.has(key)) groups.set(key, { salon: State.salons.find(s => s.id === salonId) || null, items: [] });
             const client = State.clients.find(c => c.id === apt.clientId);
             const service = State.services.find(s => s.id === apt.serviceId);
-            const lineName = `${client ? client.name : 'Cliente'} → ${service ? service.name : 'Servicio'}`;
+            const lineName = `${client ? client.name : 'Cliente'} ? ${service ? service.name : 'Servicio'}`;
             groups.get(key).items.push({ name: lineName, price: service ? (parseFloat(service.price) || 0) : 0, qty: 1, notes: apt.notes || '' });
         });
 
-        // Construir una factura por salón con citas del día señalado (todos los salones)
+        // Construir una factura por sal�n con citas del d�a se�alado (todos los salones)
         const bills = [];
         groups.forEach((group, key) => {
             if (group.items.length === 0) return;
@@ -2957,35 +2960,35 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         });
 
         if (bills.length === 0) {
-            showToast('No se pudo preparar ninguna factura de salón.', 'error');
+            showToast('No se pudo preparar ninguna factura de sal�n.', 'error');
             return;
         }
 
-        // Control: no contar salones ya facturados en el día señalado
+        // Control: no contar salones ya facturados en el d�a se�alado
         const alreadyBilled = (State.tpv.invoices || [])
             .filter(i => i.doc_type === 'factura-salon' && i.status !== 'cancelled' && (i.created_at || '').substring(0, 10) === targetStr)
             .reduce((map, i) => { map[i.salon_id] = true; return map; }, {});
         const remaining = bills.filter(b => !alreadyBilled[b.salonId]);
         if (remaining.length === 0) {
             const names = bills.map(b => `${b.salonName} (ya facturado)`).join(', ');
-            showToast(`Todos los salones del día ya han sido facturados: ${names}. Anúlelos en el Listado de Ventas para volver a facturarlos.`, 'error');
+            showToast(`Todos los salones del d�a ya han sido facturados: ${names}. An�lelos en el Listado de Ventas para volver a facturarlos.`, 'error');
             return;
         }
 
-        // Guardar todas las facturas por emitir y no cargar ninguna automáticamente.
-        // Se emitirán seleccionando el salón en el TPV.
+        // Guardar todas las facturas por emitir y no cargar ninguna autom�ticamente.
+        // Se emitir�n seleccionando el sal�n en el TPV.
         State.tpv.pendingBills = remaining;
         State.tpv.docType = 'factura-salon';
         State.tpv.cart = [];
-        // Preseleccionar el salón de la primera factura pendiente para que se cargue automáticamente al entrar
+        // Preseleccionar el sal�n de la primera factura pendiente para que se cargue autom�ticamente al entrar
         State.tpv.salonId = remaining[0].salonId;
         navigate('tpv');
-        showToast(`${remaining.length} factura${remaining.length > 1 ? 's' : ''} de salón por emitir. Selecciona el salón en el TPV.`, 'info');
+        showToast(`${remaining.length} factura${remaining.length > 1 ? 's' : ''} de sal�n por emitir. Selecciona el sal�n en el TPV.`, 'info');
     }
 
     async function tpvEmit() {
         if (State.tpv.cart.length === 0) {
-            showToast('El carrito está vacío.', 'error');
+            showToast('El carrito est� vac�o.', 'error');
             return;
         }
         const clientId = document.getElementById('tpv-client') ? document.getElementById('tpv-client').value : '';
@@ -2995,7 +2998,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (State.tpv.docType === 'factura') {
             const client = State.clients.find(c => c.id === clientId);
             if (!client || !client.name || !client.fiscal_address || !client.nif) {
-                showToast('Para la Factura de Cliente debes seleccionar un cliente de la base de datos con Nombre, Dirección y CIF/NIF completos.', 'error');
+                showToast('Para la Factura de Cliente debes seleccionar un cliente de la base de datos con Nombre, Direcci�n y CIF/NIF completos.', 'error');
                 return;
             }
         }
@@ -3020,7 +3023,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             doc_type: State.tpv.docType,
             salon_id: State.tpv.salonId || null,
             client_id: isSalonInvoice ? (salon ? salon.id : null) : (clientId || null),
-            client_name: isSalonInvoice ? (salon ? (salon.business_name || salon.name) : (State.profile?.full_name || 'Estética y Bienestar Lara')) : tpvClientName(clientId),
+            client_name: isSalonInvoice ? (salon ? (salon.business_name || salon.name) : (State.profile?.full_name || 'Est�tica y Bienestar Lara')) : tpvClientName(clientId),
             client_nif: isSalonInvoice ? (salon && salon.nif ? salon.nif : null) : (clientNif || null),
             items: State.tpv.cart.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, qty: i.qty, notes: i.notes || '' })),
             base_amount: Math.round(totals.base * 100) / 100,
@@ -3044,7 +3047,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             };
             State.tpv.cart = [];
             State.tpv.invoices.unshift(doc);
-            // Si era una factura de salón pendiente del día, quitarla de la lista y actualizar el contador
+            // Si era una factura de sal�n pendiente del d�a, quitarla de la lista y actualizar el contador
             if (doc.doc_type === 'factura-salon' && State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
                 State.tpv.pendingBills = State.tpv.pendingBills.filter(b => b.salonId !== doc.salon_id);
             }
@@ -3090,13 +3093,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (saleSalonSel) saleSalonSel.addEventListener('change', e => {
             const salonId = e.target.value;
             State.tpv.salonId = salonId;
-            // Si hay facturas de salón del día señalado por emitir y hay una para este salón, cargarla automáticamente
+            // Si hay facturas de sal�n del d�a se�alado por emitir y hay una para este sal�n, cargarla autom�ticamente
             if (State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
                 const pend = State.tpv.pendingBills.find(b => b.salonId === salonId);
                 if (pend) {
                     State.tpv.docType = 'factura-salon';
                     State.tpv.cart = pend.items.slice();
-                    showToast(`Factura de salón de ${pend.salonName || 'este salón'} cargada. Revisa y pulsa Emitir.`, 'info');
+                    showToast(`Factura de sal�n de ${pend.salonName || 'este sal�n'} cargada. Revisa y pulsa Emitir.`, 'info');
                     tpvRenderCartPanel();
                     return;
                 }
@@ -3180,7 +3183,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             btn.addEventListener('click', async e => {
                 const invId = btn.dataset.invoiceId;
                 if (btn.classList.contains('delete-btn')) {
-                    if (!confirm('¿Eliminar este documento del historial?')) return;
+                    if (!confirm('�Eliminar este documento del historial?')) return;
                     try {
                         await api.deleteInvoice(invId);
                         State.tpv.invoices = State.tpv.invoices.filter(i => i.id !== invId);
@@ -3213,7 +3216,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     showToast('Selecciona al menos un ticket/factura para anular.', 'error');
                     return;
                 }
-                if (!confirm(`¿Anular ${selected.length} documento(s)? Se ocultarán del listado de ventas.`)) return;
+                if (!confirm(`�Anular ${selected.length} documento(s)? Se ocultar�n del listado de ventas.`)) return;
                 try {
                     for (const id of selected) {
                         await api.setInvoiceStatus(id, 'cancelled');
@@ -3238,9 +3241,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         tpvBindHistoryEvents();
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        DAILY LISTING VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getMonthlyView() {
         const dateStr = State.dailyDate;
         const dateObj = new Date(dateStr + 'T00:00:00');
@@ -3278,7 +3281,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <tr>
                     <td colspan="${colCount}" style="text-align:center;padding:3rem;color:var(--text-secondary)">
                         <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:0.75rem;opacity:0.35;display:block;margin-left:auto;margin-right:auto;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        No hay citas registradas en este día.
+                        No hay citas registradas en este d�a.
                     </td>
                 </tr>`;
         } else {
@@ -3289,19 +3292,19 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 const endStr = endTime.toTimeString().substring(0, 5);
                 const salon = State.salons.find(s => s.id === apt.salonId);
                 const staffClass = apt.isStaffAppointment ? ' staff-apt' : '';
-                const staffBadge = apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>${apt.staffModifiedBy ? ` <span style="color:var(--text-secondary);font-size:0.75rem;">· modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}` : '';
+                const staffBadge = apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>${apt.staffModifiedBy ? ` <span style="color:var(--text-secondary);font-size:0.75rem;">� modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}` : '';
 
                 tableRows += `
                     <tr class="monthly-apt-row${staffClass}">
                         <td class="monthly-time-cell">
                             <span class="monthly-time">${apt.time}</span>
-                            <span class="monthly-time-end">– ${endStr}</span>
+                            <span class="monthly-time-end">� ${endStr}</span>
                         </td>
                         <td><div style="font-weight:600">${client.name}${staffBadge}</div></td>
-                        ${showSalonCol ? `<td>${salon ? `<span class="daily-salon-badge" style="background:${salon.color || '#8B5CF6'};color:#fff;border:1px solid ${salon.color || '#8B5CF6'}">${salon.name}</span>` : '<span class="daily-salon-badge">—</span>'}</td>` : ''}
+                        ${showSalonCol ? `<td>${salon ? `<span class="daily-salon-badge" style="background:${salon.color || '#8B5CF6'};color:#fff;border:1px solid ${salon.color || '#8B5CF6'}">${salon.name}</span>` : '<span class="daily-salon-badge">�</span>'}</td>` : ''}
                         <td><span class="monthly-service-badge">${service.name}</span></td>
                         <td>${service.duration} min</td>
-                        <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '—'}</td>
+                        <td style="color:var(--text-secondary);font-size:0.85rem;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${apt.notes || '�'}</td>
                         <td style="white-space:nowrap">
                             <button class="edit-apt-btn" data-id="${apt.id}" title="Editar cita" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-secondary)">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -3318,7 +3321,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             ${State.salons.length > 0 ? `
             <div style="text-align:center; margin-bottom: 1.5rem;">
                 ${State.session?.staff
-                    ? `<span class="salon-title">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Salón'}</span>`
+                    ? `<span class="salon-title">${State.salons.find(s => s.id === State.activeSalonId)?.name || 'Sal�n'}</span>`
                     : `<select id="daily-salon-select" class="salon-title-select">
                     <option value="all" ${State.activeSalonId === 'all' ? 'selected' : ''}>Todos los Salones</option>
                     ${State.salons.map(s => `<option value="${s.id}" ${State.activeSalonId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
@@ -3328,7 +3331,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Listado Diario</h1>
-                    <p style="color:var(--text-secondary)">Detalle de citas por día · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
+                    <p style="color:var(--text-secondary)">Detalle de citas por d�a � <span class="cloudflare-badge">? Cloudflare</span></p>
                 </div>
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
                     <button class="btn btn-primary" id="btn-print-daily">
@@ -3363,7 +3366,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <div class="stat-icon">
                         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     </div>
-                    <div class="stat-content"><h3>Clientes Únicos</h3><p>${clientesUnicos.size}</p></div>
+                    <div class="stat-content"><h3>Clientes �nicos</h3><p>${clientesUnicos.size}</p></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
@@ -3376,7 +3379,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <!-- Listing Table -->
             <div class="data-card monthly-table-card" id="daily-print-area">
                 <div class="monthly-table-header">
-                    <h3>📋 ${dayLabel}</h3>
+                    <h3>?? ${dayLabel}</h3>
                     <span class="monthly-count-badge">${totalCitas} cita${totalCitas !== 1 ? 's' : ''}</span>
                 </div>
                 <table class="table monthly-table">
@@ -3384,9 +3387,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         <tr>
                             <th>Hora</th>
                             <th>Cliente</th>
-                            ${showSalonCol ? '<th>Salón</th>' : ''}
+                            ${showSalonCol ? '<th>Sal�n</th>' : ''}
                             <th>Servicio</th>
-                            <th>Duración</th>
+                            <th>Duraci�n</th>
                             <th>Notas</th>
                             <th>Acciones</th>
                         </tr>
@@ -3399,14 +3402,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         `;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        WHATSAPP REMINDERS VIEW
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function getWhatsAppView() {
         if (State.session?.staff) {
             return '<div class="data-card" style="padding:3rem;text-align:center;"><p style="color:var(--text-secondary)">Acceso no disponible para staff.</p></div>';
         }
-        // Buscamos citas en los próximos 3 días para dar más margen
+        // Buscamos citas en los pr�ximos 3 d�as para dar m�s margen
         const today = new Date();
         const futureLimit = new Date(today);
         futureLimit.setDate(today.getDate() + 3);
@@ -3416,9 +3419,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const nowTime = new Date().toTimeString().slice(0, 5);
 
         const toRemind = State.appointments.filter(apt => {
-            // Citas entre hoy y dentro de 3 días, mientras la hora no haya pasado
+            // Citas entre hoy y dentro de 3 d�as, mientras la hora no haya pasado
             if (apt.date < todayStr || apt.date > limitStr) return false;
-            if (apt.date === todayStr && apt.time <= nowTime) return false; // Ya pasó la hora
+            if (apt.date === todayStr && apt.time <= nowTime) return false; // Ya pas� la hora
             
             const client = State.clients.find(c => c.id === apt.clientId);
             return client && (client.enviar_was === true || client.enviar_was === 'true' || client.enviar_was === 1);
@@ -3432,13 +3435,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Recordatorios WhatsApp</h1>
-                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="cloudflare-badge">⚡ Automático</span></p>
+                    <p style="color:var(--text-secondary)">Gestiona los avisos para las pr�ximas citas � <span class="cloudflare-badge">? Autom�tico</span></p>
                 </div>
             </div>
             <div class="data-card" style="padding:3rem;text-align:center;">
                 <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:0.25;margin-bottom:1rem;"><path d="M12.031 6.172c-2.32 0-4.516.903-6.183 2.563-3.23 3.23-3.403 8.356-.511 11.777l-1.341 4.904 5.035-1.32c1.077.585 2.29.893 3.522.893h.03c2.321 0 4.516-.903 6.183-2.563 3.413-3.414 3.413-8.948 0-12.362-1.667-1.66-3.863-1.592-6.235-1.592zm5.753 12.185c-.254.71-1.472 1.286-2.028 1.368-.556.082-1.112.122-1.666-.122-.303-.122-.656-.254-1.076-.442-1.812-.816-3.033-2.656-3.13-2.77-.091-.112-.76-.98-.76-1.884 0-.904.47-1.353.64-1.554.17-.2.37-.25.5-.25s.262-.01.373.01c.123 0 .285-.04.444.33.16.38.542 1.312.59 1.41.05.1.08.21.01.34-.07.13-.1.22-.2.34-.1.12-.21.26-.3.37-.1.12-.22.25-.1.44.13.21.57.94 1.22 1.52.84.75 1.55 1 1.77 1.11.22.11.36.09.49-.06.13-.15.54-.62.68-.84.14-.21.29-.18.49-.1.2.08 1.25.59 1.47.69s.36.16.41.25c.05.1.05.57-.2.1.28l-.01.01zM12.031 0C5.386 0 0 5.385 0 12.031c0 2.11.55 4.16 1.59 5.97L0 24l6.19-1.62c1.77 1.04 3.79 1.59 5.84 1.59h.01C18.66 24 24 18.615 24 12.031 24 5.385 18.66 0 12.031 0z"/></svg>
                 <h3 style="margin-bottom:0.5rem;">No hay recordatorios</h3>
-                <p style="color:var(--text-secondary);">No hay citas pendientes de notificar en los próximos 3 días.</p>
+                <p style="color:var(--text-secondary);">No hay citas pendientes de notificar en los pr�ximos 3 d�as.</p>
             </div>`;
         }
 
@@ -3446,7 +3449,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Recordatorios WhatsApp</h1>
-                    <p style="color:var(--text-secondary)">Gestiona los avisos para las próximas citas · <span class="cloudflare-badge">⚡ Automático</span></p>
+                    <p style="color:var(--text-secondary)">Gestiona los avisos para las pr�ximas citas � <span class="cloudflare-badge">? Autom�tico</span></p>
                 </div>
             </div>
 
@@ -3454,7 +3457,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div class="monthly-table-header" style="background: var(--bg-surface); padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
                     <h3 style="display:flex;align-items:center;gap:0.75rem;">
                         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        Próximas Citas (3 días)
+                        Pr�ximas Citas (3 d�as)
                     </h3>
                     <span class="monthly-count-badge">${toRemind.length} pendiente${toRemind.length !== 1 ? 's' : ''}</span>
                 </div>
@@ -3466,7 +3469,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                             <th>Hora</th>
                             <th>Servicio</th>
                             <th style="text-align:center">Veces</th>
-                            <th>Acción</th>
+                            <th>Acci�n</th>
                         </tr>
                     </thead>
                     <tbody>${toRemind.map(apt => {
@@ -3478,14 +3481,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                         return `
                             <tr data-aptid="${apt.id}">
                                 <td>
-                                    <div style="font-weight:600">${client ? client.name : 'Cliente desconocido'}${apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>` : ''}${apt.isStaffAppointment && apt.staffModifiedBy ? ` <span style="font-size:0.75rem;color:var(--text-secondary)">· modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}</div>
-                                    <div style="font-size:0.8rem;color:var(--text-secondary)">${client ? client.phone : 'Sin teléfono'}</div>
+                                    <div style="font-weight:600">${client ? client.name : 'Cliente desconocido'}${apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>` : ''}${apt.isStaffAppointment && apt.staffModifiedBy ? ` <span style="font-size:0.75rem;color:var(--text-secondary)">� modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-secondary)">${client ? client.phone : 'Sin tel�fono'}</div>
                                 </td>
                                 <td><span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)">${dLabel}</span></td>
                                 <td><div style="font-weight:500;color:var(--accent-primary)">${apt.time}</div></td>
-                                <td><span class="monthly-service-badge">${service ? service.name : '—'}</span></td>
+                                <td><span class="monthly-service-badge">${service ? service.name : '�'}</span></td>
                                 <td style="text-align:center">
-                                    <span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)" title="Veces que se ha enviado el recordatorio">${apt.whatsappSentCount || 0}×</span>
+                                    <span class="status-badge" style="background:var(--bg-body);color:var(--text-primary)" title="Veces que se ha enviado el recordatorio">${apt.whatsappSentCount || 0}�</span>
                                 </td>
                                 <td>
                                     <button class="btn btn-primary btn-sm send-reminder-btn" 
@@ -3504,14 +3507,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             </div>
             
             <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.85rem; text-align: center; font-style: italic;">
-                * Debes tener abierta esta pestaña para gestionar los recordatorios diarios.
+                * Debes tener abierta esta pesta�a para gestionar los recordatorios diarios.
             </p>
         `;
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
 DIAGNOSIS VIEW - FULLY INTEGRATED
-        ═══════════════════════════════════════ */
+        --------------------------------------- */
     let diagnosisImage = null;
     let diagnosisClientId = null;
     let diagnosisClientName = null;
@@ -3525,15 +3528,15 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         return `
             <div class="section-header">
                 <div>
-                    <h1 class="section-title">Diagnóstico Capilar</h1>
-                    <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="cloudflare-badge">⚡ IA Vision</span></p>
+                    <h1 class="section-title">Diagn�stico Capilar</h1>
+                    <p style="color:var(--text-secondary)">An�lisis avanzado del cuero cabelludo � <span class="cloudflare-badge">? IA Vision</span></p>
                 </div>
              </div>
              
             <div id="diagnosis-client-selection" style="display: ${hasClient ? 'none' : 'block'};">
                 <div style="max-width:660px;margin:1.5rem auto;padding:2rem;background:var(--bg-card);border:2px solid var(--accent-color);border-radius:16px;box-shadow:0 0 30px rgba(167,139,250,0.3);">
                     <h2 style="margin-top:0;color:#fff;font-size:1.4rem;text-align:center;margin-bottom:0.5rem;">SELECCIONAR CLIENTE</h2>
-                    <p style="color:var(--text-secondary);text-align:center;margin-bottom:1.5rem;font-size:0.9rem;">Elija un cliente de la lista para realizar el diagnóstico capilar</p>
+                    <p style="color:var(--text-secondary);text-align:center;margin-bottom:1.5rem;font-size:0.9rem;">Elija un cliente de la lista para realizar el diagn�stico capilar</p>
                     <div id="diagnosis-clients-list"></div>
                 </div>
             </div>
@@ -3569,14 +3572,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     <div style="width:34px;height:34px;background:var(--accent-color);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:0.85rem;">${client.name.charAt(0).toUpperCase()}</div>
                     <div>
                         <strong style="color:#fff;font-size:0.9rem;">${client.name}</strong>
-                        <span style="color:var(--text-secondary);font-size:0.8rem;display:block;">${client.phone || 'Sin teléfono'}</span>
+                        <span style="color:var(--text-secondary);font-size:0.8rem;display:block;">${client.phone || 'Sin tel�fono'}</span>
                     </div>
                 </div>
                 <span style="padding:0.35rem 0.75rem;background:var(--accent-color);color:#000;border-radius:8px;font-weight:600;font-size:0.8rem;">Seleccionar</span>
             </div>
         `).join('');
 
-        // Limpiar evento anterior y agregar delegación
+        // Limpiar evento anterior y agregar delegaci�n
         list.onclick = null;
         list.onclick = (e) => {
             const card = e.target.closest('.diagnosis-client-card');
@@ -3592,26 +3595,26 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         };
     }
 
-    /* ═════════════════════════════════════
+    /* -------------------------------------
         SALONS VIEW
-        ═════════════════════════════════════ */
+        ------------------------------------- */
     function getSalonsView() {
         if (State.salons.length === 0) {
             return `
                 <div class="section-header">
                     <div>
                         <h1 class="section-title">Salones</h1>
-                        <p style="color:var(--text-secondary)">Gestiona tus salones · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
+                        <p style="color:var(--text-secondary)">Gestiona tus salones � <span class="cloudflare-badge">? Cloudflare</span></p>
                     </div>
                     <button class="btn btn-primary" id="btn-add-salon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                        Añadir Salón
+                        A�adir Sal�n
                     </button>
                 </div>
                 <div class="empty-state data-card">
                     <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     <h3>No hay salones registrados</h3>
-                    <p>Añade tu primer salón para comenzar.</p>
+                    <p>A�ade tu primer sal�n para comenzar.</p>
                 </div>`;
         }
 
@@ -3621,14 +3624,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     <div class="client-info">
                         <h3 style="margin:0;font-weight:600">${s.name}</h3>
                         <div style="display:flex;align-items:center;gap:12px;font-size:0.85rem;color:var(--text-secondary);margin-top:4px;">
-                            ${s.address ? `<span>📍 ${s.address}</span>` : ''}
-                            ${s.phone ? `<span>📱 ${s.phone}</span>` : ''}
+                            ${s.address ? `<span>?? ${s.address}</span>` : ''}
+                            ${s.phone ? `<span>?? ${s.phone}</span>` : ''}
                         </div>
                         ${(s.business_name || s.nif || s.fiscal_address) ? `
                         <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">
-                            ${s.business_name ? `<div>🏢 ${s.business_name}</div>` : ''}
+                            ${s.business_name ? `<div>?? ${s.business_name}</div>` : ''}
                             ${s.nif ? `<div>NIF: ${s.nif}</div>` : ''}
-                            ${s.fiscal_address ? `<div>📍 Fiscal: ${s.fiscal_address}</div>` : ''}
+                            ${s.fiscal_address ? `<div>?? Fiscal: ${s.fiscal_address}</div>` : ''}
                         </div>` : ''}
                     </div>
                     <div class="client-actions">
@@ -3647,11 +3650,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             <div class="section-header">
                 <div>
                     <h1 class="section-title">Salones</h1>
-                    <p style="color:var(--text-secondary)">Gestiona tus salones · <span class="cloudflare-badge">⚡ Cloudflare</span></p>
+                    <p style="color:var(--text-secondary)">Gestiona tus salones � <span class="cloudflare-badge">? Cloudflare</span></p>
                 </div>
                 <button class="btn btn-primary" id="btn-add-salon">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                    Añadir Salón
+                    A�adir Sal�n
                 </button>
             </div>
             <div class="stats-row">
@@ -3677,23 +3680,23 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const html = `
             <form id="salon-form">
                 <div class="form-group">
-                    <label>Nombre del Salón</label>
+                    <label>Nombre del Sal�n</label>
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
                 </div>
                 <div class="form-group">
-                    <label>Color del Salón</label>
+                    <label>Color del Sal�n</label>
                     <div style="display:flex;align-items:center;gap:0.75rem;">
                         <input type="color" class="form-control" name="color" id="salon-color-input" value="${salonColor}" style="width:60px;height:40px;padding:2px;cursor:pointer;">
                         <span id="salon-color-preview" style="display:inline-block;width:28px;height:28px;border-radius:6px;background:${salonColor};border:1px solid var(--border-color);"></span>
                     </div>
-                    <small style="color:var(--text-secondary);font-size:0.8rem;">Elige un color para identificar este salón en el calendario.</small>
+                    <small style="color:var(--text-secondary);font-size:0.8rem;">Elige un color para identificar este sal�n en el calendario.</small>
                 </div>
                 <div class="form-group">
-                    <label>Dirección</label>
-                    <input type="text" class="form-control" name="address" value="${isEdit ? (info.address || '') : ''}" placeholder="Calle, número, ciudad...">
+                    <label>Direcci�n</label>
+                    <input type="text" class="form-control" name="address" value="${isEdit ? (info.address || '') : ''}" placeholder="Calle, n�mero, ciudad...">
                 </div>
                 <div class="form-group">
-                    <label>Teléfono</label>
+                    <label>Tel�fono</label>
                     <input type="tel" class="form-control" name="phone" value="${isEdit ? (info.phone || '') : ''}" placeholder="+34 600 000 000">
                 </div>
                 <div class="form-group">
@@ -3701,31 +3704,31 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     <input type="email" class="form-control" name="email" value="${isEdit ? (info.email || '') : ''}" placeholder="salon@ejemplo.com">
                 </div>
                 <hr style="margin:1.25rem 0;border:none;border-top:1px solid var(--border-color);">
-                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Datos fiscales del salón. Se usarán en las facturas emitidas a nombre de este salón como cliente.</p>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Datos fiscales del sal�n. Se usar�n en las facturas emitidas a nombre de este sal�n como cliente.</p>
                 <div class="form-group">
-                    <label>Nombre de la empresa / Autónomo</label>
-                    <input type="text" class="form-control" name="business_name" value="${isEdit ? (info.business_name || '') : ''}" placeholder="Razón social o nombre del titular">
+                    <label>Nombre de la empresa / Aut�nomo</label>
+                    <input type="text" class="form-control" name="business_name" value="${isEdit ? (info.business_name || '') : ''}" placeholder="Raz�n social o nombre del titular">
                 </div>
                 <div class="form-group">
                     <label>NIF / CIF</label>
-                    <input type="text" class="form-control" name="nif" value="${isEdit ? (info.nif || '') : ''}" placeholder="NIF o CIF del salón">
+                    <input type="text" class="form-control" name="nif" value="${isEdit ? (info.nif || '') : ''}" placeholder="NIF o CIF del sal�n">
                 </div>
                 <div class="form-group">
-                    <label>Dirección fiscal</label>
-                    <input type="text" class="form-control" name="fiscal_address" value="${isEdit ? (info.fiscal_address || '') : ''}" placeholder="Calle, número, ciudad, CP">
+                    <label>Direcci�n fiscal</label>
+                    <input type="text" class="form-control" name="fiscal_address" value="${isEdit ? (info.fiscal_address || '') : ''}" placeholder="Calle, n�mero, ciudad, CP">
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
+                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'A�adir'}</button>
                 </div>
             </form>`;
 
-        openModal(isEdit ? 'Editar Salón' : 'Nuevo Salón', html, () => {
+        openModal(isEdit ? 'Editar Sal�n' : 'Nuevo Sal�n', html, () => {
             document.getElementById('salon-form').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Guardando…';
+                submitBtn.textContent = 'Guardando�';
 
                 const fd = new FormData(e.target);
                 const data = {
@@ -3745,7 +3748,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 else success = await addSalon(data);
 
                 if (success) { closeModal(); renderRoute(); }
-                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
+                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'A�adir'; }
             });
             const colorInput = document.getElementById('salon-color-input');
             const colorPreview = document.getElementById('salon-color-preview');
@@ -3755,9 +3758,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         });
     }
 
-    /* ═════════════════════════════════════
+    /* -------------------------------------
         MONTHLY LISTING VIEW
-        ═════════════════════════════════════ */
+        ------------------------------------- */
     function attachEvents() {
         // Add buttons
         const btnSettings = document.getElementById('btn-settings');
@@ -3947,10 +3950,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         });
     }
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        GLOBAL EVENT DELEGATION
        (Attached only once to document)
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     document.addEventListener('click', async e => {
         // 1. Generic Delete Buttons (.delete-btn) - Clients, Services, Salons, Appointments
         const delBtn = e.target.closest('.delete-btn');
@@ -4004,7 +4007,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             } else {
                 delBtn.dataset.confirming = 'true';
                 const originalHtml = delBtn.innerHTML;
-                delBtn.innerHTML = '<span style="font-size:0.7rem">¿Borrar?</span>';
+                delBtn.innerHTML = '<span style="font-size:0.7rem">�Borrar?</span>';
                 delBtn.style.background = '#e67e22';
                 delBtn.style.width = 'auto';
                 delBtn.style.padding = '0 6px';
@@ -4049,12 +4052,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 }
             } else {
                 aptDelBtn.dataset.confirming = 'true';
-                aptDelBtn.textContent = '¿X?';
+                aptDelBtn.textContent = '�X?';
                 aptDelBtn.style.background = '#e67e22';
                 setTimeout(() => {
                     if (aptDelBtn && aptDelBtn.dataset.confirming === 'true') {
                         aptDelBtn.dataset.confirming = 'false';
-                        aptDelBtn.textContent = '🗑️';
+                        aptDelBtn.textContent = '???';
                         aptDelBtn.style.background = 'rgba(0,0,0,0.6)';
                     }
                 }, 3000);
@@ -4095,7 +4098,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     if (phone) {
                         sendWASMessage(phone, name, apt.date, apt.time, template, salon?.name || '', service?.name || '');
                     } else {
-                        showToast('El cliente no tiene teléfono registrado.', 'error');
+                        showToast('El cliente no tiene tel�fono registrado.', 'error');
                     }
                 }
             }
@@ -4116,7 +4119,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             } else if (clientId) {
                 photos = (State.clientPhotos && State.clientPhotos[clientId]) || [];
             }
-            openBeforeAfterCompare(photos, 'Comparativa Antes / Después', aptId ? { aptId } : clientId ? { clientId } : null);
+            openBeforeAfterCompare(photos, 'Comparativa Antes / Despu�s', aptId ? { aptId } : clientId ? { clientId } : null);
             return;
         }
 
@@ -4179,19 +4182,19 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 } else {
                     clientDelBtn.disabled = false;
                     clientDelBtn.dataset.confirming = 'false';
-                    clientDelBtn.textContent = '🗑️';
+                    clientDelBtn.textContent = '???';
                     clientDelBtn.style.background = 'rgba(220,53,69,0.8)';
                 }
             } else {
                 clientDelBtn.dataset.confirming = 'true';
-                clientDelBtn.textContent = '¿Borrar?';
+                clientDelBtn.textContent = '�Borrar?';
                 clientDelBtn.style.background = '#e67e22';
                 clientDelBtn.style.width = 'auto';
                 
                 setTimeout(() => {
                     if (clientDelBtn && clientDelBtn.dataset.confirming === 'true') {
                         clientDelBtn.dataset.confirming = 'false';
-                        clientDelBtn.textContent = '🗑️';
+                        clientDelBtn.textContent = '???';
                         clientDelBtn.style.background = 'rgba(220,53,69,0.8)';
                     }
                 }, 3000);
@@ -4223,20 +4226,20 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
             <form id="client-form-diagnosis">
                 <div class="form-group">
                     <label>Nombre y Apellidos</label>
-                    <input type="text" class="form-control" name="name" required placeholder="Ej: María García">
+                    <input type="text" class="form-control" name="name" required placeholder="Ej: Mar�a Garc�a">
                 </div>
                 <div class="form-group">
-                    <label>Salón <span style="color:var(--danger-color, #dc3545)">*</span></label>
+                    <label>Sal�n <span style="color:var(--danger-color, #dc3545)">*</span></label>
                     ${isStaff
-                        ? `<div class="form-control" style="background:rgba(0,0,0,0.03);color:var(--text-secondary)">${State.salons.find(s => String(s.id) === String(staffSalonId))?.name || 'Salón asignado'}</div>
+                        ? `<div class="form-control" style="background:rgba(0,0,0,0.03);color:var(--text-secondary)">${State.salons.find(s => String(s.id) === String(staffSalonId))?.name || 'Sal�n asignado'}</div>
                            <input type="hidden" name="salon_id" value="${staffSalonId || ''}">`
                         : `<select class="form-control" name="salon_id" required>
-                              <option value="" disabled ${!defaultSalonId ? 'selected' : ''}>Selecciona un salón...</option>
+                              <option value="" disabled ${!defaultSalonId ? 'selected' : ''}>Selecciona un sal�n...</option>
                               ${salonOptions}
                           </select>`}
                 </div>
                 <div class="form-group">
-                    <label>Teléfono</label>
+                    <label>Tel�fono</label>
                     <input type="tel" class="form-control" name="phone" placeholder="Ej: +34 600 123 456">
                 </div>
                 <div class="form-group">
@@ -4244,9 +4247,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     <input type="email" class="form-control" name="email" placeholder="Ej: correo@ejemplo.com">
                 </div>
                 <div class="form-group">
-                    <label>¿Enviar mensaje de WhatsApp automático?</label>
+                    <label>�Enviar mensaje de WhatsApp autom�tico?</label>
                     <select class="form-control" name="enviar_was">
-                        <option value="true">Sí</option>
+                        <option value="true">S�</option>
                         <option value="false" selected>No</option>
                     </select>
                 </div>
@@ -4256,12 +4259,12 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                 </div>
             </form>`;
 
-        openModal('Nuevo Cliente para Diagnóstico', html, () => {
+        openModal('Nuevo Cliente para Diagn�stico', html, () => {
             document.getElementById('client-form-diagnosis').addEventListener('submit', async e => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Guardando…';
+                submitBtn.textContent = 'Guardando�';
 
                 const fd = new FormData(e.target);
                 const clientId = generateId();
@@ -4291,7 +4294,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const selClient = document.getElementById('diagnosis-client-selection');
         const mainDiag = document.getElementById('diagnosis-main');
         if (!selClient || !mainDiag) {
-            console.error('Elementos de diagnóstico no encontrados');
+            console.error('Elementos de diagn�stico no encontrados');
             return;
         }
         selClient.style.display = 'none';
@@ -4306,7 +4309,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         sessionStorage.setItem('nymara_diagnosis_client_id', client.id);
         sessionStorage.setItem('nymara_diagnosis_client_name', client.name);
         
-        showToast('Cliente ' + client.name + ' seleccionado para diagnóstico');
+        showToast('Cliente ' + client.name + ' seleccionado para diagn�stico');
     }
 
     function initDiagnosisEvents() {
@@ -4383,7 +4386,7 @@ if (analyzeBtn) {
                         dropZone.style.display = 'block';
                     });
                 } catch (err) {
-                    showToast('No se pudo acceder a la cámara', 'error');
+                    showToast('No se pudo acceder a la c�mara', 'error');
                 }
             });
         }
@@ -4431,16 +4434,16 @@ if (analyzeBtn) {
             if (!validateDiagnosisImage(currentDiagnosisImage)) {
                 console.log('Image validation failed');
                 if (statusBadge) {
-                    statusBadge.textContent = 'Imagen no válida';
+                    statusBadge.textContent = 'Imagen no v�lida';
                     statusBadge.style.background = '#ef4444';
                 }
-                alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica del cuero cabelludo.');
+                alert('?? Imagen no v�lida.\n\nLa foto debe ser una toma microsc�pica del cuero cabelludo.');
                 if (analyzeBtn) analyzeBtn.disabled = false;
                 return;
             }
             
             console.log('Running detection functions...');
-            // Análisis real de la imagen
+            // An�lisis real de la imagen
             const density = detectHairDensity(currentDiagnosisImage);
             console.log('Density:', density);
             const thickness = detectHairThickness(currentDiagnosisImage);
@@ -4465,16 +4468,16 @@ if (analyzeBtn) {
             displayDiagnosisTreatments(getOlaplexRecommendations(diagnosis));
             
             if (statusBadge) {
-                statusBadge.textContent = '✓ Análisis completado';
+                statusBadge.textContent = '? An�lisis completado';
                 statusBadge.style.background = '#10b981';
             }
             // Guardar resultados para usar al guardar
             currentDiagnosisResults = { density, thickness, hydration, sebumLevel, sebumLabel, dandruffValue, dandruffLabel, isColored };
         } catch (err) {
             console.error('ERROR in diagnosis:', err);
-            console.warn('Análisis completado con advertencias');
+            console.warn('An�lisis completado con advertencias');
             if (statusBadge) {
-                statusBadge.textContent = '✓ Análisis completado';
+                statusBadge.textContent = '? An�lisis completado';
                 statusBadge.style.background = '#10b981';
             }
         } finally {
@@ -4503,8 +4506,8 @@ if (analyzeBtn) {
         
         const rAvg = rSum / n, gAvg = gSum / n, bAvg = bSum / n;
         
-        // 1. Filtro Biológico (Color del cuero cabelludo/piel)
-        // El cuero cabelludo es predominantemente cálido (R > G > B o R > G ~= B)
+        // 1. Filtro Biol�gico (Color del cuero cabelludo/piel)
+        // El cuero cabelludo es predominantemente c�lido (R > G > B o R > G ~= B)
         // Rechazar si hay exceso de Azul o Verde (fotos de paisajes, objetos artificiales)
         const isBiologicalColor = (rAvg > gAvg) && (rAvg > bAvg - 10) && (rAvg > 40);
         
@@ -4516,7 +4519,7 @@ if (analyzeBtn) {
         }
         variance /= n;
         
-        // 3. Filtro Microscópico (Textura y Bordes)
+        // 3. Filtro Microsc�pico (Textura y Bordes)
         let weakEdges = 0;
         let strongEdges = 0;
         for (let y = 0; y < size - 1; y++) {
@@ -4534,13 +4537,13 @@ if (analyzeBtn) {
         const strongEdgeDensity = strongEdges / (size * size);
         
         // Criterios Refinados:
-        const isUniform = variance < 120; // Imágenes demasiado planas (fondos, capturas)
-        const lacksTexture = weakEdgeDensity < 0.05; // Sin detalle microscópico
+        const isUniform = variance < 120; // Im�genes demasiado planas (fondos, capturas)
+        const lacksTexture = weakEdgeDensity < 0.05; // Sin detalle microsc�pico
         const lacksMicroDetail = strongEdgeDensity < 0.015; // Sin pelos o poros definidos
         const tooMuchComplexity = weakEdgeDensity > 0.40; // Demasiado ruido (no es micro)
         const isTooDarkOrBright = (avgGray < 15) || (avgGray > 240);
 
-        // Validación final
+        // Validaci�n final
         return isBiologicalColor && !isUniform && !lacksTexture && !lacksMicroDetail && !tooMuchComplexity && !isTooDarkOrBright;
     }
 
@@ -4559,7 +4562,7 @@ if (analyzeBtn) {
             const brightness = (r + g + b) / 3;
             const saturation = Math.max(r, g, b) === 0 ? 0 : (Math.max(r, g, b) - Math.min(r, g, b)) / Math.max(r, g, b);
             
-            // Detectar cabello (oscuro con cierta saturación)
+            // Detectar cabello (oscuro con cierta saturaci�n)
             if (brightness < 100 && saturation > 0.1 && saturation < 0.5) {
                 hairPixels++;
             }
@@ -4599,7 +4602,7 @@ if (analyzeBtn) {
             }
         }
         
-        // Grosor basado en transiciones (más transiciones = cabello más fino)
+        // Grosor basado en transiciones (m�s transiciones = cabello m�s fino)
         const thickness = Math.floor(90 - (totalDarkPixels / 20));
         return Math.min(120, Math.max(40, thickness));
     }
@@ -4644,13 +4647,13 @@ if (analyzeBtn) {
         }
         sebumValue = Math.min(10, Math.max(0, sebumValue));
         
-        // Determinar etiqueta según rango
+        // Determinar etiqueta seg�n rango
         let sebumLabel;
         if (sebumValue < 3) sebumLabel = 'Normal';
         else if (sebumValue < 7) sebumLabel = 'Medio';
         else sebumLabel = 'Alto';
         
-        // Hidratación basada en sebo
+        // Hidrataci�n basada en sebo
         let hydration;
         if (sebumValue >= 7) hydration = Math.floor(40 + Math.random() * 20);
         else if (sebumValue < 3) hydration = Math.floor(30 + Math.random() * 25);
@@ -4672,7 +4675,7 @@ if (analyzeBtn) {
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i], g = data[i+1], b = data[i+2];
             
-            // Detectar piel (tonos rojizos/amarillentos típicos de piel)
+            // Detectar piel (tonos rojizos/amarillentos t�picos de piel)
             const isSkinTone = r > 95 && g > 40 && b > 20 && r > b && r > g * 0.8;
             if (isSkinTone) skinPixels++;
             
@@ -4720,7 +4723,7 @@ if (analyzeBtn) {
         let dandruffValue = Math.round(dandruffRatio * 0.14); // -93% sensibilidad total
         dandruffValue = Math.min(10, Math.max(0, dandruffValue));
         
-        // Determinar etiqueta según rango
+        // Determinar etiqueta seg�n rango
         let dandruffLabel;
         if (dandruffValue < 3) dandruffLabel = 'Normal';
         else if (dandruffValue < 7) dandruffLabel = 'Medio';
@@ -4738,7 +4741,7 @@ window.addEventListener('message', async (event) => {
                 const photoData = event.data.photoData;
                 
                 console.log('DEBUG: Parent received diagnosis_photo message:', { clientId, clientName, results, hasPhoto: !!photoData });
-                showToast(`Análisis completado para ${clientName || 'Cliente'}`);
+                showToast(`An�lisis completado para ${clientName || 'Cliente'}`);
                 
                 // Guardar foto si existe
                 if (photoData && clientId) {
@@ -4754,7 +4757,7 @@ window.addEventListener('message', async (event) => {
                             return v.toString(16);
                         });
 
-                        const notes = `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`;
+                        const notes = `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidrataci�n: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`;
 
                         try {
                             const photoFile = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
@@ -4768,7 +4771,7 @@ window.addEventListener('message', async (event) => {
                             });
 
                             console.log('Diagnosis photo saved:', savedPhoto.photo_url);
-                            showToast('Diagnóstico guardado en el historial del cliente');
+                            showToast('Diagn�stico guardado en el historial del cliente');
                             if (!State.clientPhotos) State.clientPhotos = {};
                             if (!State.clientPhotos[clientId]) State.clientPhotos[clientId] = [];
                             State.clientPhotos[clientId].unshift(savedPhoto);
@@ -4783,7 +4786,7 @@ window.addEventListener('message', async (event) => {
                             }
                         } catch (e) {
                             console.error('Error saving diagnosis photo:', e);
-                            showToast('Error al guardar la foto del diagnóstico', 'error');
+                            showToast('Error al guardar la foto del diagn�stico', 'error');
                         }
                     } catch (e) {
                         console.error('Error saving diagnosis photo:', e);
@@ -4810,9 +4813,9 @@ window.addEventListener('message', async (event) => {
         }
     });
 
-    /* ═══════════════════════════════════════
+    /* ---------------------------------------
        FORMS (now async submit handlers)
-       ═══════════════════════════════════════ */
+       --------------------------------------- */
     function showClientForm(info = null) {
         const isEdit = !!info;
         const isStaff = !!State.session?.staff;
@@ -4827,12 +4830,12 @@ window.addEventListener('message', async (event) => {
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
                 </div>
                 <div class="form-group">
-                    <label>Salón <span style="color:var(--danger-color, #dc3545)">*</span></label>
+                    <label>Sal�n <span style="color:var(--danger-color, #dc3545)">*</span></label>
                     ${isStaff
-                        ? `<div class="form-control" style="background:rgba(0,0,0,0.03);color:var(--text-secondary)">${State.salons.find(s => String(s.id) === String(staffSalonId))?.name || 'Salón asignado'}</div>
+                        ? `<div class="form-control" style="background:rgba(0,0,0,0.03);color:var(--text-secondary)">${State.salons.find(s => String(s.id) === String(staffSalonId))?.name || 'Sal�n asignado'}</div>
                            <input type="hidden" name="salon_id" value="${staffSalonId || ''}">`
                         : `<select class="form-control" name="salon_id" required>
-                              <option value="" disabled ${!defaultSalonId ? 'selected' : ''}>Selecciona un salón...</option>
+                              <option value="" disabled ${!defaultSalonId ? 'selected' : ''}>Selecciona un sal�n...</option>
                               ${salonOptions}
                           </select>`}
                 </div>
@@ -4841,11 +4844,11 @@ window.addEventListener('message', async (event) => {
                     <input type="text" class="form-control" name="nif" placeholder="12345678A" value="${isEdit ? (info.nif || '') : ''}">
                 </div>
                 <div class="form-group">
-                    <label>Dirección Fiscal</label>
-                    <input type="text" class="form-control" name="fiscal_address" placeholder="Calle, nº, CP, Ciudad" value="${isEdit ? (info.fiscal_address || '') : ''}">
+                    <label>Direcci�n Fiscal</label>
+                    <input type="text" class="form-control" name="fiscal_address" placeholder="Calle, n�, CP, Ciudad" value="${isEdit ? (info.fiscal_address || '') : ''}">
                 </div>
                 <div class="form-group">
-                    <label>Teléfono</label>
+                    <label>Tel�fono</label>
                     <input type="tel" class="form-control" name="phone" value="${isEdit ? info.phone : ''}">
                 </div>
                 <div class="form-group">
@@ -4853,9 +4856,9 @@ window.addEventListener('message', async (event) => {
                     <input type="email" class="form-control" name="email" value="${isEdit ? info.email : ''}">
                 </div>
                 <div class="form-group">
-                    <label>¿Enviar mensaje de WhatsApp automático?</label>
+                    <label>�Enviar mensaje de WhatsApp autom�tico?</label>
                     <select class="form-control" name="enviar_was" id="enviar-was-select" onchange="toggleWATemplate()">
-                        <option value="true" ${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? 'selected' : ''}>Sí</option>
+                        <option value="true" ${isEdit && (info.enviar_was === true || info.enviar_was === 'true' || info.enviar_was === 1) ? 'selected' : ''}>S�</option>
                         <option value="false" ${!isEdit || (info.enviar_was === false || info.enviar_was === 'false' || info.enviar_was === 0 || info.enviar_was === null) ? 'selected' : ''}>No</option>
                     </select>
                 </div>
@@ -4863,7 +4866,7 @@ window.addEventListener('message', async (event) => {
                     <label>Plantilla de mensaje WhatsApp</label>
                     <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">
                         <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{cliente}')">+ Cliente</button>
-                        <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{salon}')">+ Salón</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{salon}')">+ Sal�n</button>
                         <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{servicio}')">+ Servicio</button>
                         <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{fecha}')">+ Fecha</button>
                         <button type="button" class="btn btn-sm btn-secondary" onclick="insertWAVariable('{hora}')">+ Hora</button>
@@ -4876,21 +4879,21 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <div class="form-group">
                     <label style="cursor:pointer;display:flex;align-items:center;gap:6px" data-action="toggle-tech-history">
-                        <span id="tech-history-arrow">▼</span> Historial Técnico
+                        <span id="tech-history-arrow">?</span> Historial T�cnico
                     </label>
                     <div id="tech-history-body" class="tech-history-container">
                         <div class="tech-history-tabs">
                             <button type="button" class="tech-tab active" data-tab="th-general">Datos Generales</button>
-                            <button type="button" class="tech-tab" data-tab="th-laser">Láser Diodo</button>
+                            <button type="button" class="tech-tab" data-tab="th-laser">L�ser Diodo</button>
                             <button type="button" class="tech-tab" data-tab="th-rf">Radiofrecuencia</button>
-                            <button type="button" class="tech-tab" data-tab="th-evolution">Evolución</button>
+                            <button type="button" class="tech-tab" data-tab="th-evolution">Evoluci�n</button>
                         </div>
                         <div id="th-general" class="tech-tab-panel active">
                             <div class="form-group"><label>Fecha de Nacimiento</label><input type="date" class="form-control" name="th_birth_date"></div>
                             <div class="form-group"><label>Embarazo / Lactancia</label><select class="form-control" name="th_pregnancy"><option value="">No</option><option value="embarazo">Embarazo</option><option value="lactancia">Lactancia</option></select></div>
-                            <div class="form-group"><label>Marcapasos / Prótesis metálicas / Cardiopatías</label><select class="form-control" name="th_pacemaker"><option value="">No</option><option value="si">Sí</option></select></div>
-                            <div class="form-group"><label>Epilepsia / Cáncer reciente / Infecciones activas</label><select class="form-control" name="th_epilepsy"><option value="">No</option><option value="si">Sí</option></select></div>
-                            <div class="form-group"><label>Medicación actual (fotosensibles)</label><input type="text" class="form-control" name="th_medication" placeholder="Ej: isotretinoína, ibuprofeno..."></div>
+                            <div class="form-group"><label>Marcapasos / Pr�tesis met�licas / Cardiopat�as</label><select class="form-control" name="th_pacemaker"><option value="">No</option><option value="si">S�</option></select></div>
+                            <div class="form-group"><label>Epilepsia / C�ncer reciente / Infecciones activas</label><select class="form-control" name="th_epilepsy"><option value="">No</option><option value="si">S�</option></select></div>
+                            <div class="form-group"><label>Medicaci�n actual (fotosensibles)</label><input type="text" class="form-control" name="th_medication" placeholder="Ej: isotretino�na, ibuprofeno..."></div>
                             <div class="form-group"><label>Consentimiento informado</label><select class="form-control" name="th_consent"><option value="false">No firmado</option><option value="true">Firmado</option></select></div>
                         </div>
                         <div id="th-laser" class="tech-tab-panel">
@@ -4898,20 +4901,20 @@ window.addEventListener('message', async (event) => {
                             <div class="form-group"><label>Fototipo de piel (Fitzpatrick)</label><select class="form-control" name="th_fitzpatrick"><option value="">Seleccionar...</option><option value="I">I - Muy blanca</option><option value="II">II - Blanca</option><option value="III">III - Morena clara</option><option value="IV">IV - Morena</option><option value="V">V - Oscura</option><option value="VI">VI - Muy oscura</option></select></div>
                             <div class="form-group"><label>Densidad del vello</label><select class="form-control" name="th_hair_density"><option value="">Seleccionar...</option><option value="baja">Baja</option><option value="media">Media</option><option value="alta">Alta</option></select></div>
                             <div class="form-group"><label>Grosor del vello</label><select class="form-control" name="th_hair_thickness"><option value="">Seleccionar...</option><option value="fino">Fino</option><option value="medio">Medio</option><option value="grueso">Grueso</option></select></div>
-                            <div class="form-group"><label>Color del vello</label><input type="text" class="form-control" name="th_hair_color" placeholder="Ej: castaño, negro, rubio"></div>
-                            <div class="tech-sessions-header">Sesiones Láser<button type="button" class="btn btn-sm btn-secondary" data-action="add-session" data-type="laser">+ Añadir sesión</button></div>
+                            <div class="form-group"><label>Color del vello</label><input type="text" class="form-control" name="th_hair_color" placeholder="Ej: casta�o, negro, rubio"></div>
+                            <div class="tech-sessions-header">Sesiones L�ser<button type="button" class="btn btn-sm btn-secondary" data-action="add-session" data-type="laser">+ A�adir sesi�n</button></div>
                             <div id="th-laser-sessions"></div>
                         </div>
                         <div id="th-rf" class="tech-tab-panel">
-                            <div class="form-group"><label>Objetivo del tratamiento</label><select class="form-control" name="th_rf_objective"><option value="">Seleccionar...</option><option value="flacidez">Flacidez</option><option value="celulitis">Celulitis</option><option value="grasa_localizada">Grasa localizada</option><option value="drenaje">Drenaje</option><option value="reafirmacion">Reafirmación</option></select></div>
-                            <div class="form-group"><label>Zona corporal</label><input type="text" class="form-control" name="th_rf_zone" placeholder="Ej: abdomen, cartucheras, glúteos"></div>
-                            <div class="tech-sessions-header">Sesiones Radiofrecuencia<button type="button" class="btn btn-sm btn-secondary" data-action="add-session" data-type="rf">+ Añadir sesión</button></div>
+                            <div class="form-group"><label>Objetivo del tratamiento</label><select class="form-control" name="th_rf_objective"><option value="">Seleccionar...</option><option value="flacidez">Flacidez</option><option value="celulitis">Celulitis</option><option value="grasa_localizada">Grasa localizada</option><option value="drenaje">Drenaje</option><option value="reafirmacion">Reafirmaci�n</option></select></div>
+                            <div class="form-group"><label>Zona corporal</label><input type="text" class="form-control" name="th_rf_zone" placeholder="Ej: abdomen, cartucheras, gl�teos"></div>
+                            <div class="tech-sessions-header">Sesiones Radiofrecuencia<button type="button" class="btn btn-sm btn-secondary" data-action="add-session" data-type="rf">+ A�adir sesi�n</button></div>
                             <div id="th-rf-sessions"></div>
-                            <div class="tech-sessions-header" style="margin-top:12px">Medidas y Control<button type="button" class="btn btn-sm btn-secondary" data-action="add-perimeter">+ Añadir perímetro</button></div>
+                            <div class="tech-sessions-header" style="margin-top:12px">Medidas y Control<button type="button" class="btn btn-sm btn-secondary" data-action="add-perimeter">+ A�adir per�metro</button></div>
                             <div id="th-perimeters"></div>
                         </div>
                         <div id="th-evolution" class="tech-tab-panel">
-                            <div class="tech-sessions-header">Control de Evolución<button type="button" class="btn btn-sm btn-secondary" data-action="add-evolution">+ Añadir registro</button></div>
+                            <div class="tech-sessions-header">Control de Evoluci�n<button type="button" class="btn btn-sm btn-secondary" data-action="add-evolution">+ A�adir registro</button></div>
                             <div id="th-evolution-records"></div>
                         </div>
                     </div>
@@ -4923,16 +4926,16 @@ window.addEventListener('message', async (event) => {
                     <div style="display:flex;gap:8px;margin-bottom:8px" id="photos-buttons-container">
                         <button type="button" class="btn btn-sm btn-secondary" id="btn-add-client-photo">
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                            Añadir Foto
+                            A�adir Foto
                         </button>
-                        <button type="button" class="btn btn-sm btn-secondary compare-btn" data-client-id="${isEdit ? info.id : ''}" id="btn-compare-client-photos" style="${isEdit ? '' : 'display:none'}">Antes / Después</button>
+                        <button type="button" class="btn btn-sm btn-secondary compare-btn" data-client-id="${isEdit ? info.id : ''}" id="btn-compare-client-photos" style="${isEdit ? '' : 'display:none'}">Antes / Despu�s</button>
                     </div>
                     <input type="file" id="client-photo-input" accept="image/*" style="display:none">
                 </div>
                 ` : ''}
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
+                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'A�adir'}</button>
                 </div>
             </form>`;
 
@@ -4942,7 +4945,7 @@ window.addEventListener('message', async (event) => {
             let sessionPhotos = [];
             let pendingFiles = [];
 
-            // --- Historial Técnico ---
+            // --- Historial T�cnico ---
             const techData = { general: {}, laser: { sessions: [] }, rf: { sessions: [], perimeters: [] }, evolution: [] };
             try { if (isEdit && info.technical_history) Object.assign(techData, JSON.parse(info.technical_history)); } catch(e) {}
 
@@ -4951,9 +4954,9 @@ window.addEventListener('message', async (event) => {
                 if (!c) return;
                 c.innerHTML = (techData.laser.sessions || []).map((s, i) => `
                     <div class="tech-session-card">
-                        <div class="tech-session-header">Sesión Láser ${i+1} <button type="button" class="btn btn-sm tech-remove-session" data-type="laser" data-idx="${i}" style="color:var(--danger-color,#dc3545)">✕</button></div>
+                        <div class="tech-session-header">Sesi�n L�ser ${i+1} <button type="button" class="btn btn-sm tech-remove-session" data-type="laser" data-idx="${i}" style="color:var(--danger-color,#dc3545)">?</button></div>
                         <div class="form-row"><div class="form-group"><label>Fecha</label><input type="date" class="form-control" value="${s.date||''}" data-th="laser" data-idx="${i}" data-field="date"></div>
-                        <div class="form-group"><label>Fluencia (J/cm²)</label><input type="text" class="form-control" value="${s.fluence||''}" placeholder="Ej: 12" data-th="laser" data-idx="${i}" data-field="fluence"></div></div>
+                        <div class="form-group"><label>Fluencia (J/cm�)</label><input type="text" class="form-control" value="${s.fluence||''}" placeholder="Ej: 12" data-th="laser" data-idx="${i}" data-field="fluence"></div></div>
                         <div class="form-row"><div class="form-group"><label>Ancho de pulso (ms)</label><input type="text" class="form-control" value="${s.pulse_width||''}" placeholder="Ej: 30" data-th="laser" data-idx="${i}" data-field="pulse_width"></div>
                         <div class="form-group"><label>Frecuencia (Hz)</label><input type="text" class="form-control" value="${s.frequency||''}" placeholder="Ej: 10 o modo barrido" data-th="laser" data-idx="${i}" data-field="frequency"></div></div>
                         <div class="form-group"><label>Reacciones inmediatas</label><input type="text" class="form-control" value="${s.reactions||''}" placeholder="Ej: eritema perifolicular leve" data-th="laser" data-idx="${i}" data-field="reactions"></div>
@@ -4966,11 +4969,11 @@ window.addEventListener('message', async (event) => {
                 if (!c) return;
                 c.innerHTML = (techData.rf.sessions || []).map((s, i) => `
                     <div class="tech-session-card">
-                        <div class="tech-session-header">Sesión RF ${i+1} <button type="button" class="btn btn-sm tech-remove-session" data-type="rf" data-idx="${i}" style="color:var(--danger-color,#dc3545)">✕</button></div>
+                        <div class="tech-session-header">Sesi�n RF ${i+1} <button type="button" class="btn btn-sm tech-remove-session" data-type="rf" data-idx="${i}" style="color:var(--danger-color,#dc3545)">?</button></div>
                         <div class="form-row"><div class="form-group"><label>Fecha</label><input type="date" class="form-control" value="${s.date||''}" data-th="rf" data-idx="${i}" data-field="date"></div>
                         <div class="form-group"><label>Tipo RF</label><select class="form-control" data-th="rf" data-idx="${i}" data-field="rf_type"><option value="">...</option><option value="monopolar" ${s.rf_type==='monopolar'?'selected':''}>Monopolar</option><option value="bipolar" ${s.rf_type==='bipolar'?'selected':''}>Bipolar</option><option value="multipolar" ${s.rf_type==='multipolar'?'selected':''}>Multipolar</option><option value="resistiva" ${s.rf_type==='resistiva'?'selected':''}>Resistiva</option><option value="capacitiva" ${s.rf_type==='capacitiva'?'selected':''}>Capacitiva</option></select></div></div>
-                        <div class="form-row"><div class="form-group"><label>Temperatura (°C)</label><input type="text" class="form-control" value="${s.temperature||''}" placeholder="Ej: 40" data-th="rf" data-idx="${i}" data-field="temperature"></div>
-                        <div class="form-group"><label>Tiempo exposición (min)</label><input type="text" class="form-control" value="${s.exposure_time||''}" placeholder="Ej: 20" data-th="rf" data-idx="${i}" data-field="exposure_time"></div></div>
+                        <div class="form-row"><div class="form-group"><label>Temperatura (�C)</label><input type="text" class="form-control" value="${s.temperature||''}" placeholder="Ej: 40" data-th="rf" data-idx="${i}" data-field="temperature"></div>
+                        <div class="form-group"><label>Tiempo exposici�n (min)</label><input type="text" class="form-control" value="${s.exposure_time||''}" placeholder="Ej: 20" data-th="rf" data-idx="${i}" data-field="exposure_time"></div></div>
                         <div class="form-group"><label>Potencia / Intensidad</label><input type="text" class="form-control" value="${s.power||''}" placeholder="Ej: nivel 4" data-th="rf" data-idx="${i}" data-field="power"></div>
                     </div>`).join('');
             }
@@ -4984,7 +4987,7 @@ window.addEventListener('message', async (event) => {
                             <div class="form-group" style="flex:1"><label>Zona</label><input type="text" class="form-control" value="${p.zone||''}" placeholder="Ej: abdomen" data-th="perimeter" data-idx="${i}" data-field="zone"></div>
                             <div class="form-group" style="flex:1"><label>Medida (cm)</label><input type="text" class="form-control" value="${p.value||''}" placeholder="Ej: 85" data-th="perimeter" data-idx="${i}" data-field="value"></div>
                             <div class="form-group" style="flex:1"><label>Fecha</label><input type="date" class="form-control" value="${p.date||''}" data-th="perimeter" data-idx="${i}" data-field="date"></div>
-                            <button type="button" class="btn btn-sm tech-remove-perimeter" data-idx="${i}" style="color:var(--danger-color,#dc3545);margin-bottom:4px">✕</button>
+                            <button type="button" class="btn btn-sm tech-remove-perimeter" data-idx="${i}" style="color:var(--danger-color,#dc3545);margin-bottom:4px">?</button>
                         </div>
                     </div>`).join('');
             }
@@ -4994,12 +4997,12 @@ window.addEventListener('message', async (event) => {
                 if (!c) return;
                 c.innerHTML = (techData.evolution || []).map((e, i) => `
                     <div class="tech-session-card">
-                        <div class="tech-session-header">Registro ${i+1} <button type="button" class="btn btn-sm tech-remove-evolution" data-idx="${i}" style="color:var(--danger-color,#dc3545)">✕</button></div>
+                        <div class="tech-session-header">Registro ${i+1} <button type="button" class="btn btn-sm tech-remove-evolution" data-idx="${i}" style="color:var(--danger-color,#dc3545)">?</button></div>
                         <div class="form-row"><div class="form-group"><label>Fecha</label><input type="date" class="form-control" value="${e.date||''}" data-th="evolution" data-idx="${i}" data-field="date"></div>
-                        <div class="form-group"><label>Nº Sesión Láser</label><input type="text" class="form-control" value="${e.laser_session||''}" placeholder="Ej: 3" data-th="evolution" data-idx="${i}" data-field="laser_session"></div>
-                        <div class="form-group"><label>Nº Sesión RF</label><input type="text" class="form-control" value="${e.rf_session||''}" placeholder="Ej: 5" data-th="evolution" data-idx="${i}" data-field="rf_session"></div></div>
-                        <div class="form-group"><label>Incidencias / Efectos secundarios</label><input type="text" class="form-control" value="${e.incidents||''}" placeholder="Ej: quemazón leve, hiperpigmentación" data-th="evolution" data-idx="${i}" data-field="incidents"></div>
-                        <div class="form-group"><label>Recomendaciones domiciliarias</label><input type="text" class="form-control" value="${e.home_recommendations||''}" placeholder="Ej: protector solar, hidratación profunda" data-th="evolution" data-idx="${i}" data-field="home_recommendations"></div>
+                        <div class="form-group"><label>N� Sesi�n L�ser</label><input type="text" class="form-control" value="${e.laser_session||''}" placeholder="Ej: 3" data-th="evolution" data-idx="${i}" data-field="laser_session"></div>
+                        <div class="form-group"><label>N� Sesi�n RF</label><input type="text" class="form-control" value="${e.rf_session||''}" placeholder="Ej: 5" data-th="evolution" data-idx="${i}" data-field="rf_session"></div></div>
+                        <div class="form-group"><label>Incidencias / Efectos secundarios</label><input type="text" class="form-control" value="${e.incidents||''}" placeholder="Ej: quemaz�n leve, hiperpigmentaci�n" data-th="evolution" data-idx="${i}" data-field="incidents"></div>
+                        <div class="form-group"><label>Recomendaciones domiciliarias</label><input type="text" class="form-control" value="${e.home_recommendations||''}" placeholder="Ej: protector solar, hidrataci�n profunda" data-th="evolution" data-idx="${i}" data-field="home_recommendations"></div>
                     </div>`).join('');
             }
 
@@ -5060,7 +5063,7 @@ window.addEventListener('message', async (event) => {
                         const body = document.getElementById('tech-history-body');
                         const arrow = document.getElementById('tech-history-arrow');
                         body.classList.toggle('collapsed');
-                        arrow.textContent = body.classList.contains('collapsed') ? '▶' : '▼';
+                        arrow.textContent = body.classList.contains('collapsed') ? '?' : '?';
                     }
                 });
 
@@ -5122,7 +5125,7 @@ window.addEventListener('message', async (event) => {
                 return techData;
             }
 
-            // --- Fin Historial Técnico ---
+            // --- Fin Historial T�cnico ---
 
             const renderPhotos = () => {
                 const container = document.getElementById('client-photos-list');
@@ -5130,15 +5133,15 @@ window.addEventListener('message', async (event) => {
                 
                 let html = '';
                 sessionPhotos.forEach((p, idx) => {
-                    const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
+                    const photoType = (p.photo_type === 'after') ? 'Despu�s' : (p.photo_type === 'diagnosis' ? 'Diagn�stico' : 'Antes');
                     html += `
                         <div class="client-mini-photo" data-photo-id="${p.id}" style="position:relative;text-align:center">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">${photoType}</div>
-                            <div style="font-size:0.6rem;color:var(--text-secondary)">${euDateStr(p.photo_date || '')}</div>
+                            <div style="font-size:0.6rem;color:var(--text-secondary)">${formatDateEU(p.photo_date || '')}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
-                                <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:12px;opacity:0.9">✏️</button>
-                                <button type="button" class="client-photo-remove-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(220,53,69,0.8);color:white;border:none;border-radius:4px;min-width:24px;height:24px;padding:0 4px;cursor:pointer;font-size:12px;opacity:0.9;transition:all 0.2s">🗑️</button>
+                                <button type="button" class="client-photo-edit-btn" data-photo-id="${p.id}" title="Editar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:12px;opacity:0.9">??</button>
+                                <button type="button" class="client-photo-remove-btn" data-id="${p.id}" title="Eliminar" style="background:rgba(220,53,69,0.8);color:white;border:none;border-radius:4px;min-width:24px;height:24px;padding:0 4px;cursor:pointer;font-size:12px;opacity:0.9;transition:all 0.2s">???</button>
                             </div>
                         </div>`;
                 });
@@ -5148,9 +5151,9 @@ window.addEventListener('message', async (event) => {
                         <div style="position:relative;text-align:center">
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px">
                             <div style="font-size:0.65rem;color:var(--text-secondary)">Antes</div>
-                            <div style="font-size:0.6rem;color:var(--text-secondary)">${euDateStr(new Date())}</div>
+                            <div style="font-size:0.6rem;color:var(--text-secondary)">${formatDateEU(new Date())}</div>
                             <div style="display:flex;gap:2px;justify-content:center">
-                                <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">🗑️</button>
+                                <button type="button" class="delete-pending-btn" data-idx="${idx}" title="Eliminar" style="background:rgba(0,0,0,0.6);color:white;border:none;border-radius:4px;width:20px;height:20px;cursor:pointer;font-size:10px;opacity:0.8">???</button>
                             </div>
                         </div>`;
                 });
@@ -5166,7 +5169,7 @@ window.addEventListener('message', async (event) => {
                 renderPhotos();
             }
 
-            // Agregar botón de borrar duplicados dinámicamente
+            // Agregar bot�n de borrar duplicados din�micamente
             if (isEdit) {
                 const buttonsContainer = document.getElementById('photos-buttons-container');
                 if (buttonsContainer && !document.getElementById('btn-dedup-photos')) {
@@ -5175,7 +5178,7 @@ window.addEventListener('message', async (event) => {
                     dedupBtn.id = 'btn-dedup-photos';
                     dedupBtn.className = 'btn btn-sm';
                     dedupBtn.style.cssText = 'background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;margin-left:8px';
-                    dedupBtn.innerHTML = '🗑️ Borrar Duplicados';
+                    dedupBtn.innerHTML = '??? Borrar Duplicados';
                     buttonsContainer.appendChild(dedupBtn);
                     
                     dedupBtn.addEventListener('click', async () => {
@@ -5231,7 +5234,7 @@ window.addEventListener('message', async (event) => {
                             return;
                         }
                         
-                        if (!confirm(`Se encontraron ${toDelete.length} foto(s) duplicada(s). ¿Eliminarlas?`)) return;
+                        if (!confirm(`Se encontraron ${toDelete.length} foto(s) duplicada(s). �Eliminarlas?`)) return;
                         
                         for (const photoId of toDelete) {
                             await deleteClientPhoto(photoId, currentClientId);
@@ -5322,7 +5325,7 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Guardando…';
+                submitBtn.textContent = 'Guardando�';
 
                 const fd = new FormData(e.target);
                 const enviarWas = fd.get('enviar_was') === 'true';
@@ -5365,7 +5368,7 @@ window.addEventListener('message', async (event) => {
                 }
 
                 if (success) { closeModal(); renderRoute(); }
-                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
+                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'A�adir'; }
             });
         });
 }
@@ -5379,16 +5382,16 @@ window.addEventListener('message', async (event) => {
                     <input type="text" class="form-control" name="name" required value="${isEdit ? info.name : ''}">
                 </div>
                 <div class="form-group">
-                    <label>Duración (minutos)</label>
+                    <label>Duraci�n (minutos)</label>
                     <input type="number" class="form-control" name="duration" min="5" step="5" required value="${isEdit ? info.duration : '30'}">
                 </div>
                 <div class="form-group">
-                    <label>Precio (€)</label>
+                    <label>Precio (�)</label>
                     <input type="number" class="form-control" name="price" min="0" step="0.01" required value="${isEdit ? info.price : '0'}">
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'Añadir'}</button>
+                    <button type="submit" class="btn btn-primary">${isEdit ? 'Guardar' : 'A�adir'}</button>
                 </div>
             </form>`;
 
@@ -5397,7 +5400,7 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Guardando…';
+                submitBtn.textContent = 'Guardando�';
 
                 const fd = new FormData(e.target);
                 const data = { id: isEdit ? info.id : generateId(), name: fd.get('name'), duration: parseInt(fd.get('duration')), price: parseFloat(fd.get('price')) };
@@ -5407,7 +5410,7 @@ window.addEventListener('message', async (event) => {
                 else success = await addService(data);
 
                 if (success) { closeModal(); renderRoute(); }
-                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'Añadir'; }
+                else { submitBtn.disabled = false; submitBtn.textContent = isEdit ? 'Guardar' : 'A�adir'; }
             });
         });
     }
@@ -5433,8 +5436,8 @@ window.addEventListener('message', async (event) => {
                         <button type="button" class="btn btn-danger btn-sm" onclick="removeStaffAccount('${encodeURIComponent(acc.name)}')" style="padding:0.25rem 0.6rem;font-size:0.75rem;">Eliminar</button>
                     </div>
                 </div>
-                <div style="font-size:0.85rem;color:var(--text-secondary);">Salón: ${State.salons.find(s => s.id === acc.salon_id)?.name || '—'}</div>
-                <div style="font-size:0.85rem;color:var(--text-secondary);">Email: ${acc.email || '—'}</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);">Sal�n: ${State.salons.find(s => s.id === acc.salon_id)?.name || '�'}</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);">Email: ${acc.email || '�'}</div>
             </div>
         `).join('');
             }
@@ -5444,11 +5447,11 @@ window.addEventListener('message', async (event) => {
 
         const hasSalons = State.salons && State.salons.length > 0;
         const freeSalons = hasSalons ? State.salons.filter(s => !takenSalonIds.includes(s.id)) : [];
-        const salonOptions = freeSalons.length > 0 ? freeSalons.map(s => `<option value="${s.id}">${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
+        const salonOptions = freeSalons.length > 0 ? freeSalons.map(s => `<option value="${s.id}">${s.name}</option>`).join('') : '<option value="">� Sin salones �</option>';
 
         const html = `
             <form id="settings-form">
-                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Configuración</h3>
+                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Configuraci�n</h3>
                 <div class="form-group">
                     <label>Hora de Apertura</label>
                     <input type="time" class="form-control" name="startTime" required value="${State.settings.startTime}">
@@ -5459,7 +5462,7 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <h3 style="margin-bottom:1rem;font-size:1.1rem;">Acceso Staff</h3>
-                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Cada salón tiene un único usuario staff. Crea el usuario del salón que quieras gestionar y asígnalo a ese salón.</p>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Cada sal�n tiene un �nico usuario staff. Crea el usuario del sal�n que quieras gestionar y as�gnalo a ese sal�n.</p>
                 
                 <div id="staff-list" style="margin-bottom:1rem;">
                     ${staffList}
@@ -5476,25 +5479,25 @@ window.addEventListener('message', async (event) => {
                         <input type="email" class="form-control" id="new-staff-email" placeholder="email@delstaff.com">
                     </div>
                     <div class="form-group">
-                        <label>Contraseña</label>
-                        <input type="text" class="form-control" id="new-staff-password" placeholder="Contraseña">
+                        <label>Contrase�a</label>
+                        <input type="text" class="form-control" id="new-staff-password" placeholder="Contrase�a">
                     </div>
                     <div class="form-group">
-                        <label>Salón</label>
+                        <label>Sal�n</label>
                         <select class="form-control" id="new-staff-salon">
                             ${salonOptions}
                         </select>
-                        ${!hasSalons ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">⚠️ Crea primero un salón en la pestaña Salones.</p>' : (freeSalons.length === 0 ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">⚠️ Todos tus salones ya tienen su usuario staff.</p>' : '')}
+                        ${!hasSalons ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">?? Crea primero un sal�n en la pesta�a Salones.</p>' : (freeSalons.length === 0 ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">?? Todos tus salones ya tienen su usuario staff.</p>' : '')}
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="addStaffFromSettings()" style="margin-top:0.25rem;">Añadir Staff</button>
+                    <button type="button" class="btn btn-primary" onclick="addStaffFromSettings()" style="margin-top:0.25rem;">A�adir Staff</button>
                 </div>
                 <div style="margin-top:1rem;font-size:0.8rem;color:var(--text-secondary);">
-                    <strong>Nota:</strong> Los cambios en el staff se guardan automáticamente al añadir o eliminar.
+                    <strong>Nota:</strong> Los cambios en el staff se guardan autom�ticamente al a�adir o eliminar.
                 </div>
                 ${isStaffUser ? '' : `
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <h3 style="margin-bottom:1rem;font-size:1.1rem;">Datos Fiscales</h3>
-                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Estos datos se usarán como emisor en tus facturas. Solo visibles para el administrador.</p>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">Estos datos se usar�n como emisor en tus facturas. Solo visibles para el administrador.</p>
                 <div class="form-group">
                     <label>Nombre y apellidos</label>
                     <input type="text" class="form-control" id="profile-full-name" value="${(profile.full_name || '').replace(/"/g, '&quot;')}" placeholder="Nombre del negocio o titular">
@@ -5504,39 +5507,39 @@ window.addEventListener('message', async (event) => {
                     <input type="text" class="form-control" id="profile-nif" value="${(profile.nif || '').replace(/"/g, '&quot;')}" placeholder="NIF o CIF del negocio">
                 </div>
                 <div class="form-group">
-                    <label>Dirección fiscal</label>
-                    <input type="text" class="form-control" id="profile-fiscal-address" value="${(profile.fiscal_address || '').replace(/"/g, '&quot;')}" placeholder="Calle, número, ciudad, CP">
+                    <label>Direcci�n fiscal</label>
+                    <input type="text" class="form-control" id="profile-fiscal-address" value="${(profile.fiscal_address || '').replace(/"/g, '&quot;')}" placeholder="Calle, n�mero, ciudad, CP">
                 </div>
                 <button type="button" class="btn btn-primary" id="btn-save-profile" style="margin-bottom:1rem;">Guardar Datos Fiscales</button>`}
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
-                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Cambiar Contraseña</h3>
+                <h3 style="margin-bottom:1rem;font-size:1.1rem;">Cambiar Contrase�a</h3>
                 <div class="form-group">
-                    <label>Contraseña actual</label>
+                    <label>Contrase�a actual</label>
                     <div class="auth-input-wrapper">
-                        <input type="password" class="form-control auth-input" id="current-password-input" placeholder="••••••••" autocomplete="current-password">
-                        <button type="button" class="password-toggle" data-toggle="current-password-input" tabindex="-1" aria-label="Mostrar contraseña">
+                        <input type="password" class="form-control auth-input" id="current-password-input" placeholder="��������" autocomplete="current-password">
+                        <button type="button" class="password-toggle" data-toggle="current-password-input" tabindex="-1" aria-label="Mostrar contrase�a">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Nueva contraseña</label>
+                    <label>Nueva contrase�a</label>
                     <div class="auth-input-wrapper">
-                        <input type="password" class="form-control auth-input" id="change-password-input" placeholder="••••••••" minlength="6">
-                        <button type="button" class="password-toggle" data-toggle="change-password-input" tabindex="-1" aria-label="Mostrar contraseña">
+                        <input type="password" class="form-control auth-input" id="change-password-input" placeholder="��������" minlength="6">
+                        <button type="button" class="password-toggle" data-toggle="change-password-input" tabindex="-1" aria-label="Mostrar contrase�a">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-primary" id="btn-change-password" style="margin-bottom:1rem;">Actualizar Contraseña</button>
+                <button type="button" class="btn btn-primary" id="btn-change-password" style="margin-bottom:1rem;">Actualizar Contrase�a</button>
                 <hr style="margin:1.5rem 0;border:none;border-top:1px solid var(--border-color);">
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('btn-close-modal').click()">Cerrar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="submit" class="btn btn-primary">Guardar Configuraci�n</button>
                 </div>
             </form>`;
 
-        openModal('Configuración', html, () => {
+        openModal('Configuraci�n', html, () => {
             document.getElementById('settings-form').addEventListener('submit', e => {
                 e.preventDefault();
                 const fd = new FormData(e.target);
@@ -5553,7 +5556,7 @@ window.addEventListener('message', async (event) => {
                 localStorage.setItem('nymara_start_time', start);
                 localStorage.setItem('nymara_end_time', end);
 
-                showToast('Configuración actualizada correctamente.');
+                showToast('Configuraci�n actualizada correctamente.');
                 closeModal();
             });
 
@@ -5588,11 +5591,11 @@ window.addEventListener('message', async (event) => {
                 const currentPassword = currentPwdInput.value;
                 const newPassword = pwdInput.value.trim();
                 if (!currentPassword) {
-                    showToast('Introduce tu contraseña actual.', 'error');
+                    showToast('Introduce tu contrase�a actual.', 'error');
                     return;
                 }
                 if (!newPassword || newPassword.length < 6) {
-                    showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
+                    showToast('La contrase�a debe tener al menos 6 caracteres.', 'error');
                     return;
                 }
                 const btn = document.getElementById('btn-change-password');
@@ -5600,14 +5603,14 @@ window.addEventListener('message', async (event) => {
                 btn.textContent = 'Actualizando...';
                 try {
                     await api.changePassword(currentPassword, newPassword);
-                    showToast('Contraseña actualizada correctamente.');
+                    showToast('Contrase�a actualizada correctamente.');
                     pwdInput.value = '';
                     currentPwdInput.value = '';
                 } catch (err) {
                     showToast('Error: ' + err.message, 'error');
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = 'Actualizar Contraseña';
+                    btn.textContent = 'Actualizar Contrase�a';
                 }
             });
         });
@@ -5620,7 +5623,7 @@ window.addEventListener('message', async (event) => {
         const salonId = document.getElementById('new-staff-salon').value;
 
         if (!name || !password) {
-            showToast('Debes introducir nombre y contraseña.', 'error');
+            showToast('Debes introducir nombre y contrase�a.', 'error');
             return;
         }
         if (!email) {
@@ -5628,25 +5631,25 @@ window.addEventListener('message', async (event) => {
             return;
         }
         if (password.length < 6) {
-            showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
+            showToast('La contrase�a debe tener al menos 6 caracteres.', 'error');
             return;
         }
         if (!salonId) {
-            showToast('No hay salones libres. Cada salón ya tiene su usuario staff.', 'error');
+            showToast('No hay salones libres. Cada sal�n ya tiene su usuario staff.', 'error');
             return;
         }
 
         try {
             await api.addStaff({ name, email, password, salonId });
-            showToast('Usuario staff añadido correctamente.');
+            showToast('Usuario staff a�adido correctamente.');
             showSettingsForm();
         } catch (err) {
-            showToast('Error: ' + (err.message || 'no se pudo añadir'), 'error');
+            showToast('Error: ' + (err.message || 'no se pudo a�adir'), 'error');
         }
     };
 
     window.removeStaffAccount = async function(name) {
-        if (!confirm('¿Eliminar este usuario staff?')) return;
+        if (!confirm('�Eliminar este usuario staff?')) return;
         try {
             await api.deleteStaff(decodeURIComponent(name));
             showToast('Usuario staff eliminado.');
@@ -5661,7 +5664,7 @@ window.addEventListener('message', async (event) => {
         if (!entry) return;
 
         const hasSalons = State.salons && State.salons.length > 0;
-        const salonOptions = hasSalons ? State.salons.map(s => `<option value="${s.id}"${s.id === entry.dataset.staffSalon ? ' selected' : ''}>${s.name}</option>`).join('') : '<option value="">— Sin salones —</option>';
+        const salonOptions = hasSalons ? State.salons.map(s => `<option value="${s.id}"${s.id === entry.dataset.staffSalon ? ' selected' : ''}>${s.name}</option>`).join('') : '<option value="">� Sin salones �</option>';
 
         entry.innerHTML = `
             <div style="background:var(--bg-dark);border-radius:var(--radius-md);padding:1rem;">
@@ -5674,11 +5677,11 @@ window.addEventListener('message', async (event) => {
                     <input type="email" class="form-control" id="edit-staff-email-${name}" value="${(entry.dataset.staffEmail || '').replace(/"/g, '&quot;')}">
                 </div>
                 <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="text" class="form-control" id="edit-staff-password-${name}" placeholder="Nueva contraseña (mín. 6 caracteres)">
+                    <label>Contrase�a</label>
+                    <input type="text" class="form-control" id="edit-staff-password-${name}" placeholder="Nueva contrase�a (m�n. 6 caracteres)">
                 </div>
                 <div class="form-group">
-                    <label>Salón</label>
+                    <label>Sal�n</label>
                     <select class="form-control" id="edit-staff-salon-${name}">${salonOptions}</select>
                 </div>
                 <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
@@ -5750,7 +5753,7 @@ window.addEventListener('message', async (event) => {
         const isEdit = apt !== null;
         const salonScopeCheck = (State.activeSalonId && State.activeSalonId !== 'all') ? State.activeSalonId : null;
         if (salonScopeCheck && !State.clients.some(c => c.salon_id === salonScopeCheck)) {
-            showToast('No hay clientes asignados a este salón. Crea o asigna clientes a este salón primero.', 'error');
+            showToast('No hay clientes asignados a este sal�n. Crea o asigna clientes a este sal�n primero.', 'error');
             return;
         }
         const defaultDate = isEdit ? apt.date : (State.selectedDate || toLocalDateStr(new Date()));
@@ -5770,7 +5773,7 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Cliente</label>
                     <select class="form-control" name="clientId" required>
-                        ${formClients.length === 0 ? '<option value="">No hay clientes en este salón</option>' : formClients.map(c => `<option value="${c.id}" ${isEdit && c.id === apt.clientId ? 'selected' : ''}>${c.name}</option>`).join('')}
+                        ${formClients.length === 0 ? '<option value="">No hay clientes en este sal�n</option>' : formClients.map(c => `<option value="${c.id}" ${isEdit && c.id === apt.clientId ? 'selected' : ''}>${c.name}</option>`).join('')}
                     </select>
                     <div id="client-info" style="margin-top:6px;font-size:0.8rem;color:var(--text-secondary);display:none">
                         <span id="client-phone"></span>
@@ -5780,12 +5783,12 @@ window.addEventListener('message', async (event) => {
                 <div class="form-group">
                     <label>Servicio</label>
                     <select class="form-control" name="serviceId" required>
-                        ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min · ${parseFloat(s.price).toFixed(2)}€)</option>`).join('')}
+                        ${State.services.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.serviceId ? 'selected' : ''}>${s.name} (${s.duration} min � ${parseFloat(s.price).toFixed(2)}�)</option>`).join('')}
                     </select>
                 </div>
                 ${(State.activeSalonId === 'all' || !State.activeSalonId || !State.salons.some(s => s.id === State.activeSalonId)) ? `
                 <div class="form-group">
-                    <label>Salón</label>
+                    <label>Sal�n</label>
                     <select class="form-control" name="salonId" id="apt-salon-select" required>
                         ${State.salons.length === 0 ? '<option value="">No hay salones disponibles</option>' : State.salons.map(s => `<option value="${s.id}" ${isEdit && s.id === apt.salonId ? 'selected' : ''}>${s.name}</option>`).join('')}
                     </select>
@@ -5804,7 +5807,7 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <div class="form-group">
                     <label>Notas (opcional)</label>
-                    <textarea class="form-control" name="notes" rows="2" placeholder="Información adicional...">${isEdit ? apt.notes || '' : ''}</textarea>
+                    <textarea class="form-control" name="notes" rows="2" placeholder="Informaci�n adicional...">${isEdit ? apt.notes || '' : ''}</textarea>
                 </div>
                 
                 <div class="form-group">
@@ -5812,10 +5815,10 @@ window.addEventListener('message', async (event) => {
                     <div id="apt-photos-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px"></div>
                     <button type="button" class="btn btn-sm btn-secondary" id="btn-add-apt-photo" style="display:inline-flex">
                         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:5px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                        Añadir Foto
+                        A�adir Foto
                     </button>
                     ${isEdit ? `
-                    <button type="button" class="btn btn-sm btn-secondary compare-btn" data-apt-id="${apt.id}" id="btn-compare-apt-photos" style="margin-left:8px;display:inline-flex">Antes / Después</button>
+                    <button type="button" class="btn btn-sm btn-secondary compare-btn" data-apt-id="${apt.id}" id="btn-compare-apt-photos" style="margin-left:8px;display:inline-flex">Antes / Despu�s</button>
                     ` : ''}
                     <input type="file" id="apt-photo-input" accept="image/*" style="display:none">
                 </div>
@@ -5853,7 +5856,7 @@ window.addEventListener('message', async (event) => {
                         salonField.value = clientSalonId;
                     }
                     if (aptSalonNote) {
-                        aptSalonNote.textContent = `El cliente pertenece a ${salon.name}. La cita se asignará a este salón.`;
+                        aptSalonNote.textContent = `El cliente pertenece a ${salon.name}. La cita se asignar� a este sal�n.`;
                         aptSalonNote.style.display = 'block';
                     }
                 } else {
@@ -5884,12 +5887,12 @@ window.addEventListener('message', async (event) => {
                 let html = '';
                 // Existing photos
                 existingPhotos.forEach((p, idx) => {
-                    const photoType = (p.photo_type === 'after') ? 'Después' : (p.photo_type === 'diagnosis' ? 'Diagnóstico' : 'Antes');
+                    const photoType = (p.photo_type === 'after') ? 'Despu�s' : (p.photo_type === 'diagnosis' ? 'Diagn�stico' : 'Antes');
                     html += `
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                             <img src="${p.photo_url}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid var(--accent-color)" onclick="openModal('Foto','<img src=${p.photo_url} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <span style="font-size:0.6rem;color:var(--text-secondary)">${photoType}</span>
-                            <button type="button" class="delete-existing-apt-photo-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
+                            <button type="button" class="delete-existing-apt-photo-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">???</button>
                         </div>`;
                 });
                 
@@ -5899,7 +5902,7 @@ window.addEventListener('message', async (event) => {
                         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
                             <img src="${pf.preview}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;opacity:0.7" onclick="openModal('Foto','<img src=${pf.preview} style=max-width:100%;max-height:70vh;border-radius:8px>')">
                             <span style="font-size:0.6rem;color:var(--text-secondary)">Pendiente</span>
-                            <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">🗑️</button>
+                            <button type="button" class="delete-apt-pending-btn" data-idx="${idx}" title="Eliminar" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem">???</button>
                         </div>`;
                 });
                 
@@ -5966,7 +5969,7 @@ window.addEventListener('message', async (event) => {
                 e.preventDefault();
                 const submitBtn = e.target.querySelector('[type="submit"]');
                 submitBtn.disabled = true;
-                submitBtn.textContent = apt ? 'Guardando…' : 'Agendando…';
+                submitBtn.textContent = apt ? 'Guardando�' : 'Agendando�';
 
                 const fd = new FormData(e.target);
                 const appointmentId = apt ? apt.id : generateId();
@@ -5988,7 +5991,7 @@ window.addEventListener('message', async (event) => {
                 }
                 
                 if (data.salonId === 'all' || !State.salons.some(s => s.id === data.salonId)) {
-                    showToast('Por favor, selecciona un salón válido para la cita.', 'error');
+                    showToast('Por favor, selecciona un sal�n v�lido para la cita.', 'error');
                     submitBtn.disabled = false;
                     submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
@@ -5997,20 +6000,20 @@ window.addEventListener('message', async (event) => {
                 const salonOwnerClient = State.clients.find(c => c.id === data.clientId);
                 if (salonOwnerClient && salonOwnerClient.salon_id && data.salonId !== salonOwnerClient.salon_id) {
                     const clientSalon = State.salons.find(s => s.id === salonOwnerClient.salon_id);
-                    showToast(`El cliente pertenece a ${clientSalon ? clientSalon.name : 'su salón'}. No puedes agendar su cita en otro salón.`, 'error');
+                    showToast(`El cliente pertenece a ${clientSalon ? clientSalon.name : 'su sal�n'}. No puedes agendar su cita en otro sal�n.`, 'error');
                     submitBtn.disabled = false;
                     submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
                 }
 
                 if (!State.salons.some(s => s.id === data.salonId)) {
-                    showToast('El salón seleccionado no existe. Selecciona otro.', 'error');
+                    showToast('El sal�n seleccionado no existe. Selecciona otro.', 'error');
                     submitBtn.disabled = false;
                     submitBtn.textContent = isEdit ? 'Guardar Cambios' : 'Agendar Cita';
                     return;
                 }
 
-                // Validar que no se solape con otra cita existente en el mismo día
+                // Validar que no se solape con otra cita existente en el mismo d�a
                 const [targetHour, targetMin] = data.time.split(':').map(Number);
                 const targetStartMinutes = targetHour * 60 + targetMin;
                 const targetService = State.services.find(s => s.id === data.serviceId);
@@ -6047,7 +6050,7 @@ window.addEventListener('message', async (event) => {
 
                 // Upload pending photos
                 if (pendingFiles.length > 0) {
-                    submitBtn.textContent = 'Subiendo fotos…';
+                    submitBtn.textContent = 'Subiendo fotos�';
                     for (const pf of pendingFiles) {
                         const clientPhotoId = generateId();
                         let savedPhoto;
@@ -6125,9 +6128,9 @@ window.addEventListener('message', async (event) => {
         if (salon && typeof showSalonForm === 'function') showSalonForm(salon);
     };
 
-    /* ═══════════════════════════════════════
-       INIT — Check session to start
-       ═══════════════════════════════════════ */
+    /* ---------------------------------------
+       INIT � Check session to start
+       --------------------------------------- */
     checkSession();
 
     // Combat aggressive browser autofill
