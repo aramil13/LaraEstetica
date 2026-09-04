@@ -18,3 +18,8 @@
 ## Convenios
 - API del frontend: `main.js` usa `api.request` contra el worker (Cloudflare). Los campos se mapean de snake_case (DB) a camelCase (JS) en `loadAllData`.
 - Recordatorios WhatsApp: la cita permanece en la lista mientras su hora no haya pasado; `whatsapp_sent_count` cuenta los envíos.
+
+## Fechas: formato
+- **Al mostrar una fecha al usuario** (pantalla o impresión) usar SIEMPRE `formatDateEU(value)` (en `main.js`), que devuelve el formato europeo `DD-MM-YYYY`.
+- **No** usar `toLocalDateStr` ni `substring(0,10)` directamente en texto visible al usuario.
+- `toLocalDateStr()` y los formatos ISO (`YYYY-MM-DD`) se usan SOLO internamente: almacenamiento en BD, valores de inputs `type=date` y comparaciones de rango/filtros.
