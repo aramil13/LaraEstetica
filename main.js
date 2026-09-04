@@ -2308,6 +2308,15 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     function getTpvCartPanel() {
+        // Cargar automáticamente la factura de salón del día señalado para el salón seleccionado
+        // al entrar al TPV (el select no dispara 'change' si solo hay un salón ya preseleccionado)
+        if (State.tpv.pendingBills && State.tpv.pendingBills.length > 0 && State.tpv.cart.length === 0) {
+            const pend = State.tpv.pendingBills.find(b => b.salonId === State.tpv.salonId);
+            if (pend) {
+                State.tpv.docType = 'factura-salon';
+                State.tpv.cart = pend.items.slice();
+            }
+        }
         const tpvClients = State.clients.filter(c => !c.salon_id || c.salon_id === State.tpv.salonId);
         const clientOptions = [
             (State.tpv.docType === 'factura'
@@ -2952,6 +2961,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         State.tpv.pendingBills = remaining;
         State.tpv.docType = 'factura-salon';
         State.tpv.cart = [];
+        // Preseleccionar el salón de la primera factura pendiente para que se cargue automáticamente al entrar
+        State.tpv.salonId = remaining[0].salonId;
         navigate('tpv');
         showToast(`${remaining.length} factura${remaining.length > 1 ? 's' : ''} de salón por emitir. Selecciona el salón en el TPV.`, 'info');
     }
