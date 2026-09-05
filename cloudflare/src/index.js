@@ -535,17 +535,18 @@ export default {
       if (!email) return error('No autorizado', 401);
       const b = await readJson(request);
       if (!b.items || !Array.isArray(b.items) || b.items.length === 0) return error('La factura debe tener al menos un servicio');
-      const validDocTypes = ['ticket', 'factura', 'factura-salon'];
+      const validDocTypes = ['ticket', 'factura', 'factura-salon', 'hoja-control'];
       const docType = validDocTypes.includes(b.doc_type) ? b.doc_type : 'ticket';
       const isSalonInvoice = docType === 'factura-salon';
+      const isControl = docType === 'hoja-control';
       const base = Number(b.base_amount) || 0;
       const commissionRate = isSalonInvoice ? (Number(b.commission_rate) || 30) : 0;
-      const commission = isSalonInvoice ? (Number(b.commission_amount) || Math.round(base * commissionRate / 100 * 100) / 100) : 0;
+      const commission = (isSalonInvoice || isControl) ? (Number(b.commission_amount) || Math.round(base * commissionRate / 100 * 100) / 100) : 0;
       const taxable = isSalonInvoice ? commission : base;
       const tax = Number(b.tax_amount) || Math.round(taxable * 0.21 * 100) / 100;
       const retention = isSalonInvoice ? (Number(b.retention_amount) || Math.round(taxable * 0.15 * 100) / 100) : 0;
       const total = Number(b.total_amount) || Math.round((taxable + tax - retention) * 100) / 100;
-      const isInvoice = docType !== 'ticket';
+      const isInvoice = docType === 'factura' || docType === 'factura-salon';
       const validPayMethods = ['contado', 'tarjeta', 'mixto'];
       const payMethod = validPayMethods.includes(b.payment_method) ? b.payment_method : 'contado';
       let payCash = Number(b.payment_cash) || 0;
@@ -557,8 +558,17 @@ export default {
         payCard = Math.round((total - payCash) * 100) / 100;
       }
       payCash = Math.round(payCash * 100) / 100;
-      const last = await env.DB.prepare('SELECT MAX(number) AS maxNum, COUNT(*) AS cnt FROM invoices WHERE user_email = ? AND doc_type IN (\'factura\', \'factura-salon\') AND status = \'active\'').bind(email).first();
-      const nextNumber = isInvoice ? ((last && last.cnt > 0 ? last.maxNum : 0) + 1) : (await env.DB.prepare('SELECT MAX(number) AS maxNum, COUNT(*) AS cnt FROM invoices WHERE user_email = ? AND doc_type = \'ticket\' AND status = \'active\'').bind(email).first().then(r => (r && r.cnt > 0 ? r.maxNum : 0) + 1));
+      let nextNumber;
+      if (isControl) {
+        const r = await env.DB.prepare("SELECT MAX(number) AS maxNum, COUNT(*) AS cnt FROM invoices WHERE user_email = ? AND doc_type = 'hoja-control' AND status = 'active'").bind(email).first();
+        nextNumber = (r && r.cnt > 0 ? r.maxNum : 0) + 1;
+      } else if (isInvoice) {
+        const r = await env.DB.prepare("SELECT MAX(number) AS maxNum, COUNT(*) AS cnt FROM invoices WHERE user_email = ? AND doc_type IN ('factura', 'factura-salon') AND status = 'active'").bind(email).first();
+        nextNumber = (r && r.cnt > 0 ? r.maxNum : 0) + 1;
+      } else {
+        const r = await env.DB.prepare("SELECT MAX(number) AS maxNum, COUNT(*) AS cnt FROM invoices WHERE user_email = ? AND doc_type = 'ticket' AND status = 'active'").bind(email).first();
+        nextNumber = (r && r.cnt > 0 ? r.maxNum : 0) + 1;
+      }
       const id = randomHex(16);
       await env.DB.prepare(
         `INSERT INTO invoices (id, number, doc_type, client_id, client_name, client_nif, salon_id, items, base_amount, tax_amount, retention_amount, commission_rate, commission_amount, total_amount, payment_method, payment_cash, payment_card, user_email)
