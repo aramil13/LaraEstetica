@@ -401,7 +401,8 @@ document.addEventListener('DOMContentLoaded', () => {
             salesTab: 'facturas',
             controlSheetFrom: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })(),
             controlSheetTo: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })(),
-            controlSheetApplied: false
+            controlSheetApplied: false,
+            controlSheetHidden: false
         }
     };
 
@@ -2611,6 +2612,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     function tpvControlSheetFiltered() {
         return State.tpv.invoices
             .filter(i => i.doc_type === 'hoja-control' && i.status !== 'cancelled')
+            .filter(i => !State.tpv.controlSheetHidden)
             .filter(i => State.tpv.historySalonId === 'all' || (i.salon_id || null) === State.tpv.historySalonId)
             .filter(i => {
                 if (!State.tpv.controlSheetFrom || !State.tpv.controlSheetTo) return true;
@@ -2624,7 +2626,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     function tpvControlSheetReportRows() {
         const controls = tpvControlSheetFiltered();
         if (controls.length === 0) {
-            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">No tienes hojas de control emitidas en el rango seleccionado. Indica el rango (Desde/Hasta) y pulsa "Aplicar".</td></tr>';
+            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay hojas de control en la vista. Elige un rango (Desde/Hasta) y pulsa "Aplicar" para generarlas.</td></tr>';
         }
         let html = '';
         let grandTotal = 0;
@@ -2794,6 +2796,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         }
 
         State.tpv.controlSheetApplied = true;
+        State.tpv.controlSheetHidden = false;
         renderRoute();
         if (emittedIds.length > 0) {
             const labels = emittedIds.map(d => tpvInvoiceNum(d)).join(', ');
@@ -3618,6 +3621,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (controlFromInput) controlFromInput.addEventListener('change', e => {
             State.tpv.controlSheetFrom = e.target.value;
             State.tpv.controlSheetApplied = false;
+            State.tpv.controlSheetHidden = false;
             if (State.tpv.controlSheetFrom && State.tpv.controlSheetTo && State.tpv.controlSheetFrom > State.tpv.controlSheetTo) {
                 showToast('La fecha "Desde" no puede ser posterior a "Hasta".', 'error');
                 return;
@@ -3627,6 +3631,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (controlToInput) controlToInput.addEventListener('change', e => {
             State.tpv.controlSheetTo = e.target.value;
             State.tpv.controlSheetApplied = false;
+            State.tpv.controlSheetHidden = false;
             if (State.tpv.controlSheetFrom && State.tpv.controlSheetTo && State.tpv.controlSheetFrom > State.tpv.controlSheetTo) {
                 showToast('La fecha "Desde" no puede ser posterior a "Hasta".', 'error');
                 return;
@@ -3641,6 +3646,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             State.tpv.controlSheetTo = '';
             State.tpv.historySalonId = 'all';
             State.tpv.controlSheetApplied = false;
+            State.tpv.controlSheetHidden = true;
             renderRoute();
         });
 
@@ -3648,6 +3654,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (salesSalonSel) salesSalonSel.addEventListener('change', e => {
             State.tpv.historySalonId = e.target.value;
             State.tpv.controlSheetApplied = false;
+            State.tpv.controlSheetHidden = false;
             renderRoute();
         });
         const salesFrom = document.getElementById('sales-from');
