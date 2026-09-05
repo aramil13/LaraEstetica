@@ -399,7 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentCash: '',
             paymentCard: '',
             salesTab: 'facturas',
-            controlSheetDate: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })()
+            controlSheetFrom: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })(),
+            controlSheetTo: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })()
         }
     };
 
@@ -2603,73 +2604,97 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         return { count, base, total, tax, commission, retention };
     }
 
-    // Hoja de Control: todos los servicios de un día determinado con importes parciales y total
+    // Hoja de Control: todos los servicios de un rango de fechas con importes parciales y totales
+    // Se agrupa por día y, dentro de cada día, por salón. Cada día suma su total al general del rango.
     function tpvControlSheetRows() {
-        const dateStr = State.tpv.controlSheetDate;
-        if (!dateStr) return '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un día para ver la hoja de control.</td></tr>';
+        const from = State.tpv.controlSheetFrom;
+        const to = State.tpv.controlSheetTo;
+        if (!from || !to) return '<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">Selecciona un rango de fechas para ver la hoja de control.</td></tr>';
 
         const salonId = State.tpv.historySalonId || 'all';
-        const dayApts = State.appointments
-            .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
-            .sort((a, b) => a.time.localeCompare(b.time));
+        const rangeApts = State.appointments
+            .filter(a => a.date >= from && a.date <= to && (salonId === 'all' || a.salonId === salonId))
+            .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 
-        if (dayApts.length === 0) {
-            return `<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay citas en este día${salonId === 'all' ? '' : ' para el salón seleccionado'}.</td></tr>`;
+        if (rangeApts.length === 0) {
+            return `<tr><td colspan="5" style="text-align:center;color:var(--text-secondary);padding:1rem;">No hay citas en el rango seleccionado${salonId === 'all' ? '' : ' para el salón seleccionado'}.</td></tr>`;
         }
 
-        const groups = new Map();
-        dayApts.forEach(apt => {
-            const key = apt.salonId || '__sin_salon__';
-            if (!groups.has(key)) groups.set(key, { label: State.salons.find(s => s.id === key)?.name || 'Sin salón', items: [] });
-            const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
-            const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
-            groups.get(key).items.push({ name: `${client.name} → ${service.name}`, amount: Math.round((parseFloat(service.price) || 0) * 100) / 100 });
+        const days = new Map();
+        rangeApts.forEach(apt => {
+            if (!days.has(apt.date)) days.set(apt.date, []);
+            days.get(apt.date).push(apt);
         });
+
+        const buildGroups = dayApts => {
+            const groups = new Map();
+            dayApts.forEach(apt => {
+                const key = apt.salonId || '__sin_salon__';
+                if (!groups.has(key)) groups.set(key, { label: State.salons.find(s => s.id === key)?.name || 'Sin salón', items: [] });
+                const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
+                const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
+                groups.get(key).items.push({ name: `${client.name} → ${service.name}`, amount: Math.round((parseFloat(service.price) || 0) * 100) / 100 });
+            });
+            return groups;
+        };
 
         let html = '';
         let grandTotal = 0;
-        groups.forEach(g => {
-            html += `<tr class="report-group-header"><td colspan="5">${g.label}</td></tr>`;
-            g.items.forEach(it => {
+        const sortedDays = Array.from(days.keys()).sort();
+        sortedDays.forEach(dateStr => {
+            const dObj = new Date(dateStr + 'T00:00:00');
+            const dateLabel = dObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+            html += `<tr class="report-group-header"><td colspan="5">${formatDateEU(dateStr)} · ${dateLabel}</td></tr>`;
+
+            const groups = buildGroups(days.get(dateStr));
+            let dayTotal = 0;
+            groups.forEach(g => {
+                html += `<tr class="report-saloon"><td colspan="5" style="padding-left:1.1rem;font-weight:700;">${g.label}</td></tr>`;
+                g.items.forEach(it => {
+                    html += `
+                        <tr>
+                            <td style="vertical-align:top;padding-left:1.5rem;">${it.name}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(it.amount)}</td>
+                        </tr>`;
+                });
+                const subtotal = Math.round(g.items.reduce((a, it) => a + it.amount, 0) * 100) / 100;
+                dayTotal += subtotal;
+                const commission = Math.round(subtotal * 0.70 * 100) / 100;
+                const base = Math.round(commission / 1.21 * 100) / 100;
+                const tax = Math.round(base * 0.21 * 100) / 100;
+                const retention = Math.round(base * 0.15 * 100) / 100;
+                const salonForSalon = Math.round(subtotal * 0.30 * 100) / 100;
+                const totalTecnico = Math.round((base + tax - retention) * 100) / 100;
+                const totalEntregar = Math.round((salonForSalon + retention) * 100) / 100;
                 html += `
-                    <tr>
-                        <td style="vertical-align:top;padding-left:1.25rem;">${it.name}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(it.amount)}</td>
+                    <tr class="report-subtotal"><td colspan="4" style="text-align:right;">SUBTOTAL ${g.label}</td><td style="text-align:right;">${tpvFormatMoney(subtotal)}</td></tr>
+                    <tr class="report-grand" style="line-height:1.6;">
+                        <td colspan="5" style="padding:0.4rem 0.6rem;">
+                            <div style="font-size:0.85rem;">
+                                <div style="display:flex;justify-content:space-between;max-width:360px;"><span>Comisión por los servicios (70% Técnico):</span><strong>${tpvFormatMoney(commission)}</strong></div>
+                                <div style="display:flex;justify-content:space-between;max-width:360px;"><span>Base:</span><span>${tpvFormatMoney(base)}</span></div>
+                                <div style="display:flex;justify-content:space-between;max-width:360px;"><span>+IVA (21%):</span><span>${tpvFormatMoney(tax)}</span></div>
+                                <div style="display:flex;justify-content:space-between;max-width:360px;"><span>−Retención (15%):</span><span>−${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;max-width:360px;"><strong>→ TOTAL 70% TÉCNICO:</strong><strong>${tpvFormatMoney(totalTecnico)}</strong></div>
+                                <div style="border-top:1px solid #999;margin:0.3rem 0;"></div>
+                                <div style="display:flex;justify-content:space-between;max-width:360px;"><span>30% PARA EL SALÓN:</span><strong>${tpvFormatMoney(salonForSalon)}</strong></div>
+                                <div style="display:flex;justify-content:space-between;max-width:360px;"><span>+RETENCIÓN (15%):</span><strong>${tpvFormatMoney(retention)}</strong></div>
+                                <div style="display:flex;justify-content:space-between;max-width:360px;"><strong>→ TOTAL 30% SALÓN:</strong><strong>${tpvFormatMoney(totalEntregar)}</strong></div>
+                            </div>
+                        </td>
                     </tr>`;
             });
-            const subtotal = Math.round(g.items.reduce((a, it) => a + it.amount, 0) * 100) / 100;
-            grandTotal += subtotal;
-            const commission = Math.round(subtotal * 0.70 * 100) / 100;
-            const base = Math.round(commission / 1.21 * 100) / 100;
-            const tax = Math.round(base * 0.21 * 100) / 100;
-            const retention = Math.round(base * 0.15 * 100) / 100;
-            const salonForSalon = Math.round(subtotal * 0.30 * 100) / 100;
-            const totalTecnico = Math.round((base + tax - retention) * 100) / 100;
-            const totalEntregar = Math.round((salonForSalon + retention) * 100) / 100;
-            html += `
-                <tr class="report-subtotal"><td colspan="4" style="text-align:right;">SUBTOTAL ${g.label}</td><td style="text-align:right;">${tpvFormatMoney(subtotal)}</td></tr>
-                <tr class="report-grand" style="line-height:1.6;">
-                    <td colspan="5" style="padding:0.4rem 0.6rem;">
-                        <div style="font-size:0.85rem;">
-                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>Comisión por los servicios (70% Técnico):</span><strong>${tpvFormatMoney(commission)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>Base:</span><span>${tpvFormatMoney(base)}</span></div>
-                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>+IVA (21%):</span><span>${tpvFormatMoney(tax)}</span></div>
-                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>−Retención (15%):</span><span>−${tpvFormatMoney(retention)}</span></div>
-                            <div style="display:flex;justify-content:space-between;max-width:360px;"><strong>→ TOTAL 70% TÉCNICO:</strong><strong>${tpvFormatMoney(totalTecnico)}</strong></div>
-                            <div style="border-top:1px solid #999;margin:0.3rem 0;"></div>
-                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>30% PARA EL SALÓN:</span><strong>${tpvFormatMoney(salonForSalon)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;max-width:360px;"><span>+RETENCIÓN (15%):</span><strong>${tpvFormatMoney(retention)}</strong></div>
-                            <div style="display:flex;justify-content:space-between;max-width:360px;"><strong>→ TOTAL 30% SALÓN:</strong><strong>${tpvFormatMoney(totalEntregar)}</strong></div>
-                        </div>
-                    </td>
-                </tr>`;
+
+            dayTotal = Math.round(dayTotal * 100) / 100;
+            grandTotal += dayTotal;
+            html += `<tr class="report-subtotal" style="font-weight:700;"><td colspan="4" style="text-align:right;">TOTAL ${formatDateEU(dateStr)}</td><td style="text-align:right;">${tpvFormatMoney(dayTotal)}</td></tr>`;
         });
 
         grandTotal = Math.round(grandTotal * 100) / 100;
-        html += `<tr class="report-grand"><td colspan="4" style="text-align:right;">TOTAL GENERAL DÍA</td><td style="text-align:right;">${tpvFormatMoney(grandTotal)}</td></tr>`;
+        html += `<tr class="report-grand"><td colspan="4" style="text-align:right;">TOTAL GENERAL RANGO</td><td style="text-align:right;">${tpvFormatMoney(grandTotal)}</td></tr>`;
         return html;
     }
 
@@ -2686,7 +2711,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         ].concat(State.salons.map(s => `<option value="${s.id}"${State.tpv.historySalonId === s.id ? ' selected' : ''}>${s.name}</option>`)).join('');
         const summary = tpvSalesSummary();
         const tab = State.tpv.salesTab === 'hojas-control' ? 'hojas-control' : 'facturas';
-        const controlDate = State.tpv.controlSheetDate;
+        const controlFrom = State.tpv.controlSheetFrom;
+        const controlTo = State.tpv.controlSheetTo;
 
         return `
             <div class="section-header">
@@ -2758,14 +2784,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <select class="form-control" id="sales-salon-select" style="min-width:180px;">${salonFilterOptions}</select>
                 </div>
                 <div class="form-group" style="margin:0;">
-                    <label style="font-size:0.75rem;font-weight:600;">Día (Hoja de Control)</label>
-                    <input type="date" class="form-control" id="control-sheet-date" value="${controlDate}" style="min-width:150px;">
+                    <label style="font-size:0.75rem;font-weight:600;">Desde</label>
+                    <input type="date" class="form-control" id="control-sheet-from" value="${controlFrom}" style="min-width:150px;">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label style="font-size:0.75rem;font-weight:600;">Hasta</label>
+                    <input type="date" class="form-control" id="control-sheet-to" value="${controlTo}" style="min-width:150px;">
                 </div>
             </div>
             <div class="data-card" style="padding:1.25rem;">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
-                    <h3 style="font-size:1rem;margin:0;">Hoja de Control · ${controlDate ? formatDateEU(controlDate) : '—'}</h3>
-                    <div style="font-size:0.85rem;color:var(--text-secondary);">Todos los servicios del día con importes parciales y totales (70% Técnico / 15% Retención / 30% Salón)</div>
+                    <h3 style="font-size:1rem;margin:0;">Hoja de Control · ${(controlFrom && controlTo) ? `${formatDateEU(controlFrom)} → ${formatDateEU(controlTo)}` : '—'}</h3>
+                    <div style="font-size:0.85rem;color:var(--text-secondary);">Todos los servicios del rango, agrupados por día, con importes parciales y totales (70% Técnico / 15% Retención / 30% Salón)</div>
                 </div>
                 <table class="table">
                     <thead><tr><th>Servicio</th><th></th><th></th><th></th><th style="text-align:right">Importe</th></tr></thead>
@@ -2949,10 +2979,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     function tpvPrintControlSheet() {
         const printArea = document.getElementById('print-area');
         if (!printArea) return;
-        const dateStr = State.tpv.controlSheetDate;
-        if (!dateStr) { showToast('Selecciona un día para la hoja de control.', 'error'); return; }
-        const dObj = new Date(dateStr + 'T00:00:00');
-        const dateLabel = dObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const from = State.tpv.controlSheetFrom;
+        const to = State.tpv.controlSheetTo;
+        if (!from || !to) { showToast('Selecciona un rango de fechas para la hoja de control.', 'error'); return; }
+        const fromLabel = formatDateEU(from);
+        const toLabel = formatDateEU(to);
+        const dateLabel = `${fromLabel} → ${toLabel}`;
         const salonFilter = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
         const issuer = State.profile || {};
         const issuerName = (issuer.full_name && issuer.full_name.trim()) ? issuer.full_name : 'Estética y Bienestar Lara';
@@ -2960,66 +2992,92 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const issuerAddress = issuer.fiscal_address ? `<div style="font-size:0.85rem;color:#555;">${issuer.fiscal_address}</div>` : '';
 
         const salonId = State.tpv.historySalonId || 'all';
-        const dayApts = State.appointments
-            .filter(a => a.date === dateStr && (salonId === 'all' || a.salonId === salonId))
-            .sort((a, b) => a.time.localeCompare(b.time));
+        const rangeApts = State.appointments
+            .filter(a => a.date >= from && a.date <= to && (salonId === 'all' || a.salonId === salonId))
+            .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 
-        const groups = new Map();
-        dayApts.forEach(apt => {
-            const key = apt.salonId || '__sin_salon__';
-            if (!groups.has(key)) groups.set(key, { label: State.salons.find(s => s.id === key)?.name || 'Sin salón', items: [] });
-            const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
-            const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
-            groups.get(key).items.push({ name: `${client.name} → ${service.name}`, amount: Math.round((parseFloat(service.price) || 0) * 100) / 100 });
+        const days = new Map();
+        rangeApts.forEach(apt => {
+            if (!days.has(apt.date)) days.set(apt.date, []);
+            days.get(apt.date).push(apt);
         });
 
         let grandTotal = 0;
-        const groupHtml = groups.size === 0
-            ? '<div style="padding:1rem;color:#777;text-align:center;">No hay citas en este día.</div>'
-            : Array.from(groups.values()).map(g => {
-                let subtotal = 0;
-                const rows = g.items.map(it => {
-                    subtotal += it.amount;
+        const sortedDays = Array.from(days.keys()).sort();
+        const groupHtml = sortedDays.length === 0
+            ? '<div style="padding:1rem;color:#777;text-align:center;">No hay citas en el rango seleccionado.</div>'
+            : sortedDays.map(dateStr => {
+                const dObj = new Date(dateStr + 'T00:00:00');
+                const dayLabel = dObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+                const groups = new Map();
+                days.get(dateStr).forEach(apt => {
+                    const key = apt.salonId || '__sin_salon__';
+                    if (!groups.has(key)) groups.set(key, { label: State.salons.find(s => s.id === key)?.name || 'Sin salón', items: [] });
+                    const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
+                    const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
+                    groups.get(key).items.push({ name: `${client.name} → ${service.name}`, amount: Math.round((parseFloat(service.price) || 0) * 100) / 100 });
+                });
+
+                let dayTotal = 0;
+                const dayBlocks = Array.from(groups.values()).map(g => {
+                    let subtotal = 0;
+                    const rows = g.items.map(it => {
+                        subtotal += it.amount;
+                        return `
+                            <tr>
+                                <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #eee;">${it.name}</td>
+                                <td style="padding:0.4rem 0.6rem;text-align:right;border-bottom:1px solid #eee;width:100px;">${tpvFormatMoney(it.amount)}</td>
+                            </tr>`;
+                    }).join('');
+                    subtotal = Math.round(subtotal * 100) / 100;
+                    dayTotal += subtotal;
+                    const commission = Math.round(subtotal * 0.70 * 100) / 100;
+                    const base = Math.round(commission / 1.21 * 100) / 100;
+                    const tax = Math.round(base * 0.21 * 100) / 100;
+                    const retention = Math.round(base * 0.15 * 100) / 100;
+                    const salonForSalon = Math.round(subtotal * 0.30 * 100) / 100;
+                    const totalTecnico = Math.round((base + tax - retention) * 100) / 100;
+                    const totalEntregar = Math.round((salonForSalon + retention) * 100) / 100;
                     return `
-                        <tr>
-                            <td style="padding:0.4rem 0.6rem;border-bottom:1px solid #eee;">${it.name}</td>
-                            <td style="padding:0.4rem 0.6rem;text-align:right;border-bottom:1px solid #eee;width:100px;">${tpvFormatMoney(it.amount)}</td>
-                        </tr>`;
+                        <div style="margin-top:1.25rem;">
+                            <div style="background:#f4f4f4;padding:0.45rem 0.6rem;font-weight:800;font-size:1rem;">${g.label}</div>
+                            <table style="width:100%;font-size:0.85rem;border-collapse:collapse;margin-top:0.4rem;">
+                                <thead>
+                                    <tr style="color:#555;">
+                                        <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;">Servicio</th>
+                                        <th style="padding:0.35rem 0.6rem;text-align:right;border-bottom:1px solid #999;width:100px;">Importe</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                            <div style="display:flex;justify-content:flex-end;padding:0.4rem 0.6rem;border-top:2px solid #000;font-weight:700;">
+                                <span>SUBTOTAL ${g.label}</span>
+                                <span style="min-width:100px;text-align:right;">${tpvFormatMoney(subtotal)}</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:flex-start;padding:0.5rem 0.6rem 0;font-weight:600;white-space:nowrap;">
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;margin-top:0.3rem;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
+                            </div>
+                        </div>`;
                 }).join('');
-                subtotal = Math.round(subtotal * 100) / 100;
-                grandTotal += subtotal;
-                const commission = Math.round(subtotal * 0.70 * 100) / 100;
-                const base = Math.round(commission / 1.21 * 100) / 100;
-                const tax = Math.round(base * 0.21 * 100) / 100;
-                const retention = Math.round(base * 0.15 * 100) / 100;
-                const salonForSalon = Math.round(subtotal * 0.30 * 100) / 100;
-                const totalTecnico = Math.round((base + tax - retention) * 100) / 100;
-                const totalEntregar = Math.round((salonForSalon + retention) * 100) / 100;
+
+                dayTotal = Math.round(dayTotal * 100) / 100;
+                grandTotal += dayTotal;
                 return `
-                    <div style="margin-top:1.25rem;">
-                        <div style="background:#f4f4f4;padding:0.45rem 0.6rem;font-weight:800;font-size:1rem;">${g.label}</div>
-                        <table style="width:100%;font-size:0.85rem;border-collapse:collapse;margin-top:0.4rem;">
-                            <thead>
-                                <tr style="color:#555;">
-                                    <th style="padding:0.35rem 0.6rem;text-align:left;border-bottom:1px solid #999;">Servicio</th>
-                                    <th style="padding:0.35rem 0.6rem;text-align:right;border-bottom:1px solid #999;width:100px;">Importe</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rows}</tbody>
-                        </table>
-                        <div style="display:flex;justify-content:flex-end;padding:0.4rem 0.6rem;border-top:2px solid #000;font-weight:700;">
-                            <span>SUBTOTAL ${g.label}</span>
-                            <span style="min-width:100px;text-align:right;">${tpvFormatMoney(subtotal)}</span>
-                        </div>
-                        <div style="display:flex;flex-direction:column;align-items:flex-start;padding:0.5rem 0.6rem 0;font-weight:600;white-space:nowrap;">
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;margin-top:0.3rem;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
+                    <div style="margin-top:1.5rem;">
+                        <div style="font-size:1.1rem;font-weight:800;border-bottom:2px solid #000;padding-bottom:0.4rem;">${formatDateEU(dateStr)} · ${dayLabel}</div>
+                        ${dayBlocks}
+                        <div style="display:flex;justify-content:flex-end;margin-top:0.75rem;">
+                            <div style="width:300px;">
+                                <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-top:2px solid #000;font-weight:700;"><span>TOTAL DÍA</span><span>${tpvFormatMoney(dayTotal)}</span></div>
+                            </div>
                         </div>
                     </div>`;
             }).join('');
@@ -3043,7 +3101,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 ${groupHtml}
                 <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;font-size:0.95rem;">
                     <div style="width:300px;">
-                        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL GENERAL DÍA</span><span>${tpvFormatMoney(grandTotal)}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-top:2px solid #000;font-weight:800;font-size:1.05rem;"><span>TOTAL GENERAL RANGO</span><span>${tpvFormatMoney(grandTotal)}</span></div>
                     </div>
                 </div>
             </div>`;
@@ -3449,9 +3507,22 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (tabFacturas) tabFacturas.addEventListener('click', () => { State.tpv.salesTab = 'facturas'; renderRoute(); });
         if (tabHojas) tabHojas.addEventListener('click', () => { State.tpv.salesTab = 'hojas-control'; renderRoute(); });
 
-        const controlDateInput = document.getElementById('control-sheet-date');
-        if (controlDateInput) controlDateInput.addEventListener('change', e => {
-            State.tpv.controlSheetDate = e.target.value;
+        const controlFromInput = document.getElementById('control-sheet-from');
+        const controlToInput = document.getElementById('control-sheet-to');
+        if (controlFromInput) controlFromInput.addEventListener('change', e => {
+            State.tpv.controlSheetFrom = e.target.value;
+            if (State.tpv.controlSheetFrom && State.tpv.controlSheetTo && State.tpv.controlSheetFrom > State.tpv.controlSheetTo) {
+                showToast('La fecha "Desde" no puede ser posterior a "Hasta".', 'error');
+                return;
+            }
+            renderRoute();
+        });
+        if (controlToInput) controlToInput.addEventListener('change', e => {
+            State.tpv.controlSheetTo = e.target.value;
+            if (State.tpv.controlSheetFrom && State.tpv.controlSheetTo && State.tpv.controlSheetFrom > State.tpv.controlSheetTo) {
+                showToast('La fecha "Desde" no puede ser posterior a "Hasta".', 'error');
+                return;
+            }
             renderRoute();
         });
 
