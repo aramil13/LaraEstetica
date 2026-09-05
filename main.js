@@ -2624,13 +2624,14 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         controls.forEach(inv => {
             const dateStr = (inv.created_at || '').substring(0, 10);
             const items = Array.isArray(inv.items) ? inv.items : [];
+            const dayDate = (items[0] && items[0].date) || dateStr;
             const total = Number(inv.total_amount) || 0;
             grandTotal += total;
             const detail = items.length > 0 ? `${items.length} servicios` : '—';
             html += `<tr data-sales-row="${inv.id}">
                 <td style="vertical-align:top;text-align:center;"><input type="checkbox" class="inv-select" data-invoice-id="${inv.id}" title="Marcar para anular o imprimir" onclick="event.stopPropagation()"></td>
                 <td style="vertical-align:top;font-weight:600;">${tpvInvoiceNum(inv)}</td>
-                <td style="vertical-align:top;">${formatDateEU(dateStr)}</td>
+                <td style="vertical-align:top;">${formatDateEU(dayDate)}</td>
                 <td style="vertical-align:top;max-width:280px;">${inv.client_name || 'Hoja de Control'}</td>
                 <td style="vertical-align:top;">${detail}</td>
                 <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(total)}</td>
@@ -2641,12 +2642,39 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         return html;
     }
 
-    // Generar y guardar una hoja de control con el rango y salón seleccionados (código H-XXX)
+    // Totales de una hoja de control agrupando por salón (70% Técnico, base = /1.21, IVA 21%, retención 15%)
+    function tpvControlSheetTotals(items) {
+        const salonMap = new Map();
+        items.forEach(it => {
+            if (!salonMap.has(it.salon)) salonMap.set(it.salon, []);
+            salonMap.get(it.salon).push(it);
+        });
+        let totalAmount = 0, totalCommission = 0, totalBase = 0, totalTax = 0, totalRetention = 0;
+        salonMap.forEach(list => {
+            const subtotal = Math.round(list.reduce((a, it) => a + (it.price || 0), 0) * 100) / 100;
+            totalAmount += subtotal;
+            const commission = Math.round(subtotal * 0.70 * 100) / 100;
+            const base = Math.round(commission / 1.21 * 100) / 100;
+            totalCommission += commission;
+            totalBase += base;
+            totalTax += Math.round(base * 0.21 * 100) / 100;
+            totalRetention += Math.round(base * 0.15 * 100) / 100;
+        });
+        return {
+            total: Math.round(totalAmount * 100) / 100,
+            commission: Math.round(totalCommission * 100) / 100,
+            base: Math.round(totalBase * 100) / 100,
+            tax: Math.round(totalTax * 100) / 100,
+            retention: Math.round(totalRetention * 100) / 100
+        };
+    }
+
+    // Generar y guardar una hoja de control POR CADA DÍA del rango seleccionado (código H-XXX)
     async function tpvEmitControlSheet() {
         const from = State.tpv.controlSheetFrom;
         const to = State.tpv.controlSheetTo;
         if (!from || !to) {
-            showToast('Define el rango "Desde/Hasta" para generar la hoja.', 'error');
+            showToast('Define el rango "Desde/Hasta" para generar las hojas.', 'error');
             return;
         }
         if (from > to) {
@@ -2662,11 +2690,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             return;
         }
 
-        const items = rangeApts.map(apt => {
+        const days = new Map();
+        rangeApts.forEach(apt => {
             const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
             const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
             const salon = State.salons.find(s => s.id === apt.salonId);
-            return {
+            const item = {
                 name: `${client.name} → ${service.name}`,
                 price: Math.round((parseFloat(service.price) || 0) * 100) / 100,
                 qty: 1,
@@ -2674,64 +2703,53 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 time: apt.time,
                 salon: salon ? salon.name : 'Sin salón'
             };
+            if (!days.has(apt.date)) days.set(apt.date, []);
+            days.get(apt.date).push(item);
         });
 
-        // Comisiones por grupo día/salón (70% Técnico, base = /1.21, IVA 21%, retención 15%)
-        const days = new Map();
-        items.forEach(it => { if (!days.has(it.date)) days.set(it.date, []); days.get(it.date).push(it); });
-        let totalAmount = 0, totalCommission = 0, totalBase = 0, totalTax = 0, totalRetention = 0;
-        Array.from(days.keys()).sort().forEach(date => {
-            const salonMap = new Map();
-            days.get(date).forEach(it => {
-                if (!salonMap.has(it.salon)) salonMap.set(it.salon, []);
-                salonMap.get(it.salon).push(it);
-            });
-            salonMap.forEach(list => {
-                const subtotal = Math.round(list.reduce((a, it) => a + it.price, 0) * 100) / 100;
-                totalAmount += subtotal;
-                const commission = Math.round(subtotal * 0.70 * 100) / 100;
-                const base = Math.round(commission / 1.21 * 100) / 100;
-                totalCommission += commission;
-                totalBase += base;
-                totalTax += Math.round(base * 0.21 * 100) / 100;
-                totalRetention += Math.round(base * 0.15 * 100) / 100;
-            });
-        });
-
-        const salonNames = Array.from(new Set(items.map(i => i.salon))).join(', ');
-        const description = `Hoja de Control · ${formatDateEU(from)} → ${formatDateEU(to)} · ${salonNames} · ${items.length} servicios`;
-
-        const payload = {
-            doc_type: 'hoja-control',
-            salon_id: salonId === 'all' ? null : salonId,
-            client_id: null,
-            client_name: description,
-            client_nif: null,
-            items,
-            base_amount: Math.round(totalBase * 100) / 100,
-            commission_rate: 0,
-            commission_amount: Math.round(totalCommission * 100) / 100,
-            tax_amount: Math.round(totalTax * 100) / 100,
-            retention_amount: Math.round(totalRetention * 100) / 100,
-            total_amount: Math.round(totalAmount * 100) / 100,
-            payment_method: 'contado',
-            payment_cash: 0,
-            payment_card: 0
-        };
-        try {
-            const created = await api.addInvoice(payload);
-            const doc = {
-                ...payload,
-                id: created.id,
-                number: created.number,
-                doc_type: created.doc_type,
-                created_at: new Date().toISOString()
+        const emittedIds = [];
+        for (const dateStr of Array.from(days.keys()).sort()) {
+            const items = days.get(dateStr);
+            const salonNames = Array.from(new Set(items.map(i => i.salon))).join(', ');
+            const description = `Hoja de Control · ${formatDateEU(dateStr)} · ${salonNames} · ${items.length} servicios`;
+            const t = tpvControlSheetTotals(items);
+            const payload = {
+                doc_type: 'hoja-control',
+                salon_id: salonId === 'all' ? null : salonId,
+                client_id: null,
+                client_name: description,
+                client_nif: null,
+                items,
+                base_amount: t.base,
+                commission_rate: 0,
+                commission_amount: t.commission,
+                tax_amount: t.tax,
+                retention_amount: t.retention,
+                total_amount: t.total,
+                payment_method: 'contado',
+                payment_cash: 0,
+                payment_card: 0
             };
-            State.tpv.invoices.unshift(doc);
-            renderRoute();
-            showToast(`Hoja de control ${tpvInvoiceNum(doc)} generada correctamente.`);
-        } catch (err) {
-            showToast('Error al generar la hoja de control: ' + (err.message || 'error'), 'error');
+            try {
+                const created = await api.addInvoice(payload);
+                const doc = {
+                    ...payload,
+                    id: created.id,
+                    number: created.number,
+                    doc_type: created.doc_type,
+                    created_at: new Date().toISOString()
+                };
+                State.tpv.invoices.unshift(doc);
+                emittedIds.push(doc);
+            } catch (err) {
+                showToast('Error al generar la hoja del día ' + formatDateEU(dateStr) + ': ' + (err.message || 'error'), 'error');
+            }
+        }
+
+        renderRoute();
+        if (emittedIds.length > 0) {
+            const labels = emittedIds.map(d => tpvInvoiceNum(d)).join(', ');
+            showToast(`${emittedIds.length} hoja(s) de control generada(s): ${labels}.`);
         }
     }
 
@@ -2792,15 +2810,19 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                             <span>SUBTOTAL ${label}</span>
                             <span style="min-width:100px;text-align:right;">${tpvFormatMoney(subtotal)}</span>
                         </div>
-                        <div style="display:flex;flex-direction:column;align-items:flex-start;padding:0.5rem 0.6rem 0;font-weight:600;white-space:nowrap;">
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;margin-top:0.3rem;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
-                            <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
+                        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:0.75rem 2rem;padding:0.5rem 0.6rem 0.1rem;font-weight:600;white-space:nowrap;">
+                            <div style="display:flex;flex-direction:column;">
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;">
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
+                            </div>
                         </div>
                     </div>`;
             }).join('');
