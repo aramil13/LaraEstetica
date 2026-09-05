@@ -4018,7 +4018,11 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const now = new Date();
         const aptDate = new Date(apt.date + 'T' + (apt.time || '00:00'));
         if (aptDate.getTime() <= now.getTime()) return false;
-        return (aptDate.getTime() - now.getTime()) <= 24 * 60 * 60 * 1000;
+        if ((aptDate.getTime() - now.getTime()) > 24 * 60 * 60 * 1000) return false;
+        // Sábado y domingo son días de descanso: no se notifican recordatorios
+        const dow = now.getDay();
+        if (dow === 0 || dow === 6) return false;
+        return true;
     }
 
     function getWhatsAppView() {
@@ -4113,7 +4117,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             </div>
             
             <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.85rem; text-align: center; font-style: italic;">
-                * Debes tener abierta esta pestaña para gestionar los recordatorios diarios.
+                * Recordatorios solo en días laborables (de lunes a viernes). Debes tener abierta esta pestaña para gestionarlos.
             </p>
         `;
     }
