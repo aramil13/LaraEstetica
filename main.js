@@ -400,7 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentCard: '',
             salesTab: 'facturas',
             controlSheetFrom: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })(),
-            controlSheetTo: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })()
+            controlSheetTo: (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })(),
+            controlSheetApplied: false
         }
     };
 
@@ -2611,13 +2612,19 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         return State.tpv.invoices
             .filter(i => i.doc_type === 'hoja-control' && i.status !== 'cancelled')
             .filter(i => State.tpv.historySalonId === 'all' || (i.salon_id || null) === State.tpv.historySalonId)
+            .filter(i => {
+                if (!State.tpv.controlSheetFrom || !State.tpv.controlSheetTo) return true;
+                const items = Array.isArray(i.items) ? i.items : [];
+                const day = (items[0] && items[0].date) || (i.created_at || '').substring(0, 10);
+                return day >= State.tpv.controlSheetFrom && day <= State.tpv.controlSheetTo;
+            })
             .sort((a, b) => (b.number || 0) - (a.number || 0));
     }
 
     function tpvControlSheetReportRows() {
         const controls = tpvControlSheetFiltered();
         if (controls.length === 0) {
-            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">No tienes hojas de control emitidas. Indica el rango (Desde/Hasta) y pulsa "Generar Hoja de Control".</td></tr>';
+            return '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:1rem;">No tienes hojas de control emitidas en el rango seleccionado. Indica el rango (Desde/Hasta) y pulsa "Aplicar".</td></tr>';
         }
         let html = '';
         let grandTotal = 0;
@@ -2721,8 +2728,22 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         const emittedIds = [];
         const sortedKeys = Array.from(groups.keys()).sort();
+
+        const existingControlKeys = new Set(State.tpv.invoices
+            .filter(inv => inv.doc_type === 'hoja-control' && inv.status !== 'cancelled')
+            .map(inv => {
+                const invItems = Array.isArray(inv.items) ? inv.items : [];
+                const invDay = (invItems[0] && invItems[0].date) || (inv.created_at || '').substring(0, 10);
+                return invDay + '|' + (inv.salon_id || '__sin_salon__');
+            }));
+
+        let skipped = 0;
         for (const key of sortedKeys) {
             const g = groups.get(key);
+            if (existingControlKeys.has(key)) {
+                skipped++;
+                continue;
+            }
             const description = `Hoja de Control · ${formatDateEU(g.date)} · ${g.salonName} · ${g.items.length} servicios`;
             const t = tpvControlSheetTotals(g.items);
             const payload = {
@@ -2753,15 +2774,19 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 };
                 State.tpv.invoices.unshift(doc);
                 emittedIds.push(doc);
+                existingControlKeys.add(key);
             } catch (err) {
                 showToast('Error al generar la hoja de ' + g.salonName + ' del ' + formatDateEU(g.date) + ': ' + (err.message || 'error'), 'error');
             }
         }
 
+        State.tpv.controlSheetApplied = true;
         renderRoute();
         if (emittedIds.length > 0) {
             const labels = emittedIds.map(d => tpvInvoiceNum(d)).join(', ');
             showToast(`${emittedIds.length} hoja(s) de control generada(s): ${labels}.`);
+        } else if (skipped > 0) {
+            showToast('Las hojas de control del rango seleccionado ya estaban generadas.');
         }
     }
 
@@ -2822,20 +2847,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                             <span>SUBTOTAL ${label}</span>
                             <span style="min-width:100px;text-align:right;">${tpvFormatMoney(subtotal)}</span>
                         </div>
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem 1rem;padding:0.5rem 0.6rem 0.1rem;font-weight:600;white-space:nowrap;">
-                            <div style="display:flex;flex-direction:column;">
-                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
+                        <div style="display:grid;grid-template-columns:repeat(2,minmax(300px,1fr));column-gap:1rem;padding:0.5rem 0.6rem 0.1rem;font-weight:600;white-space:nowrap;">
+                                <div style="display:flex;justify-content:space-between;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.15rem 0;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
                             </div>
-                            <div style="display:flex;flex-direction:column;">
-                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
-                            </div>
-                        </div>
                     </div>`;
             }).join('');
 
@@ -2991,8 +3014,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     <input type="date" class="form-control" id="control-sheet-to" value="${controlTo}" style="min-width:150px;">
                 </div>
                 <div style="display:flex;gap:0.5rem;align-items:flex-end;">
-                    <button type="button" class="btn btn-primary" id="btn-control-generate"
-                        title="Genera y guarda una hoja de control con las citas del rango seleccionado (código H-XXX)">Generar Hoja de Control</button>
+                    <button type="button" class="btn btn-primary" id="btn-control-generate"${State.tpv.controlSheetApplied ? ' disabled' : ''}
+                        title="${State.tpv.controlSheetApplied ? 'Las hojas del rango ya se han generado. Cambia el rango o el salón para volver a aplicar.' : 'Genera (sin duplicar) y muestra una hoja por día y salón del rango seleccionado'}">Aplicar</button>
+                    <button type="button" class="btn btn-secondary" id="btn-control-reset">Limpiar</button>
                 </div>
             </div>
             <div class="data-card" style="padding:1.25rem;">
@@ -3580,6 +3604,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const controlToInput = document.getElementById('control-sheet-to');
         if (controlFromInput) controlFromInput.addEventListener('change', e => {
             State.tpv.controlSheetFrom = e.target.value;
+            State.tpv.controlSheetApplied = false;
             if (State.tpv.controlSheetFrom && State.tpv.controlSheetTo && State.tpv.controlSheetFrom > State.tpv.controlSheetTo) {
                 showToast('La fecha "Desde" no puede ser posterior a "Hasta".', 'error');
                 return;
@@ -3588,6 +3613,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         });
         if (controlToInput) controlToInput.addEventListener('change', e => {
             State.tpv.controlSheetTo = e.target.value;
+            State.tpv.controlSheetApplied = false;
             if (State.tpv.controlSheetFrom && State.tpv.controlSheetTo && State.tpv.controlSheetFrom > State.tpv.controlSheetTo) {
                 showToast('La fecha "Desde" no puede ser posterior a "Hasta".', 'error');
                 return;
@@ -3596,10 +3622,19 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         });
         const controlGenerateBtn = document.getElementById('btn-control-generate');
         if (controlGenerateBtn) controlGenerateBtn.addEventListener('click', tpvEmitControlSheet);
+        const controlResetBtn = document.getElementById('btn-control-reset');
+        if (controlResetBtn) controlResetBtn.addEventListener('click', () => {
+            State.tpv.controlSheetFrom = '';
+            State.tpv.controlSheetTo = '';
+            State.tpv.historySalonId = 'all';
+            State.tpv.controlSheetApplied = false;
+            renderRoute();
+        });
 
         const salesSalonSel = document.getElementById('sales-salon-select');
         if (salesSalonSel) salesSalonSel.addEventListener('change', e => {
             State.tpv.historySalonId = e.target.value;
+            State.tpv.controlSheetApplied = false;
             renderRoute();
         });
         const salesFrom = document.getElementById('sales-from');

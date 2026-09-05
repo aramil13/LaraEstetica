@@ -200,6 +200,22 @@ body {
     box-shadow: 0 6px 22px rgba(217, 70, 239, 0.35);
 }
 
+.btn:disabled,
+.btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    filter: grayscale(1);
+    box-shadow: none;
+    pointer-events: none;
+}
+
+.btn-primary:disabled,
+.btn-primary[disabled] {
+    background: var(--border-color);
+    color: var(--text-secondary);
+}
+
 .btn-secondary {
     background-color: var(--bg-base);
     color: var(--text-primary);
