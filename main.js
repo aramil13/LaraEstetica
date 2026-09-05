@@ -2670,6 +2670,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     // Generar y guardar una hoja de control POR CADA DÍA del rango seleccionado (código H-XXX)
+    // Generar y guardar una hoja de control POR CADA DÍA Y SALÓN del rango seleccionado (código H-XXX)
     async function tpvEmitControlSheet() {
         const from = State.tpv.controlSheetFrom;
         const to = State.tpv.controlSheetTo;
@@ -2690,36 +2691,47 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             return;
         }
 
-        const days = new Map();
+        // Agrupar por día Y salón: una hoja de control por combinación
+        const groups = new Map();
         rangeApts.forEach(apt => {
             const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
             const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
             const salon = State.salons.find(s => s.id === apt.salonId);
+            const salonKey = apt.salonId || '__sin_salon__';
+            const key = apt.date + '|' + salonKey;
             const item = {
                 name: `${client.name} → ${service.name}`,
                 price: Math.round((parseFloat(service.price) || 0) * 100) / 100,
                 qty: 1,
                 date: apt.date,
                 time: apt.time,
-                salon: salon ? salon.name : 'Sin salón'
+                salon: salon ? salon.name : 'Sin salón',
+                salonId: apt.salonId || null
             };
-            if (!days.has(apt.date)) days.set(apt.date, []);
-            days.get(apt.date).push(item);
+            if (!groups.has(key)) {
+                groups.set(key, {
+                    date: apt.date,
+                    salonId: apt.salonId || null,
+                    salonName: salon ? salon.name : 'Sin salón',
+                    items: []
+                });
+            }
+            groups.get(key).items.push(item);
         });
 
         const emittedIds = [];
-        for (const dateStr of Array.from(days.keys()).sort()) {
-            const items = days.get(dateStr);
-            const salonNames = Array.from(new Set(items.map(i => i.salon))).join(', ');
-            const description = `Hoja de Control · ${formatDateEU(dateStr)} · ${salonNames} · ${items.length} servicios`;
-            const t = tpvControlSheetTotals(items);
+        const sortedKeys = Array.from(groups.keys()).sort();
+        for (const key of sortedKeys) {
+            const g = groups.get(key);
+            const description = `Hoja de Control · ${formatDateEU(g.date)} · ${g.salonName} · ${g.items.length} servicios`;
+            const t = tpvControlSheetTotals(g.items);
             const payload = {
                 doc_type: 'hoja-control',
-                salon_id: salonId === 'all' ? null : salonId,
+                salon_id: g.salonId,
                 client_id: null,
                 client_name: description,
                 client_nif: null,
-                items,
+                items: g.items,
                 base_amount: t.base,
                 commission_rate: 0,
                 commission_amount: t.commission,
@@ -2742,7 +2754,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 State.tpv.invoices.unshift(doc);
                 emittedIds.push(doc);
             } catch (err) {
-                showToast('Error al generar la hoja del día ' + formatDateEU(dateStr) + ': ' + (err.message || 'error'), 'error');
+                showToast('Error al generar la hoja de ' + g.salonName + ' del ' + formatDateEU(g.date) + ': ' + (err.message || 'error'), 'error');
             }
         }
 
@@ -2810,18 +2822,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                             <span>SUBTOTAL ${label}</span>
                             <span style="min-width:100px;text-align:right;">${tpvFormatMoney(subtotal)}</span>
                         </div>
-                        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:0.75rem 2rem;padding:0.5rem 0.6rem 0.1rem;font-weight:600;white-space:nowrap;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem 1rem;padding:0.5rem 0.6rem 0.1rem;font-weight:600;white-space:nowrap;">
                             <div style="display:flex;flex-direction:column;">
-                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">Comisión por los servicios (70% Técnico): <span>${tpvFormatMoney(commission)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">Base: <span>${tpvFormatMoney(base)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">+IVA (21%): <span>${tpvFormatMoney(tax)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
                             </div>
                             <div style="display:flex;flex-direction:column;">
-                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
-                                <div style="display:flex;justify-content:space-between;width:360px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">30% PARA EL SALÓN: <span>${tpvFormatMoney(salonForSalon)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.15rem 0;">+RETENCIÓN (15%): <span>${tpvFormatMoney(retention)}</span></div>
+                                <div style="display:flex;justify-content:space-between;width:320px;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
                             </div>
                         </div>
                     </div>`;
