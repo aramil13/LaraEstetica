@@ -2637,14 +2637,15 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             const items = Array.isArray(inv.items) ? inv.items : [];
             const dayDate = (items[0] && items[0].date) || dateStr;
             const total = Number(inv.total_amount) || 0;
-            grandTotal += total;
             const commission = Math.round(total * 0.70 * 100) / 100;
             const base = Math.round(commission / 1.21 * 100) / 100;
             const tax = Math.round(base * 0.21 * 100) / 100;
             const retention = Math.round(base * 0.15 * 100) / 100;
             const salonForSalon = Math.round(total * 0.30 * 100) / 100;
-            grandTotal70 += Math.round((base + tax - retention) * 100) / 100;
-            grandTotal30 += Math.round((salonForSalon + retention) * 100) / 100;
+            const totalTecnico = Math.round((base + tax - retention) * 100) / 100;
+            const totalEntregar = Math.round((salonForSalon + retention) * 100) / 100;
+            grandTotal70 += Math.round((totalTecnico - retention) * 100) / 100;
+            grandTotal30 += Math.round((totalEntregar + retention) * 100) / 100;
             const detail = items.length > 0 ? `${items.length} servicios` : '—';
             html += `<tr data-sales-row="${inv.id}">
                 <td style="vertical-align:top;text-align:center;"><input type="checkbox" class="inv-select" data-invoice-id="${inv.id}" title="Marcar para anular o imprimir" onclick="event.stopPropagation()"></td>
@@ -2655,9 +2656,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <td style="vertical-align:top;text-align:right;">${tpvFormatMoney(total)}</td>
             </tr>`;
         });
-        grandTotal = Math.round(grandTotal * 100) / 100;
         grandTotal70 = Math.round(grandTotal70 * 100) / 100;
         grandTotal30 = Math.round(grandTotal30 * 100) / 100;
+        grandTotal = Math.round((grandTotal70 + grandTotal30) * 100) / 100;
         html += `<tr class="report-subtotal"><td colspan="5" style="text-align:left;">SUBTOTAL 70% TÉCNICO</td><td style="text-align:right;font-weight:700;">${tpvFormatMoney(grandTotal70)}</td></tr>`;
         html += `<tr class="report-subtotal"><td colspan="5" style="text-align:left;">SUBTOTAL 30% SALÓN</td><td style="text-align:right;font-weight:700;">${tpvFormatMoney(grandTotal30)}</td></tr>`;
         html += `<tr class="report-grand"><td colspan="5" style="text-align:right;">TOTAL GENERAL</td><td style="text-align:right;">${tpvFormatMoney(grandTotal)}</td></tr>`;
@@ -2872,8 +2873,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                                 <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"></div>
                                 <div style="display:flex;justify-content:space-between;padding:0.15rem 0;">−Retención (15%): <span>−${tpvFormatMoney(retention)}</span></div>
                                 <div style="display:flex;justify-content:space-between;padding:0.15rem 0;"></div>
-                                <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 70% TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
-                                <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL 30% SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL TÉCNICO: <span>${tpvFormatMoney(totalTecnico)}</span></div>
+                                <div style="display:flex;justify-content:space-between;padding:0.3rem 0;border-top:2px solid #000;font-weight:800;">TOTAL SALÓN: <span>${tpvFormatMoney(totalEntregar)}</span></div>
                             </div>
                     </div>`;
             }).join('');
