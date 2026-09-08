@@ -154,6 +154,87 @@
         .product-info strong { font-weight: 600; font-size: 0.9rem; color: #fff; display: block; }
         .product-info p { font-size: 0.75rem; color: var(--text-secondary); margin: 4px 0; }
         .product-info a { font-size: 0.75rem; color: var(--accent-color); text-decoration: none; }
+
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .symptom-field {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+        }
+        .symptom-field label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .symptom-field select {
+            width: 100%;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+        .symptom-field input[type="checkbox"] {
+            width: 16px; height: 16px; accent-color: var(--accent-color);
+        }
+        .symptom-check {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.82rem; color: var(--text-primary); cursor: pointer;
+        }
+
+        .guide-toggle {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: rgba(167,139,250,0.1);
+            color: var(--accent-color);
+            border: 1px solid rgba(167,139,250,0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .guide-toggle:hover { background: rgba(167,139,250,0.2); }
+        #guide-panel { margin-top: 12px; }
+        .guide-accordion { border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+        .guide-accordion summary {
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.04);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .guide-accordion .guide-body { padding: 12px; }
+        .guide-accordion .guide-body p { font-size: 0.8rem; margin: 6px 0; color: var(--text-secondary); }
+        .guide-accordion .guide-body b { color: var(--text-primary); }
+        .guide-accordion .guide-body ul { margin: 6px 0; padding-left: 18px; }
+        .guide-accordion .guide-body li { font-size: 0.78rem; color: var(--text-secondary); margin: 4px 0; }
+        .guide-tag {
+            display: inline-block; background: rgba(167,139,250,0.15); color: var(--accent-color);
+            border-radius: 20px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; margin-right: 6px;
+        }
+
+        .diag-summary {
+            margin-top: 18px; padding: 14px; border-radius: 12px;
+            background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.25);
+        }
+        .diag-summary h4 { margin: 0 0 8px 0; color: var(--accent-color); font-size: 0.9rem; }
+        .diag-summary p { margin: 6px 0; font-size: 0.82rem; color: var(--text-secondary); }
+        .diag-summary b { color: var(--text-primary); }
     </style>
 </head>
 <body>
@@ -195,6 +276,72 @@
                             <span style="font-size: 0.9rem; font-weight: 500;">¿Cabello teñido?</span>
                         </label>
                     </div>
+
+                    <div id="symptom-section" style="margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.04); border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; color: var(--accent-color);">Síntomas y contexto clínico</div>
+                        <div class="symptom-grid">
+                            <div class="symptom-field">
+                                <label>¿Nota pérdida de cabello?</label>
+                                <select id="symptom-hairloss">
+                                    <option value="">No indicado</option>
+                                    <option value="difusa">Caída difusa general</option>
+                                    <option value="areas">En zonas/parches concretos</option>
+                                    <option value="fronto">Entradas / coronilla (frontal-temoral)</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </div>
+                            <div class="symptom-field">
+                                <label>Descamación (caspa)</label>
+                                <select id="symptom-dandruff">
+                                    <option value="">No indicado</option>
+                                    <option value="seca">Fina, blanca, seca (se desprende fácil)</option>
+                                    <option value="grasa">Amarillenta, adherente, con enrojecimiento</option>
+                                    <option value="placas">Placas gruesas nacaradas bien delimitadas</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </div>
+                            <div class="symptom-field">
+                                <label>Cuero cabelludo graso</label>
+                                <select id="symptom-sebum">
+                                    <option value="">No indicado</option>
+                                    <option value="alto">Muy graso (sebo visible)</option>
+                                    <option value="medio">Algo graso</option>
+                                    <option value="seco">Ninguno / seco</option>
+                                </select>
+                            </div>
+                            <div class="symptom-field">
+                                <label>Picor / irritación</label>
+                                <select id="symptom-itch">
+                                    <option value="">No indicado</option>
+                                    <option value="alto">Picor e irritación frecuentes</option>
+                                    <option value="medio">Picor ocasional</option>
+                                    <option value="no">Ninguno</option>
+                                </select>
+                            </div>
+                            <div class="symptom-field">
+                                <label>Contexto / desencadenantes recientes</label>
+                                <select id="symptom-context">
+                                    <option value="">Ninguno</option>
+                                    <option value="postparto">Posparto (hace 2-3 meses)</option>
+                                    <option value="estres">Estrés / ansiedad elevados</option>
+                                    <option value="fiebre">Fiebre alta reciente (infección)</option>
+                                    <option value="medicacion">Medicación / tratamiento médico</option>
+                                    <option value="dieta">Cambio de dieta / déficit nutricional</option>
+                                </select>
+                            </div>
+                            <div class="symptom-field">
+                                <label>Historial del cabello</label>
+                                <select id="symptom-history">
+                                    <option value="">No indicado</option>
+                                    <option value="quimico">Procesos químicos frecuentes (tinte, alisado, decoloración)</option>
+                                    <option value="calor">Uso frecuente de calor (plancha, secador, rizador)</option>
+                                    <option value="traccion">Peinados de tracción (coletas, moños, trenzas)</option>
+                                    <option value="lavado">Lavado con agua muy caliente</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <button id="analyze-btn" class="primary-btn">Iniciar Análisis AI</button>
                     <button id="reset-btn" class="secondary-btn">Cambiar Imagen</button>
                 </div>
@@ -239,6 +386,89 @@
                 <div id="treatments-section" style="margin-top: 30px; display: none;">
                     <h3 style="font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">Tratamientos Olaplex</h3>
                     <div id="treatments-grid"></div>
+                </div>
+
+                <div id="diag-summary" class="diag-summary" style="display: none;">
+                    <h4>📋 Interpretación tricológica</h4>
+                    <div id="diag-summary-text"></div>
+                </div>
+
+                <button id="guide-toggle" class="guide-toggle">📚 Guía rápida de Tricología (Simone Trichology)</button>
+                <div id="guide-panel" style="display: none; margin-top: 12px;">
+                    <details class="guide-accordion">
+                        <summary>01 · El cabello: estructura y ciclo</summary>
+                        <div class="guide-body">
+                            <span class="guide-tag">Referencia normalidad</span>
+                            <p><b>Estructura:</b> Raíz (bulbo, papila dérmica) y tallo (médula ~21%, corteza ~70% —determina fuerza/elasticidad/textura— y cutícula ~9% —protectora; si se daña → poroso y opaco).</p>
+                            <ul>
+                                <li>Diámetro del tallo: <b>70–100 μm</b> · resistencia a rotura: <b>40–60 g</b></li>
+                                <li>Crecimiento: <b>1–1,5 cm/mes</b> · ciclo de vida 3–5 años · <b>100.000–150.000</b> cabellos</li>
+                                <li>Composición: 28% proteínas (queratina), 2% lípidos, 70% agua</li>
+                                <li>Fases: <b>Anágena</b> (crecimiento) → <b>Catágena</b> (2–3 sem) → <b>Telógena</b> (caída ~12–14%)</li>
+                            </ul>
+                        </div>
+                    </details>
+                    <details class="guide-accordion">
+                        <summary>02 · Caída del cabello y alopecia: cómo orientarla</summary>
+                        <div class="guide-body">
+                            <span class="guide-tag">Dato clave</span>
+                            <p><b>Alopecia Areata:</b> parches redondos con bordes bien definidos, sin descamación, sin cicatriz. Origen inmunológico → derivar a especialista, fuera del ámbito cosmético.</p>
+                            <p><b>Alopecia Difusa</b> (reversible, salvo cicatricial):</p>
+                            <ul>
+                                <li><b>Postraumática / tracción:</b> moños, coletas, trenzas → zonas frontal y parietal. Eliminar causa mecánica.</li>
+                                <li><b>Posparto / menopáusica:</b> aparece 2–3 meses tras el parto por caída de estrógenos; puede ser irreversible si no se trata.</li>
+                                <li><b>Postfebril:</b> fiebre &gt;39 °C &gt;15 días; pérdida ~2 meses después.</li>
+                                <li><b>Cicatricial:</b> folículos destruidos (quemaduras, infecciones) → irreversible. Derivar.</li>
+                            </ul>
+                            <p><b>Alopecia Androgenética (AGA):</b> la más común. Testosterona + 5-alfa-reductasa → <b>DHT</b> reduce el folículo progresivamente (patrones Hamilton 1942). Genética + hormonal. Tratamiento por fases y de larga duración.</p>
+                        </div>
+                    </details>
+                    <details class="guide-accordion">
+                        <summary>03 · Seborrea: 4 tipos (no confundir con sudor)</summary>
+                        <div class="guide-body">
+                            <span class="guide-tag">Dato clave</span>
+                            <ul>
+                                <li><b>01 Seborrea real:</b> piel seca, bulbo grasiento, cabello normal.</li>
+                                <li><b>02 En 2 capas:</b> piel seca, bulbo grasiento, <b>con pérdida</b>.</li>
+                                <li><b>03 En 4 capas:</b> piel grasa, bulbo grasiento, cabello normal.</li>
+                                <li><b>04 Aparente:</b> piel grasa, pero el interior del folículo está <b>sin sebo</b> (grasa externa). Identificar antes de tratar.</li>
+                            </ul>
+                            <p><b>Diferencial:</b> si no hay sebo interior en el folículo, es <b>sudor</b> (bromhidrosis/hiperhidrosis), no seborrea. Regular el sebo sin resecar: la resequedad puede provocar <i>más</i> grasa compensatoria.</p>
+                        </div>
+                    </details>
+                    <details class="guide-accordion">
+                        <summary>04 · Caspa y procesos descamativos (4 tipos)</summary>
+                        <div class="guide-body">
+                            <span class="guide-tag">Malassezia</span>
+                            <p>Levadura que metaboliza el sebo y puede causar irritación y caída acelerada.</p>
+                            <ul>
+                                <li><b>Pitiriasis simplex (caspa seca):</b> escamas blancas finas, cuero cabelludo seco/áspero, no inflamatoria.</li>
+                                <li><b>Pitiriasis esteatoides (caspa grasa):</b> placa <b>oro amarillento</b>, inflamación, <b>bordes bien definidos</b>.</li>
+                                <li><b>Dermatitis seborreica:</b> placas <b>rojas mal delimitadas</b> con escamas grasas; crónica (controlar, no curar). Zonas: cejas, nariz, orejas.</li>
+                                <li><b>Psoriasis:</b> placas gruesas <b>nacaradas</b> bien delimitadas; uñas con hoyuelos; autoinmune → dermatólogo.</li>
+                            </ul>
+                        </div>
+                    </details>
+                    <details class="guide-accordion">
+                        <summary>05 · Defectos del tallo</summary>
+                        <div class="guide-body">
+                            <span class="guide-tag">Adquirido vs estructural</span>
+                            <p><b>Adquiridos</b> (prevenibles): puntas abiertas (tricoptilosis), tricorrexis nodosa (nodos + "cepillos") — por calor, cepillado, químicos, fricción. Detener el daño y reconstruir superficie.</p>
+                            <p><b>Estructurales/genéticos</b> (derivar): moniletrix ("cuentas"), pili torti (retorcido 180°), tricorrexis invaginata ("bambú", síndrome de Netherton), tricotiodistrofia (bajo azufre), pili anulati (anillos), síndrome cabello peinable, pelo lanoso.</p>
+                        </div>
+                    </details>
+                    <details class="guide-accordion">
+                        <summary>06 · Tricoscopia y tricograma: qué se evalúa</summary>
+                        <div class="guide-body">
+                            <span class="guide-tag">Método diagnóstico</span>
+                            <ul>
+                                <li><b>Tricoscopia:</b> dermatoscopia del cuero cabelludo (10–30×). No invasiva. Evalúa superficie, densidad aparente, grosor de tallos, orificios foliculares, patrones vasculares.</li>
+                                <li><b>Tricograma:</b> examen microscópico de pelos arrancados (semiinvasivo, instantánea del ciclo).</li>
+                                <li>Guía para: AGA, alopecia areata, cicatricial, dermatitis seborreica, psoriasis y cambios del tallo.</li>
+                                <li><b>Usar antes de elegir producto</b> y <b>durante</b> la rutina para ver cambios.</li>
+                            </ul>
+                        </div>
+                    </details>
                 </div>
             </section>
         </main>
@@ -310,7 +540,38 @@
             analyzeBtn: document.getElementById('analyze-btn'),
             statusBadge: document.getElementById('status-badge'),
             coloredHair: document.getElementById('colored-hair-checkbox'),
+            guideToggle: document.getElementById('guide-toggle'),
+            guidePanel: document.getElementById('guide-panel'),
         };
+
+        elements.guideToggle.onclick = () => {
+            const shown = elements.guidePanel.style.display !== 'none';
+            elements.guidePanel.style.display = shown ? 'none' : 'block';
+            elements.guideToggle.textContent = shown
+                ? '📚 Guía rápida de Tricología (Simone Trichology)'
+                : '📚 Ocultar Guía rápida de Tricología';
+        };
+
+        function collectSymptoms() {
+            const pick = id => document.getElementById(id)?.value || '';
+            return {
+                hairLoss: pick('symptom-hairloss'),
+                dandruff: pick('symptom-dandruff'),
+                sebumSymptom: pick('symptom-sebum'),
+                itch: pick('symptom-itch'),
+                context: pick('symptom-context'),
+                history: pick('symptom-history'),
+            };
+        }
+
+        function clearSymptoms() {
+            ['symptom-hairloss','symptom-dandruff','symptom-sebum','symptom-itch','symptom-context','symptom-history'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }
+
+        const refNormal = { density: 160, thickness: 70, sebum: 'Medio', dandruff: 'Normal', erythema: 'Normal' };
 
         elements.fileInput.onchange = function(e) {
             const file = e.target.files[0];
@@ -385,6 +646,9 @@
             });
             document.getElementById('recommendations-section').style.display = 'none';
             document.getElementById('treatments-section').style.display = 'none';
+            document.getElementById('diag-summary').style.display = 'none';
+            clearSymptoms();
+            elements.coloredHair.checked = false;
         };
 
         elements.analyzeBtn.onclick = () => {
@@ -416,33 +680,39 @@
                     const { hydration, sebumLevel, sebumLabel } = detectHydrationAndSebum(img);
                     const { value: dandruffValue, label: dandruffLabel } = detectDandruffLevel(img);
                     const erythemaRaw = detectErythemaLevel(img);
-                    
+                    const breakage = detectBreakage(img);
+
                     let erythemaLevel = 'Normal';
                     if (erythemaRaw > 0 && erythemaRaw <= 3) erythemaLevel = 'Bajo';
                     if (erythemaRaw > 3 && erythemaRaw <= 7) erythemaLevel = 'Medio';
                     if (erythemaRaw > 7) erythemaLevel = 'Alto';
-                    
+
+                    const symptoms = collectSymptoms();
+
                     document.getElementById('val-density').textContent = density;
                     document.getElementById('val-thickness').textContent = thickness + ' μm';
                     document.getElementById('val-hydration').textContent = hydration + '%';
                     document.getElementById('val-sebum').textContent = sebumLabel;
                     document.getElementById('val-dandruff').textContent = dandruffLabel;
                     document.getElementById('val-erythema').textContent = erythemaLevel;
-                    
+
                     const results = {
                         density, thickness, hydration,
                         sebum: sebumLabel,
                         dandruff: dandruffLabel,
                         erythema: erythemaLevel,
-                        isColored: elements.coloredHair.checked
+                        breakage,
+                        isColored: elements.coloredHair.checked,
+                        symptoms
                     };
-                    
+
                     renderRecommendations(results);
-                    
+                    renderTrichologicalSummary(results);
+
                     elements.statusBadge.textContent = '✓ Análisis completado';
                     elements.statusBadge.style.background = '#10b981';
                     elements.analyzeBtn.disabled = false;
-                    
+
                     // AUTO-SYNC TO PARENT
                     if (window.parent !== window) {
                         window.parent.postMessage({
@@ -582,20 +852,159 @@
             return { value: val, label: val > 7 ? 'Alto' : (val < 3 ? 'Normal' : 'Medio') };
         }
 
+        function detectBreakage(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 100; canvas.height = 100;
+            ctx.drawImage(img, 0, 0, 100, 100);
+            const data = ctx.getImageData(0, 0, 100, 100).data;
+            let thinBright = 0, tinyFrag = 0;
+            for (let y = 0; y < 100; y++) {
+                for (let x = 0; x < 100; x++) {
+                    const i = (y * 100 + x) * 4;
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    const br = (r + g + b) / 3;
+                    if (br > 200 && br < 245) thinBright++;
+                    if (br < 60) tinyFrag++;
+                }
+            }
+            const ratio = tinyFrag === 0 ? 0 : thinBright / 10000;
+            let level = 'Normal';
+            if (ratio > 0.25) level = 'Alto';
+            else if (ratio > 0.12) level = 'Medio';
+            return { level, ratio: Math.round(ratio * 100) };
+        }
+
+        function renderTrichologicalSummary(d) {
+            const box = document.getElementById('diag-summary');
+            const txt = document.getElementById('diag-summary-text');
+            if (!box || !txt) return;
+            const s = d.symptoms || {};
+            const lines = [];
+
+            lines.push(`<p><b>Cabello:</b> el análisis sugiere una densidad de <b>${d.density}</b> (referencia 160–190) y un grosor de <b>${d.thickness} μm</b> (referencia 65–80).`);
+
+            if (d.breakage && d.breakage.level !== 'Normal') {
+                const causeHint = s.history === 'quimico' ? ' (consistente con procesos químicos frecuentes)'
+                    : s.history === 'calor' ? ' (consistente con uso frecuente de calor)'
+                    : s.history === 'traccion' ? ' (consistente con peinados de tracción)'
+                    : s.history === 'lavado' ? ' (posible agua demasiado caliente)' : '';
+                lines.push(`<p><b>Rotura / miniaturización:</b> se detecta <b>${d.breakage.level.toLowerCase()}</b> — tallos finos o debilitados y/o puntas rotas (tricorrexis/tricoptilosis adquiridas). ${s.history ? 'El historial indica: ' + s.history + '.' : 'Conviene revisar calor, cepillado, químicos y fricción.'}${causeHint}</p>`);
+            }
+
+            const effSebum = s.sebumSymptom || (d.sebum || '').toLowerCase();
+            if (effSebum === 'alto' || d.sebum === 'Alto' || d.sebum === 'Medio' && effSebum === '') {
+                lines.push(`<p><b>Cuero cabelludo graso (seborrea):</b> hay grasa visible. Recuerda el diferencial: si el interior del folículo está sin sebo, podría ser <b>seborrea aparente</b> o incluso sudor, no seborrea real. Regular sin resecar (la sequedad genera más grasa compensatoria).</p>`);
+            }
+            if (s.sebumSymptom === 'seco' && d.sebum !== 'Alto') {
+                lines.push(`<p><b>Sequedad:</b> el cliente indica cuero cabelludo seco. Evitar agua &gt;37 °C y champús agresivos.</p>`);
+            }
+
+            if (s.dandruff === 'grasa' || (d.dandruff === 'Medio' && s.dandruff === 'grasa')) {
+                lines.push(`<p><b>Caspa grasa (pitiriasis esteatoides):</b> escamas amarillentas adherentes con bordes definidos. Controlar grasa + anticaspa, mantener constancia.</p>`);
+            } else if (s.dandruff === 'seca' || (d.dandruff === 'Medio' && s.dandruff === 'seca')) {
+                lines.push(`<p><b>Caspa seca (pitiriasis simplex):</b> escamas finas blancas. Purificar + champú anticaspa suave e hidratar.</p>`);
+            } else if (d.dandruff === 'Alto') {
+                lines.push(`<p><b>Descamación elevada detectada:</b> valorar si es caspa seca o grasa (según el aspecto y la adherencia de las escamas).</p>`);
+            }
+            if (s.dandruff === 'placas') {
+                lines.push(`<p><b>⚠ Placas con escamas nacaradas bien delimitadas:</b> orienta a <b>psoriasis</b> (autoinmune). Requiere valoración dermatológica; la tricología solo da soporte.</p>`);
+            }
+
+            if (d.erythema === 'Alto' || d.erythema === 'Medio') {
+                lines.push(`<p><b>Enrojecimiento (eritema ${d.erythema.toLowerCase()}):</b> puede acompañar a dermatitis seborreica o irritación. Si hay placas rojas mal delimitadas con escamas grasas, orienta a <b>dermatitis seborreica</b> (controlable, no curable).</p>`);
+            }
+
+            if (s.hairLoss === 'areas') {
+                lines.push(`<p><b>Caída en zonas/parches con bordes definidos:</b> orienta a <b>alopecia areata</b> (inmunológica) → derivar a especialista, fuera del ámbito cosmético.</p>`);
+            } else if (s.hairLoss === 'fronto') {
+                lines.push(`<p><b>Caída frontal/temoral (entradas, coronilla):</b> patrón típico de <b>alopecia androgenética</b> (DHT). Tratamiento por fases y de larga duración para mantener el folículo activo.</p>`);
+            } else if (s.hairLoss === 'difusa') {
+                if (s.context === 'postparto') lines.push(`<p><b>Caída difusa posparto:</b> aparece 2–3 meses tras el parto por caída de estrógenos. Puede volverse irreversible si no se trata; reforzar folículo y suplementación.</p>`);
+                else if (s.context === 'fiebre') lines.push(`<p><b>Caída difusa postfebril:</b> transitoria, aparece ~2 meses tras fiebre/infección. Limpieza suave + tratamiento tópico.</p>`);
+                else if (s.context === 'estres') lines.push(`<p><b>Caída difusa:</b> el estrés puede exacerbar el efluvio. Tratar folículo y manejar el factor nervioso.</p>`);
+                else lines.push(`<p><b>Caída difusa:</b> se pierde más de lo que nace. Descarta causas mecánicas/químicas y valora contexto hormonal o nutricional.</p>`);
+            }
+
+            if (d.hydration < 50) {
+                lines.push(`<p><b>Hidratación baja (${d.hydration}%):</b> fibra seca → refuerza la hidratación (rutina True Soft) y protege la cutícula.</p>`);
+            }
+
+            txt.innerHTML = lines.length
+                ? lines.join('')
+                : '<p>Sin hallazgos relevantes frente a los rangos de normalidad. Mantener una rutina de mantenimiento y revisión periódica.</p>';
+            box.style.display = 'block';
+        }
+
         function renderRecommendations(diagnosis) {
             const grid = document.getElementById('products-grid');
             const treatGrid = document.getElementById('treatments-grid');
-            const { density, thickness, hydration, sebum, isColored } = diagnosis;
-            
-            let html = '';
-            if (sebum === 'Alto') html += renderProd(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
-            if (hydration < 50) html += renderProd(MARIA_NILA_PRODUCTS.trueSoftShampoo);
-            if (isColored) html += renderProd(MARIA_NILA_PRODUCTS.luminousColourShampoo);
-            
-            grid.innerHTML = html || '<p>No hay recomendaciones específicas.</p>';
+            const { density, thickness, hydration, sebum, isColored, breakage, symptoms } = diagnosis;
+            const s = symptoms || {};
+
+            const recommended = [];
+
+            // Cuero cabelludo graso / seborrea
+            if (sebum === 'Alto' || s.sebumSymptom === 'alto') {
+                recommended.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
+                recommended.push(MARIA_NILA_PRODUCTS.purifyingCleanseExfoliatingSerum);
+                recommended.push(MARIA_NILA_PRODUCTS.purifyingCleanseDetoxMasque);
+            }
+
+            // Caspa
+            if (s.dandruff === 'seca' || s.dandruff === 'grasa' || s.dandruff === 'placas' || diagnosis.dandruff === 'Alto') {
+                recommended.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
+                recommended.push(MARIA_NILA_PRODUCTS.headHairHealScalpTonic);
+            }
+
+            // Cabello seco
+            if (hydration < 50) {
+                recommended.push(MARIA_NILA_PRODUCTS.trueSoftShampoo);
+                recommended.push(MARIA_NILA_PRODUCTS.trueSoftMasque);
+                recommended.push(MARIA_NILA_PRODUCTS.trueSoftArganOil);
+            }
+
+            // Cabello fino / densidad baja
+            if (density < 150) {
+                recommended.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
+                recommended.push(MARIA_NILA_PRODUCTS.pureVolumeMasque);
+            }
+
+            // Cabello dañado / rotura
+            if (breakage && breakage.level !== 'Normal' || thickness < 65 || s.history === 'quimico' || s.history === 'calor') {
+                recommended.push(MARIA_NILA_PRODUCTS.structureRepairShampoo);
+                recommended.push(MARIA_NILA_PRODUCTS.structureRepairMasque);
+                recommended.push(MARIA_NILA_PRODUCTS.bondBuilder);
+            }
+
+            // Cabello sensible / eritema
+            if (diagnosis.erythema === 'Alto' || diagnosis.erythema === 'Medio' || s.itch === 'alto') {
+                recommended.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
+                recommended.push(MARIA_NILA_PRODUCTS.headHairHealSoothingSerum);
+            }
+
+            // Cabello teñido
+            if (isColored) {
+                recommended.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
+                recommended.push(MARIA_NILA_PRODUCTS.luminousColourMasque);
+            }
+
+            const seen = new Set();
+            const unique = recommended.filter(p => p && !seen.has(p.name) && seen.add(p.name));
+            grid.innerHTML = unique.length
+                ? unique.map(renderProd).join('')
+                : '<p>No hay recomendaciones específicas.</p>';
             document.getElementById('recommendations-section').style.display = 'block';
-            
-            treatGrid.innerHTML = renderTreat(OLAPLEX_TREATMENTS.treatmentPremium);
+
+            // Elección de tratamiento Olaplex según daño/rotura
+            let treatments = [];
+            if (breakage && breakage.level !== 'Normal' || thickness < 60 || hydration < 45) {
+                treatments.push(OLAPLEX_TREATMENTS.treatmentPremium);
+                treatments.push(OLAPLEX_TREATMENTS.treatmentExpress);
+            } else {
+                treatments.push(OLAPLEX_TREATMENTS.treatmentExpress);
+            }
+            treatGrid.innerHTML = treatments.map(renderTreat).join('');
             document.getElementById('treatments-section').style.display = 'block';
         }
 

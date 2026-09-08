@@ -127,7 +127,7 @@ const OLAPLEX_TREATMENTS = {
 
 function getMariaNilaRecommendations(diagnosis) {
     const recommendations = [];
-    const { density, thickness, hydration, sebum, isColored, isBlonde, isCurly, isDamaged } = diagnosis;
+    const { density, thickness, hydration, sebum, isColored, isBlonde, isCurly, isDamaged, breakage, symptoms, erythema, dandruff } = diagnosis;
     
     // Cabello seco (hidratación baja)
     if (hydration < 50) {
@@ -147,13 +147,49 @@ function getMariaNilaRecommendations(diagnosis) {
         recommendations.push(MARIA_NILA_PRODUCTS.volumeSpray);
     }
     
+    // Caspa / descamación (sub-tipos de la tricología)
+    const dandruffSym = symptoms && (symptoms.dandruff || '');
+    const isCaspy = dandruff === 'Alto' || dandruff === 'Medio' || dandruffSym === 'seca' || dandruffSym === 'grasa' || dandruffSym === 'placas';
+    if (isCaspy) {
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealScalpTonic);
+    }
+
+    // Rotura / miniaturización (tricorrexis, tallos finos)
+    const breakLevel = breakage && breakage.level;
+    const history = symptoms && symptoms.history;
+    const isBroken = (breakLevel !== undefined && breakLevel !== 'Normal') || thickness < 65;
+    if (isBroken || history === 'quimico' || history === 'calor' || history === 'traccion') {
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairConditioner);
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairMasque);
+        recommendations.push(MARIA_NILA_PRODUCTS.bondBuilder);
+        recommendations.push(MARIA_NILA_PRODUCTS.structureRepairBondingBooster);
+    }
+
+    // Eritema / picor / cuero cabelludo sensible
+    if (erythema === 'Alto' || erythema === 'Medio' || (symptoms && symptoms.itch === 'alto')) {
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealSoothingSerum);
+        recommendations.push(MARIA_NILA_PRODUCTS.headHairHealScalpTonic);
+    }
+
+    // Caída (alopecia aparente) → dar cuerpo y cuidar folículo
+    const hairLoss = symptoms && symptoms.hairLoss;
+    if (hairLoss) {
+        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeMousse);
+        recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeLeaveInCream);
+    }
+
     // Cuero cabelludo graso
-    if (sebum > 65 || sebum === 'Alto') {
+    if (sebum > 65 || sebum === 'Alto' || (symptoms && symptoms.sebumSymptom === 'alto')) {
         recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
         recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseExfoliatingSerum);
         recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseDetoxMasque);
     }
-    
+
     // Cabello teñido
     if (isColored) {
         recommendations.push(MARIA_NILA_PRODUCTS.luminousColourShampoo);
@@ -221,10 +257,13 @@ function getMariaNilaRecommendations(diagnosis) {
 
 function getOlaplexRecommendations(diagnosis) {
     const recommendations = [];
-    const { density, thickness, hydration, isColored } = diagnosis;
+    const { density, thickness, hydration, isColored, breakage, symptoms } = diagnosis;
+    const breakLevel = breakage && breakage.level;
+    const history = symptoms && symptoms.history;
+    const severeBreak = breakLevel === 'Alto' || thickness < 60;
     
     // Tratamiento Premium para casos severos
-    if (density < 130 || thickness < 60 || hydration < 45) {
+    if (density < 130 || thickness < 60 || hydration < 45 || severeBreak || history === 'quimico') {
         recommendations.push(OLAPLEX_TREATMENTS.treatmentPremium);
     }
     // Tratamiento Express - siempre mostrar si hay menos de 2
@@ -4229,7 +4268,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     </div>
                     <button id="btn-change-client" class="secondary-btn btn-sm">Cambiar Cliente</button>
                 </div>
-                <iframe src="diagnosis/index.html?v=20250814s" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 240px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
+                <iframe src="diagnosis/index.html?v=20260908c" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 240px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
             </div>
         `;
     }
@@ -5511,7 +5550,7 @@ window.addEventListener('message', async (event) => {
                             return v.toString(16);
                         });
 
-                        const notes = `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}`;
+                        const notes = `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}, Eritema: ${results?.erythema || '--'}` + (results?.breakage && results.breakage.level !== 'Normal' ? `, Rotura/miniaturización: ${results.breakage.level}` : '');
 
                         try {
                             const photoFile = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
@@ -5549,12 +5588,21 @@ window.addEventListener('message', async (event) => {
                 
                 // Mostrar recomendaciones en la app principal
                 if (results) {
+                    const sebumLabel = String(results.sebum || '');
+                    let sebumNum = 5;
+                    if (sebumLabel === 'Alto') sebumNum = 8;
+                    else if (sebumLabel === 'Bajo') sebumNum = 2;
+                    else if (/^\d+$/.test(sebumLabel)) sebumNum = parseInt(sebumLabel, 10);
                     const diagnosis = {
                         density: results.density || 150,
                         thickness: results.thickness || 65,
                         hydration: parseInt(results.hydration) || 55,
-                        sebum: parseInt(results.sebum) || 5,
-                        isColored: results.isColored || false
+                        sebum: sebumNum,
+                        isColored: results.isColored || false,
+                        breakage: results.breakage,
+                        symptoms: results.symptoms || {},
+                        erythema: results.erythema,
+                        dandruff: results.dandruff
                     };
                     const products = getMariaNilaRecommendations(diagnosis);
                     const treatments = getOlaplexRecommendations(diagnosis);
