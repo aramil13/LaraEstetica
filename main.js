@@ -4268,7 +4268,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     </div>
                     <button id="btn-change-client" class="secondary-btn btn-sm">Cambiar Cliente</button>
                 </div>
-                <iframe src="diagnosis/index.html?v=20260908e" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 240px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
+                <iframe src="diagnosis/index.html?v=20260908f" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 240px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
             </div>
         `;
     }

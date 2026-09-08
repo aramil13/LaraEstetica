@@ -273,6 +273,16 @@
                 <img id="preview-img" src="" alt="Vista previa">
 
                 <div id="action-buttons" style="display: none; margin-top: 20px;">
+                    <div style="margin-bottom: 15px; padding: 12px; background: rgba(16, 185, 129, 0.08); border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                        <label style="font-size: 0.85rem; font-weight: 700; color: var(--accent-color); display: block; margin-bottom: 6px;">🔬 ¿Cómo se tomó esta foto?</label>
+                        <select id="symptom-zoom" class="symptom-zoom" style="width:100%;">
+                            <option value="">Selecciona...</option>
+                            <option value="si30">Con lente / lupa macro o microscópica de aumento ≥ 30×</option>
+                            <option value="no">Sin aumento real (solo zum digital / foto normal)</option>
+                        </select>
+                        <p style="font-size:0.75rem; color: var(--text-secondary); margin:6px 0 0 0;">Requisito obligatorio: solo se analizan tomas capilares con aumento real de al menos 30× (escala de poros, folículos y fibras individuales).</p>
+                    </div>
+
                     <div style="margin-bottom: 15px; padding: 12px; background: rgba(167, 139, 250, 0.1); border-radius: 10px; border: 1px solid rgba(167, 139, 250, 0.2);">
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                             <input type="checkbox" id="colored-hair-checkbox" style="width: 18px; height: 18px; accent-color: var(--accent-color);">
@@ -564,11 +574,12 @@
                 itch: pick('symptom-itch'),
                 context: pick('symptom-context'),
                 history: pick('symptom-history'),
+                zoom: pick('symptom-zoom'),
             };
         }
 
         function clearSymptoms() {
-            ['symptom-hairloss','symptom-dandruff','symptom-sebum','symptom-itch','symptom-context','symptom-history'].forEach(id => {
+            ['symptom-hairloss','symptom-dandruff','symptom-sebum','symptom-itch','symptom-context','symptom-history','symptom-zoom'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
@@ -680,11 +691,21 @@
                         return;
                     }
 
-                    if (!assessScalpHairMagnification(img).ok) {
-                        alert('⚠️ Foto rechazada: zoom insuficiente.\n\nEl diagnóstico capilar solo analiza tomas en PRIMER PLANO del cuero cabelludo o del tallo del cabello con un aumento mínimo de aproximadamente 30×.\n\n• Acércate hasta ver poros, folículos u orificios foliculares, la raíz del cabello o fibras capilares individuales.\n• Usa el zoom de tu móvil o un objetivo/lente macro y enfoca bien antes de capturar.\n\nLas fotos a distancia (rostro, cabeza completa, paisaje, etc.) serán rechazadas.');
+                    const zoomDeclared = document.getElementById('symptom-zoom')?.value || '';
+                    if (zoomDeclared !== 'si30') {
+                        alert('⚠️ Foto rechazada: aumento insuficiente.\n\nDebes confirmar que la toma se hizo con lente/lupa macro o microscópica de aumento real ≥ 30×.\n\n• El zum digital del móvil NO equivale a aumento óptico.\n• A 30× o más deben distinguirse poros, folículos u orificios foliculares, la raíz del cabello o fibras capilares individuales.\n\nSelecciona la opción correcta en "¿Cómo se tomó esta foto?", acércate y vuelve a capturar.');
                         elements.analyzeBtn.disabled = false;
                         elements.statusBadge.style.display = 'none';
-                        elements.statusBadge.textContent = 'Zoom insuficiente';
+                        elements.statusBadge.textContent = 'Aumento no confirmado';
+                        elements.statusBadge.style.background = '#ef4444';
+                        return;
+                    }
+
+                    if (!assessScalpHairMagnification(img).ok) {
+                        alert('⚠️ Foto rechazada: la imagen no muestra un primer plano capilar con aumento ≥ 30×.\n\nAun indicando que usaste aumento, la foto no presenta la escala esperada (fibra gruesa tipo mancha, zonas lisas/desenfocadas o sin micro-textura).\n\n• Acércate hasta ver poros, folículos, raíz o fibras individuales.\n• Enfoca bien y evita fotos a distancia.');
+                        elements.analyzeBtn.disabled = false;
+                        elements.statusBadge.style.display = 'none';
+                        elements.statusBadge.textContent = 'Primer plano no detectado';
                         elements.statusBadge.style.background = '#ef4444';
                         return;
                     }
@@ -789,26 +810,30 @@
         }
 
         // Comprueba que la toma es un primer plano de cuero cabelludo/cabello
-        // con aumento mínimo ~30x (se aprecian poros, folículos o fibras individuales).
-        // Heurística estricta anti-falsos-positivos: exige señales COMBINADAS,
-        // penaliza zonas lisas y rechaza retratos/paisajes/planos lejanos.
+        // con aumento mínimo ~30x. Heurística estricta anti-falsos-positivos:
+        //   A) Textura micro presente de forma UNIFORME en el encuadre (un macro
+        //      real no tiene zonas lisas ni borrosas grandes).
+        //   B) Morfología de "fibra fina" (estructuras oscuras finas, no manchas
+        //      gruesas tipo masa de cabello -> rechaza fotos lejanas/retratos).
+        //   C) Folículos/poros aislados (sello del cuero cabelludo a 30x).
         function assessScalpHairMagnification(img) {
-            const size = 160;
+            const size = 200;
+            const N = size * size;
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = size; canvas.height = size;
             ctx.drawImage(img, 0, 0, size, size);
             const d = ctx.getImageData(0, 0, size, size).data;
-            const gray = new Float32Array(size * size);
-            for (let i = 0; i < size * size; i++) {
+            const gray = new Float32Array(N);
+            for (let i = 0; i < N; i++) {
                 gray[i] = 0.299 * d[i*4] + 0.587 * d[i*4+1] + 0.114 * d[i*4+2];
             }
 
-            // 1) Micro-detalIe (Sobel por teselas + global) y zonas lisas
+            // ---- A) Micro-detalle (Sobel por teselas) + zonas lisas ----
             const TILE = 40;
-            const HARD_DETAIL = 12100; // gradiente > 110
-            const FLAT = 1600;          // gradiente < 40 → zona lisa
-            let highDetail = 0, total = 0, tileMax = 0, flatPx = 0;
+            const HARD_DETAIL = 12100; // gradiente > 110 : borde duro, típico de macro
+            const FLAT = 900;           // gradiente < 30 : zona lisa/desenfocada
+            let highDetail = 0, total = 0, tileMax = 0, flatPx = 0, detailedTiles = 0, nTiles = 0;
             for (let ty = 0; ty < size; ty += TILE) {
                 for (let tx = 0; tx < size; tx += TILE) {
                     const y0 = Math.min(ty + TILE, size - 1);
@@ -828,7 +853,9 @@
                         }
                     }
                     if (tN > 0) {
+                        nTiles++;
                         if (th / tN > tileMax) tileMax = th / tN;
+                        if (th / tN >= 0.15) detailedTiles++;
                         total += tN;
                         highDetail += th;
                     }
@@ -836,32 +863,38 @@
             }
             const detailCoverage = total ? highDetail / total : 0;
             const flatCoverage = total ? flatPx / total : 1;
+            const detailedTileRatio = nTiles ? detailedTiles / nTiles : 0;
 
-            // 2) Fibras/mechones finos y oscuros individuales (corridas de 8–45 px)
-            const dark = new Uint8Array(size * size);
-            for (let i = 0; i < size * size; i++) dark[i] = gray[i] < 118 ? 1 : 0;
-            let thinRuns = 0, strandPx = 0;
+            // ---- B) Morfología fibra-fina vs mancha (distancia por filas/columnas) ----
+            const dark = new Uint8Array(N);
+            for (let i = 0; i < N; i++) dark[i] = gray[i] < 120 ? 1 : 0;
+            const lr = new Uint16Array(N), rr = new Uint16Array(N);
+            const tb = new Uint16Array(N), bt = new Uint16Array(N);
             for (let y = 0; y < size; y++) {
                 let run = 0;
-                for (let x = 0; x <= size; x++) {
-                    const on = x < size && dark[y*size+x] === 1;
-                    if (on) { run++; continue; }
-                    if (run >= 8 && run <= 45) { thinRuns++; strandPx += run; }
-                    run = 0;
-                }
+                for (let x = 0; x < size; x++) { const i = y * size + x; run = dark[i] ? run + 1 : 0; lr[i] = run; }
+                run = 0;
+                for (let x = size - 1; x >= 0; x--) { const i = y * size + x; run = dark[i] ? run + 1 : 0; rr[i] = run; }
             }
             for (let x = 0; x < size; x++) {
                 let run = 0;
-                for (let y = 0; y <= size; y++) {
-                    const on = y < size && dark[y*size+x] === 1;
-                    if (on) { run++; continue; }
-                    if (run >= 8 && run <= 45) { thinRuns++; strandPx += run; }
-                    run = 0;
-                }
+                for (let y = 0; y < size; y++) { const i = y * size + x; run = dark[i] ? run + 1 : 0; tb[i] = run; }
+                run = 0;
+                for (let y = size - 1; y >= 0; y--) { const i = y * size + x; run = dark[i] ? run + 1 : 0; bt[i] = run; }
             }
-            const strandCoverage = strandPx / (size * size);
+            let thinCross = 0, blobPx = 0;
+            for (let i = 0; i < N; i++) {
+                if (!dark[i]) continue;
+                const dH = Math.min(lr[i], rr[i]);  // grosor horizontal de la estructura
+                const dV = Math.min(tb[i], bt[i]);  // grosor vertical de la estructura
+                const minCross = Math.min(dH, dV);  // grosor de la sección
+                if (minCross <= 8) thinCross++;      // fibra fina / tallo individual
+                if (dH > 30 && dV > 30) blobPx++;    // mancha gruesa (masa de cabello lejana)
+            }
+            const thinCrossArea = thinCross / N;
+            const blobArea = blobPx / N;
 
-            // 3) Folículos / puntos oscuros aislados tipo poro (sello de cuero cabelludo macro)
+            // ---- C) Folículos / puntos oscuros aislados (poro) ----
             let follicles = 0;
             for (let y = 2; y < size - 2; y++) {
                 for (let x = 2; x < size - 2; x++) {
@@ -875,27 +908,35 @@
                 }
             }
 
-            // 4) Filtro duro: si dominan las zonas lisas → no es primer plano
-            if (flatCoverage > 0.65) return report(false, detailCoverage, flatCoverage, tileMax, thinRuns, strandCoverage, follicles, 'planas');
+            if (flatCoverage > 0.60) {
+                return report(false, 'zonas lisas/desenfocadas');
+            }
 
-            // 5) Decisión estricta: exige micro-detalIe REAL + presencia de cabello/folículos
-            const micro = detailCoverage >= 0.10 && tileMax >= 0.30;
-            const fibers = thinRuns >= 40 || strandCoverage >= 0.012;
-            const follic = follicles >= 80;
-            const ok = (micro && (fibers || follic))
-                || (fibers && follic && detailCoverage >= 0.07);
+            // Textura micro real y uniforme por todo el encuadre
+            const textureOk = detailCoverage >= 0.12 && detailedTileRatio >= 0.60 && flatCoverage <= 0.55;
+            // Morfología: fibras finas visibles SIN manchas gruesas dominantes
+            const hasFiber = thinCrossArea >= 0.020 && blobArea <= 0.20;
+            const noBigBlob = blobArea <= 0.25;
+            // Cuero cabelludo con poca melena: aceptar por folículos + textura fina
+            const hasFollicles = follicles >= 60;
 
-            return report(ok, detailCoverage, flatCoverage, tileMax, thinRuns, strandCoverage, follicles, ok ? '' : 'debil');
+            const ok = textureOk
+                && noBigBlob
+                && (hasFiber || (hasFollicles && flatCoverage <= 0.45));
 
-            function report(ok, detailCoverage, flatCoverage, tileMax, thinRuns, strandCoverage, follicles, why) {
+            return report(ok, ok ? '' : (textureOk ? 'fibras insuficientes' : 'textura insuficiente'));
+
+            function report(ok, why) {
                 console.log('[zoom30x]', {
                     detailCoverage: +detailCoverage.toFixed(3),
+                    detailedTileRatio: +detailedTileRatio.toFixed(2),
                     flatCoverage: +flatCoverage.toFixed(3),
                     tileMax: +tileMax.toFixed(3),
-                    thinRuns, strandCoverage: +strandCoverage.toFixed(4),
+                    thinCrossArea: +thinCrossArea.toFixed(4),
+                    blobArea: +blobArea.toFixed(3),
                     follicles, ok, why
                 });
-                return { ok, detailCoverage, flatCoverage, tileMax, thinRuns, strandCoverage, follicles, why };
+                return { ok, why, detailCoverage, detailedTileRatio, flatCoverage, tileMax, thinCrossArea, blobArea, follicles };
             }
         }
 
