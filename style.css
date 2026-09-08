@@ -2989,8 +2989,7 @@ textarea.form-control {
 }
 .invoice-a4 {
     width: 210mm;
-    min-height: 297mm;
-    padding: 10mm;
+    padding: 8mm;
     box-sizing: border-box;
     font-family: 'Segoe UI', Arial, sans-serif;
     font-size: 0.8rem;

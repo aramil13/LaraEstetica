@@ -547,6 +547,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return String(value);
     }
 
+    function setPrintTitle(title) {
+        const prevTitle = document.title;
+        if (title) document.title = title;
+        return prevTitle;
+    }
+
     const WEEKDAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     const MONTH_NAMES = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -2928,9 +2934,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             showToast('No hay hojas de control para imprimir.', 'error');
             return;
         }
-        printArea.innerHTML = controls.map(inv => tpvBuildControlSheetHtml(inv)).join('<div style="page-break-after:always;"></div>');
+        printArea.innerHTML = controls.map((inv, idx) =>
+            tpvBuildControlSheetHtml(inv) + (idx < controls.length - 1 ? '<div style="page-break-after:always;"></div>' : '')
+        ).join('');
         printArea.classList.add('print-active');
+        const prevTitle = setPrintTitle(`Hojas_de_Control_${formatDateEU(new Date())}`);
         window.print();
+        setPrintTitle(prevTitle);
         setTimeout(() => {
             printArea.innerHTML = '';
             printArea.classList.remove('print-active');
@@ -3065,7 +3075,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         ).join('');
         printArea.innerHTML = html;
         printArea.classList.add('print-active');
+        const prevTitle = setPrintTitle(`Facturas_${formatDateEU(new Date())}`);
         window.print();
+        setPrintTitle(prevTitle);
         setTimeout(() => {
             printArea.innerHTML = '';
             printArea.classList.remove('print-active');
@@ -3216,7 +3228,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 </div>
             </div>`;
         printArea.classList.add('print-active');
+        const prevTitle = setPrintTitle(`Listado_Ventas_${State.tpv.salesFrom}_${State.tpv.salesTo}`);
         window.print();
+        setPrintTitle(prevTitle);
         setTimeout(() => {
             printArea.innerHTML = '';
             printArea.classList.remove('print-active');
@@ -3232,8 +3246,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
     function tpvRenderHistory() {
         const tbody = document.getElementById('tpv-history-body');
-        if (!tbody) return;
-        tbody.innerHTML = tpvSalesReportRows();
+        if (tbody) {
+            tbody.innerHTML = tpvSalesReportRows();
+        }
+        const controlBody = document.getElementById('tpv-control-body');
+        if (controlBody) {
+            controlBody.innerHTML = tpvControlSheetReportRows();
+        }
         tpvBindHistoryEvents();
     }
 
@@ -3531,7 +3550,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         if (!printArea) return;
         printArea.innerHTML = tpvBuildDocHtml(doc, false);
         printArea.classList.add('print-active');
+        const prevTitle = setPrintTitle((doc.doc_type === 'ticket' ? 'Ticket' : 'Factura') + '_' + (doc.number || ''));
         window.print();
+        setPrintTitle(prevTitle);
         setTimeout(() => {
             printArea.innerHTML = '';
             printArea.classList.remove('print-active');
@@ -4584,7 +4605,9 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         // Print daily listing
         const btnPrint = document.getElementById('btn-print-daily');
         if (btnPrint) btnPrint.addEventListener('click', () => {
+            const prevTitle = setPrintTitle(`Listado_Citas_${State.listMonth || ''}`);
             window.print();
+            setPrintTitle(prevTitle);
         });
 
         // Calendar navigation
