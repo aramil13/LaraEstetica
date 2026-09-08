@@ -4533,6 +4533,15 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const clientsSearchInput = document.getElementById('clients-search-input');
         if (clientsSearchInput) {
             clientsSearchInput.addEventListener('focus', forceSearchInputLtr);
+            clientsSearchInput.addEventListener('keydown', e => {
+                const pendingChar = e.key && e.key.length === 1;
+                if (pendingChar) {
+                    setTimeout(() => {
+                        const el = document.getElementById('clients-search-input');
+                        if (el) forceSearchInputLtr();
+                    }, 0);
+                }
+            });
             clientsSearchInput.addEventListener('input', e => {
                 let v = e.target.value;
                 if (v) {
