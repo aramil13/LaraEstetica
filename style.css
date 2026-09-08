@@ -2043,6 +2043,9 @@ textarea.form-control {
 
 .client-search-wrapper .form-control {
     width: 100%;
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: left;
 }
 
 .client-photo-item:hover .client-photo-badge,

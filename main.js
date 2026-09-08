@@ -2387,7 +2387,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:240px;justify-content:flex-end">
                     <div class="client-search-wrapper" style="position:relative;flex:1;max-width:340px">
                         <svg class="client-search-icon" width="18" height="18" fill="none" stroke="var(--text-secondary)" stroke-width="2" viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" id="clients-search-input" class="form-control" placeholder="Buscar por nombre, teléfono, email, NIF o salón..." value="${searchTerm}" autocomplete="off" style="padding-left:34px;padding-right:30px">
+                        <input type="text" id="clients-search-input" class="form-control" dir="ltr" placeholder="Buscar por nombre, teléfono, email, NIF o salón..." value="${searchTerm}" autocomplete="off" style="padding-left:34px;padding-right:30px">
                         ${searchTerm ? `<button id="clients-search-clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:1.1rem;line-height:1;padding:2px" title="Limpiar búsqueda">&times;</button>` : ''}
                     </div>
                     <button class="btn btn-primary" id="btn-add-client">
