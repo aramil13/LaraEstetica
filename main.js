@@ -4249,7 +4249,17 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     let currentDiagnosisImage = null;
 
     function getDiagnosisView() {
-        const hasClient = sessionStorage.getItem('nymara_diagnosis_client_id');
+        const staffSalonId = (State.session && State.session.staff) ? State.session.staffSalonId : null;
+        let hasClient = sessionStorage.getItem('nymara_diagnosis_client_id');
+        if (hasClient && staffSalonId) {
+            const stored = State.clients.find(c => c.id === hasClient);
+            if (!stored || stored.salon_id !== staffSalonId) {
+                sessionStorage.removeItem('nymara_diagnosis_client_id');
+                sessionStorage.removeItem('nymara_diagnosis_client_name');
+                sessionStorage.removeItem('nymara_diagnosis_client_phone');
+                hasClient = null;
+            }
+        }
         const clientName = sessionStorage.getItem('nymara_diagnosis_client_name') || '';
         const clientPhone = sessionStorage.getItem('nymara_diagnosis_client_phone') || '';
         
@@ -4289,12 +4299,17 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const list = document.getElementById('diagnosis-clients-list');
         if (!list) return;
 
-        if (!State.clients || !Array.isArray(State.clients) || State.clients.length === 0) {
-            list.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:1rem;">No hay clientes registrados.</p>';
+        const staffSalonId = (State.session && State.session.staff) ? State.session.staffSalonId : null;
+        const clients = staffSalonId
+            ? (State.clients || []).filter(c => c.salon_id === staffSalonId)
+            : (State.clients || []);
+
+        if (!clients || clients.length === 0) {
+            list.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:1rem;">' + (staffSalonId ? 'No hay clientes registrados en tu salón.' : 'No hay clientes registrados.') + '</p>';
             return;
         }
 
-        list.innerHTML = State.clients.map(client => `
+        list.innerHTML = clients.map(client => `
             <div class="diagnosis-client-card" data-client-id="${client.id}" style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem;margin-bottom:0.5rem;background:var(--bg-dark);border:1px solid var(--border-color);border-radius:12px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--accent-color)'" onmouseout="this.style.borderColor='var(--border-color)'">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <div style="width:34px;height:34px;background:var(--accent-color);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:0.85rem;">${client.name.charAt(0).toUpperCase()}</div>
@@ -5096,6 +5111,10 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     }
 
     async function selectClientForDiagnosis(client) {
+        if (State.session && State.session.staff && State.session.staffSalonId && client.salon_id !== State.session.staffSalonId) {
+            showToast('Solo puedes seleccionar clientes de tu salón.', 'error');
+            return;
+        }
         const selClient = document.getElementById('diagnosis-client-selection');
         const mainDiag = document.getElementById('diagnosis-main');
         if (!selClient || !mainDiag) {
