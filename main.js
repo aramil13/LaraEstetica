@@ -553,6 +553,81 @@ document.addEventListener('DOMContentLoaded', () => {
         return prevTitle;
     }
 
+    function sanitizeFilename(name) {
+        return String(name || 'documento').replace(/[\\/:*?"<>|]/g, '-').trim();
+    }
+
+    function pdfFromCanvas(canvas, filename) {
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+        pdf.save(sanitizeFilename(filename) + '.pdf');
+    }
+
+    function exportAreaAsPdf(htmlContent, filename) {
+        const exportArea = document.getElementById('export-area');
+        if (!exportArea || typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+            showToast('No se pudo generar el PDF (librería no cargada).', 'error');
+            return;
+        }
+        exportArea.innerHTML = htmlContent;
+        exportArea.style.left = '-10000px';
+        exportArea.style.display = 'block';
+        return window.html2canvas(exportArea, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: exportArea.scrollWidth, windowHeight: exportArea.scrollHeight })
+            .then(canvas => {
+                pdfFromCanvas(canvas, filename);
+                exportArea.innerHTML = '';
+                exportArea.style.display = 'none';
+            })
+            .catch(err => {
+                console.error(err);
+                exportArea.innerHTML = '';
+                exportArea.style.display = 'none';
+                showToast('Error al generar el PDF.', 'error');
+            });
+    }
+
+    function exportCurrentViewAsPdf(filename) {
+        const mainContent = document.getElementById('app-content');
+        if (!mainContent || typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+            showToast('No se pudo generar el PDF (librería no cargada).', 'error');
+            return;
+        }
+        const controls = mainContent.querySelectorAll('.daily-controls, .section-header .btn, .list-mode-toggle, .cal-nav-btn, .edit-apt-btn, .delete-btn');
+        const closed = [];
+        controls.forEach(el => {
+            if (el.offsetParent !== null) {
+                closed.push({ el, prev: el.style.display });
+                el.style.display = 'none';
+            }
+        });
+        return window.html2canvas(mainContent, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+            .then(canvas => {
+                pdfFromCanvas(canvas, filename);
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Error al generar el PDF.', 'error');
+            })
+            .then(() => {
+                closed.forEach(({ el, prev }) => { el.style.display = prev; });
+            });
+    }
+
     const WEEKDAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     const MONTH_NAMES = [
         'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -2925,26 +3000,15 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     function tpvPrintControlSheets(ids) {
-        const printArea = document.getElementById('print-area');
-        if (!printArea) return;
         const controls = ids && ids.length > 0
             ? State.tpv.invoices.filter(i => ids.includes(i.id))
             : tpvControlSheetFiltered();
         if (controls.length === 0) {
-            showToast('No hay hojas de control para imprimir.', 'error');
+            showToast('No hay hojas de control para generar.', 'error');
             return;
         }
-        printArea.innerHTML = controls.map((inv, idx) =>
-            tpvBuildControlSheetHtml(inv) + (idx < controls.length - 1 ? '<div style="page-break-after:always;"></div>' : '')
-        ).join('');
-        printArea.classList.add('print-active');
-        const prevTitle = setPrintTitle(`Hojas_de_Control_${formatDateEU(new Date())}`);
-        window.print();
-        setPrintTitle(prevTitle);
-        setTimeout(() => {
-            printArea.innerHTML = '';
-            printArea.classList.remove('print-active');
-        }, 300);
+        const html = controls.map(tpvBuildControlSheetHtml).join('');
+        exportAreaAsPdf(html, `Hojas_de_Control_${formatDateEU(new Date())}`);
     }
 
     function getSalesView() {
@@ -3063,30 +3127,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     }
 
     function tpvPrintSelectedInvoices(ids) {
-        const printArea = document.getElementById('print-area');
-        if (!printArea) return;
         const invoices = State.tpv.invoices.filter(i => ids.includes(i.id));
         if (invoices.length === 0) {
             showToast('No se encontraron las facturas seleccionadas.', 'error');
             return;
         }
-        const html = invoices.map((inv, idx) =>
-            tpvBuildDocHtml(inv, false) + (idx < invoices.length - 1 ? '<div style="page-break-after:always;"></div>' : '')
-        ).join('');
-        printArea.innerHTML = html;
-        printArea.classList.add('print-active');
-        const prevTitle = setPrintTitle(`Facturas_${formatDateEU(new Date())}`);
-        window.print();
-        setPrintTitle(prevTitle);
-        setTimeout(() => {
-            printArea.innerHTML = '';
-            printArea.classList.remove('print-active');
-        }, 300);
+        const html = invoices.map(inv => tpvBuildDocHtml(inv, false)).join('');
+        const nums = invoices.map(inv => tpvInvoiceNum(inv).replace(/\s/g, ''));
+        const rangeLabel = nums.length === 1 ? nums[0] : `${nums[0]}_a_${nums[nums.length - 1]}`;
+        exportAreaAsPdf(html, `Facturas_${rangeLabel}`);
     }
 
     function tpvPrintSales() {
-        const printArea = document.getElementById('print-area');
-        if (!printArea) return;
         const salon = State.tpv.historySalonId === 'all' ? 'Todos los salones' : (State.salons.find(s => s.id === State.tpv.historySalonId)?.name || 'Salón');
         const fromLabel = formatDateEU(State.tpv.salesFrom) || 'inicio';
         const toLabel = formatDateEU(State.tpv.salesTo) || 'hoy';
@@ -3202,7 +3254,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             }).join('');
         grandTotal = Math.round(grandTotal * 100) / 100;
 
-        printArea.innerHTML = `
+        const reportHtml = `
             <div class="invoice-a4">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:1rem;margin-bottom:1.25rem;">
                     <div>
@@ -3227,14 +3279,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     </div>
                 </div>
             </div>`;
-        printArea.classList.add('print-active');
-        const prevTitle = setPrintTitle(`Listado_Ventas_${State.tpv.salesFrom}_${State.tpv.salesTo}`);
-        window.print();
-        setPrintTitle(prevTitle);
-        setTimeout(() => {
-            printArea.innerHTML = '';
-            printArea.classList.remove('print-active');
-        }, 300);
+        exportAreaAsPdf(reportHtml, `Listado_Ventas_${(State.tpv.salesFrom || '').replace(/-/g, '')}_${(State.tpv.salesTo || '').replace(/-/g, '')}`);
     }
 
     function tpvRenderCartPanel() {
@@ -4605,9 +4650,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         // Print daily listing
         const btnPrint = document.getElementById('btn-print-daily');
         if (btnPrint) btnPrint.addEventListener('click', () => {
-            const prevTitle = setPrintTitle(`Listado_Citas_${State.listMonth || ''}`);
-            window.print();
-            setPrintTitle(prevTitle);
+            exportCurrentViewAsPdf(isMonthMode ? `Listado_Citas_${(State.listMonth || '').replace(/-/g, '')}` : `Listado_Citas_${(State.dailyDate || '').replace(/-/g, '')}`);
         });
 
         // Calendar navigation
