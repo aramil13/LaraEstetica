@@ -253,6 +253,9 @@
                     </svg>
                     <h3>Sube tu foto microscópica</h3>
                     <p>Arrastra o haz clic para buscar</p>
+                    <p style="font-size:0.85rem; margin-top:10px; background:rgba(167,139,250,0.08); padding:8px 10px; border-radius:8px; color:var(--text-secondary);">
+                        Requisito: primer plano del <b>cuero cabelludo</b> o del <b>tallo del cabello</b> con <b>zoom mínimo ~30x</b> (se deben ver poros, folículos u orificios foliculares, la raíz o fibras individuales). El resto de fotos se rechaza.
+                    </p>
                 </div>
 
                 <button id="camera-btn" class="secondary-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -669,9 +672,20 @@
                 img.onload = () => {
                     // VALIDACIÓN ESTRICTA
                     if (!validateImageQuality(img)) {
-                        alert('⚠️ Imagen no válida.\n\nLa foto debe ser una toma microscópica real del cuero cabelludo (no fotos artificiales, ni paisajes, ni capturas).');
+                        alert('⚠️ Imagen rechazada.\n\nLa foto debe ser una toma real y a color de cuero cabelludo o cabello (no dibujos, capturas de pantalla, ni paisajes).');
                         elements.analyzeBtn.disabled = false;
                         elements.statusBadge.style.display = 'none';
+                        elements.statusBadge.textContent = 'Imagen rechazada';
+                        elements.statusBadge.style.background = '#ef4444';
+                        return;
+                    }
+
+                    if (!assessScalpHairMagnification(img).ok) {
+                        alert('⚠️ Foto rechazada: zoom insuficiente.\n\nEl diagnóstico capilar solo analiza tomas en PRIMER PLANO del cuero cabelludo o del tallo del cabello con un aumento mínimo de aproximadamente 30×.\n\n• Acércate hasta ver poros, folículos u orificios foliculares, la raíz del cabello o fibras capilares individuales.\n• Usa el zoom de tu móvil o un objetivo/lente macro y enfoca bien antes de capturar.\n\nLas fotos a distancia (rostro, cabeza completa, paisaje, etc.) serán rechazadas.');
+                        elements.analyzeBtn.disabled = false;
+                        elements.statusBadge.style.display = 'none';
+                        elements.statusBadge.textContent = 'Zoom insuficiente';
+                        elements.statusBadge.style.background = '#ef4444';
                         return;
                     }
 
@@ -769,9 +783,88 @@
                 }
             }
             const edgeDensity = edges / (size * size);
-            if (edgeDensity < 0.005 || edgeDensity > 0.5) return false;
+            if (edgeDensity < 0.005 || edgeDensity > 0.9) return false;
 
             return true;
+        }
+
+        // Comprueba que la toma es un primer plano de cuero cabelludo/cabello
+        // con aumento mínimo ~30x (se aprecian poros, folículos o fibras individuales).
+        function assessScalpHairMagnification(img) {
+            const size = 160;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = size; canvas.height = size;
+            ctx.drawImage(img, 0, 0, size, size);
+            const d = ctx.getImageData(0, 0, size, size).data;
+            const gray = new Float32Array(size * size);
+            for (let i = 0; i < size * size; i++) {
+                gray[i] = 0.299 * d[i*4] + 0.587 * d[i*4+1] + 0.114 * d[i*4+2];
+            }
+
+            // 1) Cobertura de micro-detalIe (Sobel por teselas + global)
+            const TILE = 40;
+            let highDetail = 0, total = 0, tileMax = 0;
+            for (let ty = 0; ty < size; ty += TILE) {
+                for (let tx = 0; tx < size; tx += TILE) {
+                    const y0 = Math.min(ty + TILE, size - 1);
+                    const x0 = Math.min(tx + TILE, size - 1);
+                    let th = 0, tN = 0;
+                    for (let y = ty + 1; y < y0; y++) {
+                        for (let x = tx + 1; x < x0; x++) {
+                            const i = y * size + x;
+                            const gx = (gray[i-size-1] + 2*gray[i-size] + gray[i-size+1])
+                                     - (gray[i+size-1] + 2*gray[i+size] + gray[i+size+1]);
+                            const gy = (gray[i-size-1] + 2*gray[i-1] + gray[i+1-size])
+                                     - (gray[i+size-1] + 2*gray[i+1] + gray[i+1+size]);
+                            if (gx*gx + gy*gy > 8100) th++;
+                            tN++;
+                        }
+                    }
+                    if (tN > 0) {
+                        if (th / tN > tileMax) tileMax = th / tN;
+                        total += tN;
+                        highDetail += th;
+                    }
+                }
+            }
+            const detailCoverage = total ? highDetail / total : 0;
+
+            // 2) Fibras/mechones finos y oscuros individuales (corridas de 8–45 px)
+            const dark = new Uint8Array(size * size);
+            for (let i = 0; i < size * size; i++) dark[i] = gray[i] < 118 ? 1 : 0;
+            let thinRuns = 0;
+            for (let y = 0; y < size; y++) {
+                let run = 0;
+                for (let x = 0; x <= size; x++) {
+                    const on = x < size && dark[y*size+x] === 1;
+                    if (on) { run++; continue; }
+                    if (run >= 8 && run <= 45) thinRuns++;
+                    run = 0;
+                }
+            }
+            for (let x = 0; x < size; x++) {
+                let run = 0;
+                for (let y = 0; y <= size; y++) {
+                    const on = y < size && dark[y*size+x] === 1;
+                    if (on) { run++; continue; }
+                    if (run >= 8 && run <= 45) thinRuns++;
+                    run = 0;
+                }
+            }
+
+            const ok = detailCoverage >= 0.08
+                || (detailCoverage >= 0.05 && thinRuns >= 15)
+                || thinRuns >= 30
+                || tileMax >= 0.20;
+
+            console.log('[zoom30x]', {
+                detailCoverage: +detailCoverage.toFixed(3),
+                tileMax: +tileMax.toFixed(3),
+                thinRuns,
+                ok
+            });
+            return { ok, detailCoverage, tileMax, thinRuns };
         }
 
         function detectErythemaLevel(img) {
