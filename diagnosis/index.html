@@ -790,6 +790,8 @@
 
         // Comprueba que la toma es un primer plano de cuero cabelludo/cabello
         // con aumento mínimo ~30x (se aprecian poros, folículos o fibras individuales).
+        // Heurística estricta anti-falsos-positivos: exige señales COMBINADAS,
+        // penaliza zonas lisas y rechaza retratos/paisajes/planos lejanos.
         function assessScalpHairMagnification(img) {
             const size = 160;
             const canvas = document.createElement('canvas');
@@ -802,9 +804,11 @@
                 gray[i] = 0.299 * d[i*4] + 0.587 * d[i*4+1] + 0.114 * d[i*4+2];
             }
 
-            // 1) Cobertura de micro-detalIe (Sobel por teselas + global)
+            // 1) Micro-detalIe (Sobel por teselas + global) y zonas lisas
             const TILE = 40;
-            let highDetail = 0, total = 0, tileMax = 0;
+            const HARD_DETAIL = 12100; // gradiente > 110
+            const FLAT = 1600;          // gradiente < 40 → zona lisa
+            let highDetail = 0, total = 0, tileMax = 0, flatPx = 0;
             for (let ty = 0; ty < size; ty += TILE) {
                 for (let tx = 0; tx < size; tx += TILE) {
                     const y0 = Math.min(ty + TILE, size - 1);
@@ -817,7 +821,9 @@
                                      - (gray[i+size-1] + 2*gray[i+size] + gray[i+size+1]);
                             const gy = (gray[i-size-1] + 2*gray[i-1] + gray[i+1-size])
                                      - (gray[i+size-1] + 2*gray[i+1] + gray[i+1+size]);
-                            if (gx*gx + gy*gy > 8100) th++;
+                            const m2 = gx*gx + gy*gy;
+                            if (m2 > HARD_DETAIL) th++;
+                            if (m2 < FLAT) flatPx++;
                             tN++;
                         }
                     }
@@ -829,17 +835,18 @@
                 }
             }
             const detailCoverage = total ? highDetail / total : 0;
+            const flatCoverage = total ? flatPx / total : 1;
 
             // 2) Fibras/mechones finos y oscuros individuales (corridas de 8–45 px)
             const dark = new Uint8Array(size * size);
             for (let i = 0; i < size * size; i++) dark[i] = gray[i] < 118 ? 1 : 0;
-            let thinRuns = 0;
+            let thinRuns = 0, strandPx = 0;
             for (let y = 0; y < size; y++) {
                 let run = 0;
                 for (let x = 0; x <= size; x++) {
                     const on = x < size && dark[y*size+x] === 1;
                     if (on) { run++; continue; }
-                    if (run >= 8 && run <= 45) thinRuns++;
+                    if (run >= 8 && run <= 45) { thinRuns++; strandPx += run; }
                     run = 0;
                 }
             }
@@ -848,23 +855,48 @@
                 for (let y = 0; y <= size; y++) {
                     const on = y < size && dark[y*size+x] === 1;
                     if (on) { run++; continue; }
-                    if (run >= 8 && run <= 45) thinRuns++;
+                    if (run >= 8 && run <= 45) { thinRuns++; strandPx += run; }
                     run = 0;
                 }
             }
+            const strandCoverage = strandPx / (size * size);
 
-            const ok = detailCoverage >= 0.08
-                || (detailCoverage >= 0.05 && thinRuns >= 15)
-                || thinRuns >= 30
-                || tileMax >= 0.20;
+            // 3) Folículos / puntos oscuros aislados tipo poro (sello de cuero cabelludo macro)
+            let follicles = 0;
+            for (let y = 2; y < size - 2; y++) {
+                for (let x = 2; x < size - 2; x++) {
+                    const i = y * size + x;
+                    const g = gray[i];
+                    if (g < 128
+                        && gray[i-1] > g + 20 && gray[i+1] > g + 20
+                        && gray[i-size] > g + 20 && gray[i+size] > g + 20) {
+                        follicles++;
+                    }
+                }
+            }
 
-            console.log('[zoom30x]', {
-                detailCoverage: +detailCoverage.toFixed(3),
-                tileMax: +tileMax.toFixed(3),
-                thinRuns,
-                ok
-            });
-            return { ok, detailCoverage, tileMax, thinRuns };
+            // 4) Filtro duro: si dominan las zonas lisas → no es primer plano
+            if (flatCoverage > 0.65) return report(false, detailCoverage, flatCoverage, tileMax, thinRuns, strandCoverage, follicles, 'planas');
+
+            // 5) Decisión estricta: exige micro-detalIe REAL + presencia de cabello/folículos
+            const micro = detailCoverage >= 0.10 && tileMax >= 0.30;
+            const fibers = thinRuns >= 40 || strandCoverage >= 0.012;
+            const follic = follicles >= 80;
+            const ok = (micro && (fibers || follic))
+                || (fibers && follic && detailCoverage >= 0.07);
+
+            return report(ok, detailCoverage, flatCoverage, tileMax, thinRuns, strandCoverage, follicles, ok ? '' : 'debil');
+
+            function report(ok, detailCoverage, flatCoverage, tileMax, thinRuns, strandCoverage, follicles, why) {
+                console.log('[zoom30x]', {
+                    detailCoverage: +detailCoverage.toFixed(3),
+                    flatCoverage: +flatCoverage.toFixed(3),
+                    tileMax: +tileMax.toFixed(3),
+                    thinRuns, strandCoverage: +strandCoverage.toFixed(4),
+                    follicles, ok, why
+                });
+                return { ok, detailCoverage, flatCoverage, tileMax, thinRuns, strandCoverage, follicles, why };
+            }
         }
 
         function detectErythemaLevel(img) {
