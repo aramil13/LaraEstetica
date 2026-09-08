@@ -2286,7 +2286,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
        ═══════════════════════════════════════ */
     function buildClientsRows(searchTermRaw) {
         const searchTerm = (searchTermRaw || '').toLowerCase().trim();
+        const scopeSalonActive = State.activeSalonId && State.activeSalonId !== 'all';
         const allClients = State.clients.filter(c => {
+            if (scopeSalonActive && c.salon_id !== State.activeSalonId) return false;
             if (!searchTerm) return true;
             const salonName = State.salons.find(s => s.id === c.salon_id)?.name || '';
             return (
@@ -2312,6 +2314,13 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 <h3>No se encontraron resultados</h3>
                 <p>No hay clientes que coincidan con "${searchTerm}".</p>
+            </div>`;
+        } else if (allClients.length === 0 && scopeSalonActive) {
+            rows = `
+            <div class="empty-state data-card">
+                <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <h3>No hay clientes en este salón</h3>
+                <p>El salón seleccionado no tiene clientes asignados.</p>
             </div>`;
         } else {
             const salonGroups = new Map();
