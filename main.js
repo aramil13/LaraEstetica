@@ -2284,8 +2284,8 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     /* ═══════════════════════════════════════
        CLIENTS VIEW
        ═══════════════════════════════════════ */
-    function getClientsView() {
-        const searchTerm = (State.clientSearch || '').toLowerCase().trim();
+    function buildClientsRows(searchTermRaw) {
+        const searchTerm = (searchTermRaw || '').toLowerCase().trim();
         const allClients = State.clients.filter(c => {
             if (!searchTerm) return true;
             const salonName = State.salons.find(s => s.id === c.salon_id)?.name || '';
@@ -2389,14 +2389,19 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             rows = salonHtml;
         }
 
+        return rows;
+    }
+
+    function getClientsView() {
+        const rows = buildClientsRows(State.clientSearch);
         return `
             <div class="section-header" style="flex-wrap:wrap;gap:0.75rem">
-                <div style="flex:1;min-width:180px"><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span> <span class="cloudflare-badge" style="margin-left:0.4rem;">v20260908o</span></p></div>
+                <div style="flex:1;min-width:180px"><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
                 <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:240px;justify-content:flex-end">
                     <div class="client-search-wrapper" style="position:relative;flex:1;max-width:340px">
                         <svg class="client-search-icon" width="18" height="18" fill="none" stroke="var(--text-secondary)" stroke-width="2" viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" id="clients-search-input" class="form-control" dir="ltr" autocomplete="off" placeholder="Buscar por nombre, teléfono, email, NIF o salón..." value="${searchTerm}" style="padding-left:34px;padding-right:30px;direction:ltr!important;unicode-bidi:bidi-override!important;text-align:left!important">
-                        ${searchTerm ? `<button id="clients-search-clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:1.1rem;line-height:1;padding:2px" title="Limpiar búsqueda">&times;</button>` : ''}
+                        <input type="text" id="clients-search-input" class="form-control" dir="ltr" autocomplete="off" placeholder="Buscar por nombre, teléfono, email, NIF o salón..." value="${State.clientSearch || ''}" style="padding-left:34px;padding-right:30px;direction:ltr;unicode-bidi:plaintext;text-align:left">
+                        ${(State.clientSearch || '') ? `<button id="clients-search-clear" type="button" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:1.1rem;line-height:1;padding:2px" title="Limpiar búsqueda">&times;</button>` : ''}
                     </div>
                     <button class="btn btn-primary" id="btn-add-client">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
@@ -2404,7 +2409,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     </button>
                 </div>
             </div>
-            ${rows}`;
+            <div id="clients-results">${rows}</div>`;
     }
 
     /* ═══════════════════════════════════════
@@ -4346,16 +4351,6 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         };
     }
 
-    function forceSearchInputLtr() {
-        const el = document.getElementById('clients-search-input');
-        if (!el) return;
-        el.dir = 'ltr';
-        el.setAttribute('dir', 'ltr');
-        el.style.direction = 'ltr';
-        el.style.unicodeBidi = 'bidi-override';
-        el.style.textAlign = 'left';
-    }
-
     /* ═════════════════════════════════════
         SALONS VIEW
         ═════════════════════════════════════ */
@@ -4532,39 +4527,29 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
         const clientsSearchInput = document.getElementById('clients-search-input');
         if (clientsSearchInput) {
-            clientsSearchInput.addEventListener('focus', forceSearchInputLtr);
-            clientsSearchInput.addEventListener('keydown', e => {
-                const pendingChar = e.key && e.key.length === 1;
-                if (pendingChar) {
-                    setTimeout(() => {
-                        const el = document.getElementById('clients-search-input');
-                        if (el) forceSearchInputLtr();
-                    }, 0);
-                }
-            });
             clientsSearchInput.addEventListener('input', e => {
                 let v = e.target.value;
                 if (v) {
                     v = v.replace(/[\u200E\u200F\u202A\u202B\u202C\u202D\u202E\u061C]/g, '');
                     if (v !== e.target.value) e.target.value = v;
                 }
-                forceSearchInputLtr();
                 State.clientSearch = v;
-                const pos = e.target.selectionStart;
-                renderRoute();
-                const newInput = document.getElementById('clients-search-input');
-                if (newInput) { newInput.focus(); newInput.setSelectionRange(pos, pos); forceSearchInputLtr(); }
+                const results = document.getElementById('clients-results');
+                if (results) results.innerHTML = buildClientsRows(v);
+                const clear = document.getElementById('clients-search-clear');
+                if (clear) clear.style.display = v ? 'block' : 'none';
             });
-            clientsSearchInput.focus();
         }
 
         const clientsSearchClear = document.getElementById('clients-search-clear');
         if (clientsSearchClear) {
             clientsSearchClear.addEventListener('click', () => {
                 State.clientSearch = '';
-                renderRoute();
-                const newInput = document.getElementById('clients-search-input');
-                if (newInput) newInput.focus();
+                const input = document.getElementById('clients-search-input');
+                if (input) { input.value = ''; input.focus(); }
+                const results = document.getElementById('clients-results');
+                if (results) results.innerHTML = buildClientsRows('');
+                clientsSearchClear.style.display = 'none';
             });
         }
 
