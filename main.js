@@ -2391,7 +2391,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
 
         return `
             <div class="section-header" style="flex-wrap:wrap;gap:0.75rem">
-                <div style="flex:1;min-width:180px"><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span> <span class="cloudflare-badge" style="margin-left:0.4rem;">v20260908n</span></p></div>
+                <div style="flex:1;min-width:180px"><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span> <span class="cloudflare-badge" style="margin-left:0.4rem;">v20260908o</span></p></div>
                 <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:240px;justify-content:flex-end">
                     <div class="client-search-wrapper" style="position:relative;flex:1;max-width:340px">
                         <svg class="client-search-icon" width="18" height="18" fill="none" stroke="var(--text-secondary)" stroke-width="2" viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
