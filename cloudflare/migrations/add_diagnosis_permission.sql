@@ -1,0 +1,1 @@
+ALTER TABLE staff ADD COLUMN can_diagnosis INTEGER DEFAULT 0;

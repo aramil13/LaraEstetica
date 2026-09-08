@@ -846,7 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await api.getSession();
             if (data.staff) {
-                handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email, staffEmail: data.staff.email || '' });
+                handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email, staffEmail: data.staff.email || '', canDiagnosis: data.staff.canDiagnosis });
             } else {
                 handleSessionUpdate({ email: data.email });
             }
@@ -1063,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await api.staffLogin(email, staffPwd);
                     setToken(data.token);
                     staffName = data.staff.name;
-                    handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email, staffEmail: data.staff.email || '' });
+                    handleStaffSession({ name: data.staff.name, salonId: data.staff.salonId, adminEmail: data.email, staffEmail: data.staff.email || '', canDiagnosis: data.staff.canDiagnosis });
                 } catch (err) {
                     console.error('Staff Auth Error:', err);
                     authError.textContent = err.message || 'Email o contraseña incorrectos';
@@ -1108,7 +1108,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleStaffSession(account) {
         const adminEmail = account.adminEmail || State.currentUserEmail || '';
-        State.session = { staff: true, email: adminEmail, staffName: account.name, staffSalonId: account.salonId || null, staffEmail: account.staffEmail || '' };
+        const canDiagnosis = !!account.canDiagnosis;
+        State.session = { staff: true, email: adminEmail, staffName: account.name, staffSalonId: account.salonId || null, staffEmail: account.staffEmail || '', canDiagnosis };
         State.currentUserEmail = adminEmail;
         State.currentUserColor = getUserColor(adminEmail);
         if (account.salonId) {
@@ -1128,11 +1129,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const roleEl = document.querySelector('.user-role');
         if (roleEl) roleEl.textContent = 'STAFF';
 
-        // Hide restricted nav items for staff
+        // Hide restricted nav items for staff (diagnosis solo si tiene permiso)
         document.querySelectorAll('.nav-item').forEach(item => {
             const target = item.dataset.target;
-            if (target === 'salons' || target === 'diagnosis' || target === 'whatsapp' || target === 'tpv') {
+            if (target === 'salons' || target === 'whatsapp' || target === 'tpv') {
                 item.style.display = 'none';
+            } else if (target === 'diagnosis') {
+                item.style.display = canDiagnosis ? '' : 'none';
             } else {
                 item.style.display = '';
             }
@@ -1687,7 +1690,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 
     function navigate(route) {
-        if (State.session?.staff && (route === 'tpv' || route === 'sales' || route === 'salons' || route === 'diagnosis' || route === 'whatsapp')) {
+        if (State.session?.staff && (route === 'tpv' || route === 'sales' || route === 'salons' || route === 'whatsapp' || (route === 'diagnosis' && !State.session.canDiagnosis))) {
             route = 'agenda';
         }
         currentRoute = route;
@@ -6240,7 +6243,7 @@ window.addEventListener('message', async (event) => {
             takenSalonIds = accounts.map(a => a.salon_id).filter(Boolean);
             if (accounts.length > 0) {
                 staffList = accounts.map((acc, i) => `
-            <div class="staff-entry" id="staff-entry-${encodeURIComponent(acc.name)}" data-staff-id="${encodeURIComponent(acc.name)}" data-staff-name="${acc.name}" data-staff-salon="${acc.salon_id || ''}" data-staff-email="${(acc.email || '').replace(/"/g, '&quot;')}" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:0.75rem;">
+            <div class="staff-entry" id="staff-entry-${encodeURIComponent(acc.name)}" data-staff-id="${encodeURIComponent(acc.name)}" data-staff-name="${acc.name}" data-staff-salon="${acc.salon_id || ''}" data-staff-email="${(acc.email || '').replace(/"/g, '&quot;')}" data-staff-can-diagnosis="${acc.can_diagnosis ? 1 : 0}">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
                     <strong style="font-size:0.95rem;">${acc.name}</strong>
                     <div style="display:flex;gap:0.5rem;">
@@ -6250,6 +6253,7 @@ window.addEventListener('message', async (event) => {
                 </div>
                 <div style="font-size:0.85rem;color:var(--text-secondary);">Salón: ${State.salons.find(s => s.id === acc.salon_id)?.name || '—'}</div>
                 <div style="font-size:0.85rem;color:var(--text-secondary);">Email: ${acc.email || '—'}</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);">Diagnóstico capilar: <span style="color:${acc.can_diagnosis ? 'var(--success-color)' : 'var(--text-secondary)'};font-weight:600;">${acc.can_diagnosis ? '✓ Permitido' : '✗ Restringido'}</span></div>
             </div>
         `).join('');
             }
@@ -6300,6 +6304,12 @@ window.addEventListener('message', async (event) => {
                             ${salonOptions}
                         </select>
                         ${!hasSalons ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">⚠️ Crea primero un salón en la pestaña Salones.</p>' : (freeSalons.length === 0 ? '<p style="font-size:0.8rem;color:var(--accent-warning);margin-top:0.35rem;">⚠️ Todos tus salones ya tienen su usuario staff.</p>' : '')}
+                    </div>
+                    <div class="form-group">
+                        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                            <input type="checkbox" id="new-staff-can-diagnosis" style="width:18px;height:18px;accent-color:var(--accent-color);">
+                            <span>Permitir a este staff ver el <strong>Diagnóstico capilar</strong> en el menú</span>
+                        </label>
                     </div>
                     <button type="button" class="btn btn-primary" onclick="addStaffFromSettings()" style="margin-top:0.25rem;">Añadir Staff</button>
                 </div>
@@ -6433,6 +6443,7 @@ window.addEventListener('message', async (event) => {
         const email = document.getElementById('new-staff-email').value.trim();
         const password = document.getElementById('new-staff-password').value.trim();
         const salonId = document.getElementById('new-staff-salon').value;
+        const canDiagnosis = document.getElementById('new-staff-can-diagnosis')?.checked || false;
 
         if (!name || !password) {
             showToast('Debes introducir nombre y contraseña.', 'error');
@@ -6452,7 +6463,7 @@ window.addEventListener('message', async (event) => {
         }
 
         try {
-            await api.addStaff({ name, email, password, salonId });
+            await api.addStaff({ name, email, password, salonId, canDiagnosis });
             showToast('Usuario staff añadido correctamente.');
             showSettingsForm();
         } catch (err) {
@@ -6496,6 +6507,12 @@ window.addEventListener('message', async (event) => {
                     <label>Salón</label>
                     <select class="form-control" id="edit-staff-salon-${name}">${salonOptions}</select>
                 </div>
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+                        <input type="checkbox" id="edit-staff-can-diagnosis-${name}" style="width:18px;height:18px;accent-color:var(--accent-color);" ${entry.dataset.staffCanDiagnosis === '1' ? 'checked' : ''}>
+                        <span>Permitir a este staff ver el <strong>Diagnóstico capilar</strong> en el menú</span>
+                    </label>
+                </div>
                 <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
                     <button type="button" class="btn btn-primary btn-sm" onclick="saveStaffEdit('${name}')">Guardar</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="showSettingsForm()">Cancelar</button>
@@ -6509,6 +6526,7 @@ window.addEventListener('message', async (event) => {
         const email = document.getElementById('edit-staff-email-' + name).value.trim();
         const password = document.getElementById('edit-staff-password-' + name).value.trim();
         const salonId = document.getElementById('edit-staff-salon-' + name).value;
+        const canDiagnosis = document.getElementById('edit-staff-can-diagnosis-' + name)?.checked || false;
 
         if (!newName) {
             showToast('El nombre es obligatorio.', 'error');
@@ -6516,7 +6534,7 @@ window.addEventListener('message', async (event) => {
         }
 
         try {
-            await api.updateStaff(decodeURIComponent(name), { newName, email, password, salonId });
+            await api.updateStaff(decodeURIComponent(name), { newName, email, password, salonId, canDiagnosis });
             showToast('Usuario staff actualizado.');
             showSettingsForm();
         } catch (err) {

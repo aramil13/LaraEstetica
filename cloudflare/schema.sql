@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS staff (
   salt TEXT NOT NULL,
   salon_id TEXT,
   admin_email TEXT,
+  can_diagnosis INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   UNIQUE(name, admin_email)
 );

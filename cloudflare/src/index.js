@@ -54,8 +54,9 @@ async function authenticate(env, request) {
   if (!row) return null;
   const base = { email: row.user_email, isStaff: !!row.is_staff, staffName: row.staff_name, staffSalonId: row.staff_salon_id };
   if (base.isStaff && row.staff_name) {
-    const srow = await env.DB.prepare('SELECT email FROM staff WHERE name = ? AND admin_email = ?').bind(row.staff_name, row.user_email).first();
+    const srow = await env.DB.prepare('SELECT email, can_diagnosis FROM staff WHERE name = ? AND admin_email = ?').bind(row.staff_name, row.user_email).first();
     base.staffEmail = srow ? srow.email || null : null;
+    base.staffCanDiagnosis = srow ? !!srow.can_diagnosis : false;
   }
   return base;
 }
@@ -129,7 +130,7 @@ export default {
     if (path === '/api/auth/staff' && method === 'GET') {
       const { email } = await authenticate(env, request);
       if (!email) return error('No autorizado', 401);
-      const { results } = await env.DB.prepare('SELECT id, name, email, salon_id, admin_email FROM staff WHERE admin_email = ? ORDER BY name').bind(email).all();
+      const { results } = await env.DB.prepare('SELECT id, name, email, salon_id, admin_email, can_diagnosis FROM staff WHERE admin_email = ? ORDER BY name').bind(email).all();
       return json(results);
     }
     if (path === '/api/auth/staff' && method === 'POST') {
@@ -148,8 +149,9 @@ export default {
       if (existsSalon) return error('Ese salón ya tiene un usuario staff', 409);
       const salt = randomHex(16);
       const hash = await hashPassword(b.password, salt);
-      await env.DB.prepare('INSERT INTO staff (id, name, email, password_hash, salt, salon_id, admin_email) VALUES (?, ?, ?, ?, ?, ?, ?)')
-        .bind(randomHex(16), b.name.trim(), b.email.trim().toLowerCase(), hash, salt, b.salonId, email).run();
+      const canDiagnosis = b.canDiagnosis ? 1 : 0;
+      await env.DB.prepare('INSERT INTO staff (id, name, email, password_hash, salt, salon_id, admin_email, can_diagnosis) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+        .bind(randomHex(16), b.name.trim(), b.email.trim().toLowerCase(), hash, salt, b.salonId, email, canDiagnosis).run();
       return json({ ok: true });
     }
     if (path.startsWith('/api/auth/staff/') && method === 'DELETE') {
@@ -166,7 +168,7 @@ export default {
       if (!email) return error('No autorizado', 401);
       const name = decodeURIComponent(path.split('/')[4]);
       const b = await readJson(request);
-      const row = await env.DB.prepare('SELECT id, password_hash, salt FROM staff WHERE name = ? AND admin_email = ?').bind(name, email).first();
+      const row = await env.DB.prepare('SELECT id, password_hash, salt, can_diagnosis FROM staff WHERE name = ? AND admin_email = ?').bind(name, email).first();
       if (!row) return error('Usuario staff no encontrado', 404);
       if (b.salonId) {
         const salon = await env.DB.prepare('SELECT id, user_email FROM salons WHERE id = ?').bind(b.salonId).first();
@@ -188,8 +190,9 @@ export default {
       }
       const newSalonId = b.salonId || (await env.DB.prepare('SELECT salon_id FROM staff WHERE id = ?').bind(row.id).first()).salon_id;
       const newEmail = b.email !== undefined ? b.email.trim().toLowerCase() : (await env.DB.prepare('SELECT email FROM staff WHERE id = ?').bind(row.id).first()).email;
-      await env.DB.prepare('UPDATE staff SET name = ?, email = ?, password_hash = ?, salt = ?, salon_id = ? WHERE id = ?')
-        .bind(newName, newEmail, newHash, newSalt, newSalonId, row.id).run();
+      const newCanDiagnosis = b.canDiagnosis !== undefined ? (b.canDiagnosis ? 1 : 0) : row.can_diagnosis;
+      await env.DB.prepare('UPDATE staff SET name = ?, email = ?, password_hash = ?, salt = ?, salon_id = ?, can_diagnosis = ? WHERE id = ?')
+        .bind(newName, newEmail, newHash, newSalt, newSalonId, newCanDiagnosis, row.id).run();
       return json({ ok: true });
     }
 
@@ -221,7 +224,7 @@ export default {
       const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       await env.DB.prepare('INSERT INTO sessions (token, user_email, is_staff, staff_name, staff_salon_id, expires_at) VALUES (?, ?, 1, ?, ?, ?)')
         .bind(token, staff.admin_email, staff.name, staff.salon_id, expires).run();
-      return json({ token, email: staff.admin_email, staff: { name: staff.name, salonId: staff.salon_id, email: staff.email || staff.admin_email } });
+      return json({ token, email: staff.admin_email, staff: { name: staff.name, salonId: staff.salon_id, email: staff.email || staff.admin_email, canDiagnosis: !!staff.can_diagnosis } });
     }
 
     if (path === '/api/auth/logout' && method === 'POST') {
@@ -234,7 +237,7 @@ export default {
     if (path === '/api/auth/session' && method === 'GET') {
       const auth = await authenticate(env, request);
       if (!auth) return error('No autorizado', 401);
-      return json({ email: auth.email, staff: auth.isStaff ? { name: auth.staffName, salonId: auth.staffSalonId, email: auth.staffEmail || null } : null });
+      return json({ email: auth.email, staff: auth.isStaff ? { name: auth.staffName, salonId: auth.staffSalonId, email: auth.staffEmail || null, canDiagnosis: auth.staffCanDiagnosis || false } : null });
     }
 
     if (path === '/api/auth/profile' && method === 'GET') {
