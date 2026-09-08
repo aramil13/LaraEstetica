@@ -389,6 +389,10 @@
                         <div class="metric-value" id="val-erythema">--</div>
                         <div class="metric-label">Nivel Eritema (1-10)</div>
                     </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="val-follicle-sebum">--</div>
+                        <div class="metric-label">Sebo en folículos</div>
+                    </div>
                 </div>
 
                 <div id="recommendations-section" style="margin-top: 30px; display: none;">
@@ -655,7 +659,7 @@
             elements.fileInput.value = '';
             
             // Clear results
-            ['val-density', 'val-thickness', 'val-hydration', 'val-sebum', 'val-dandruff', 'val-erythema'].forEach(id => {
+            ['val-density', 'val-thickness', 'val-hydration', 'val-sebum', 'val-dandruff', 'val-erythema', 'val-follicle-sebum'].forEach(id => {
                 document.getElementById(id).textContent = '--';
             });
             document.getElementById('recommendations-section').style.display = 'none';
@@ -716,6 +720,7 @@
                     const { value: dandruffValue, label: dandruffLabel } = detectDandruffLevel(img);
                     const erythemaRaw = detectErythemaLevel(img);
                     const breakage = detectBreakage(img);
+                    const follicleSebum = detectFollicleSebum(img);
 
                     let erythemaLevel = 'Normal';
                     if (erythemaRaw > 0 && erythemaRaw <= 3) erythemaLevel = 'Bajo';
@@ -730,6 +735,7 @@
                     document.getElementById('val-sebum').textContent = sebumLabel;
                     document.getElementById('val-dandruff').textContent = dandruffLabel;
                     document.getElementById('val-erythema').textContent = erythemaLevel;
+                    document.getElementById('val-follicle-sebum').textContent = follicleSebum.label;
 
                     const results = {
                         density, thickness, hydration,
@@ -737,6 +743,7 @@
                         dandruff: dandruffLabel,
                         erythema: erythemaLevel,
                         breakage,
+                        follicleSebum,
                         isColored: elements.coloredHair.checked,
                         symptoms
                     };
@@ -1041,6 +1048,105 @@
             return { level, ratio: Math.round(ratio * 100) };
         }
 
+        // Detecta sebo DENTRO de los folículos (orificios foliculares) en una toma
+        // microscópica: un folículo con sebo muestra una gotita brillante/ámbar
+        // (reflejo especular) en el poro; uno vacío aparece oscuro y limpio.
+        // Matiz tricológico: si hay grasa superficial pero folículos vacíos → seborrea
+        // "aparente" (sudor/limpieza), no seborrea real.
+        function detectFollicleSebum(img) {
+            const size = 260;
+            const N = size * size;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = size; canvas.height = size;
+            ctx.drawImage(img, 0, 0, size, size);
+            const data = ctx.getImageData(0, 0, size, size).data;
+            const R = new Uint8Array(N), G = new Uint8Array(N), B = new Uint8Array(N), L = new Float32Array(N);
+            for (let i = 0; i < N; i++) {
+                R[i] = data[i*4]; G[i] = data[i*4+1]; B[i] = data[i*4+2];
+                L[i] = 0.299 * R[i] + 0.587 * G[i] + 0.114 * B[i];
+            }
+
+            // Mascara de poro: pixel oscuro rodeado de piel mas clara (orificio folicular)
+            const pore = new Uint8Array(N);
+            for (let y = 2; y < size - 2; y++) {
+                for (let x = 2; x < size - 2; x++) {
+                    const i = y * size + x;
+                    if (L[i] >= 125) continue;
+                    let brighter = 0;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if (dx === 0 && dy === 0) continue;
+                            const j = (y + dy) * size + (x + dx);
+                            if (L[j] > L[i] + 18) brighter++;
+                        }
+                    }
+                    if (brighter >= 6) pore[i] = 1;
+                }
+            }
+
+            // Agrupar poros conectados (8-vecinos) en folículos
+            const seen = new Uint8Array(N);
+            const follicles = [];
+            for (let i = 0; i < N; i++) {
+                if (!pore[i] || seen[i]) continue;
+                const stack = [i];
+                seen[i] = 1;
+                let minX = size, maxX = -1, minY = size, maxY = -1, count = 0;
+                while (stack.length) {
+                    const p = stack.pop();
+                    count++;
+                    const px = p % size, py = (p / size) | 0;
+                    if (px < minX) minX = px; if (px > maxX) maxX = px;
+                    if (py < minY) minY = py; if (py > maxY) maxY = py;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if (dx === 0 && dy === 0) continue;
+                            const nx = px + dx, ny = py + dy;
+                            if (nx < 0 || nx >= size || ny < 0 || ny >= size) continue;
+                            const j = ny * size + nx;
+                            if (pore[j] && !seen[j]) { seen[j] = 1; stack.push(j); }
+                        }
+                    }
+                }
+                const w = maxX - minX + 1, h = maxY - minY + 1;
+                if (count >= 3 && count <= 500 && w <= 16 && h <= 16) {
+                    follicles.push({ minX: Math.max(0, minX - 4), maxX: Math.min(size - 1, maxX + 4), minY: Math.max(0, minY - 4), maxY: Math.min(size - 1, maxY + 4) });
+                }
+            }
+
+            // Analizar cada folículo: gotita brillante/ambar dentro o en el borde
+            let withSebum = 0;
+            for (const f of follicles) {
+                let glossy = 0, amber = 0, warmBright = 0;
+                for (let y = f.minY; y <= f.maxY; y++) {
+                    for (let x = f.minX; x <= f.maxX; x++) {
+                        const i = y * size + x;
+                        const r = R[i], g = G[i], b = B[i];
+                        const l = L[i];
+                        if (l >= 200) glossy++;
+                        if (l >= 250 || (l >= 140 && l < 250 && (r - b) >= 18 && (r - g) >= 2)) amber++;
+                        if (l >= 170 && (r - b) >= 12 && (r - g) >= 0) warmBright++;
+                    }
+                }
+                if (glossy >= 3 || amber >= 2 || warmBright >= 4) withSebum++;
+            }
+
+            const total = follicles.length;
+            let label = 'Sin sebo visible';
+            if (total < 5) {
+                console.log('[follicle-sebum]', { total, withSebum, label: 'n/a' });
+                return { ok: false, total, withSebum, ratio: 0, label: 'No evaluable' };
+            }
+            const ratio = withSebum / total;
+            if (ratio >= 0.50) label = 'Alto';
+            else if (ratio >= 0.30) label = 'Moderado';
+            else if (ratio >= 0.12) label = 'Bajo';
+
+            console.log('[follicle-sebum]', { total, withSebum, ratio: +ratio.toFixed(2), label });
+            return { ok: true, total, withSebum, ratio, label };
+        }
+
         function renderTrichologicalSummary(d) {
             const box = document.getElementById('diag-summary');
             const txt = document.getElementById('diag-summary-text');
@@ -1059,6 +1165,16 @@
             }
 
             const effSebum = s.sebumSymptom || (d.sebum || '').toLowerCase();
+            if (d.follicleSebum && d.follicleSebum.ok && d.follicleSebum.label !== 'No evaluable') {
+                const fs = d.follicleSebum;
+                if (fs.label !== 'Sin sebo visible') {
+                    lines.push(`<p><b>Sebo en folículos:</b> en <b>${fs.withSebum} de ${fs.total}</b> orificios foliculares se observa una gotita brillante/ámbar (sebo real dentro del folículo) → orienta a <b>seborrea oleosa real</b>. Regulación de grasa con purificantes sin resecar.</p>`);
+                } else if (d.sebum === 'Alto' || d.sebum === 'Medio' || effSebum === 'alto') {
+                    lines.push(`<p><b>Sebo en folículos:</b> los folículos se ven <b>vacíos/limpios</b> (${fs.withSebum} de ${fs.total} con sebo) pese a la grasa superficial → consistente con <b>seborrea aparente</b> o sudor, no seborrea real. El cuero cabelludo compensa con más grasa al resecarlo; regular con suavidad.</p>`);
+                } else {
+                    lines.push(`<p><b>Sebo en folículos:</b> los orificios foliculares se ven limpios (${fs.withSebum} de ${fs.total} con sebo), sin acumulación evidente.</p>`);
+                }
+            }
             if (effSebum === 'alto' || d.sebum === 'Alto' || d.sebum === 'Medio' && effSebum === '') {
                 lines.push(`<p><b>Cuero cabelludo graso (seborrea):</b> hay grasa visible. Recuerda el diferencial: si el interior del folículo está sin sebo, podría ser <b>seborrea aparente</b> o incluso sudor, no seborrea real. Regular sin resecar (la sequedad genera más grasa compensatoria).</p>`);
             }

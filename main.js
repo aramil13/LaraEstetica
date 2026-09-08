@@ -183,6 +183,15 @@ function getMariaNilaRecommendations(diagnosis) {
         recommendations.push(MARIA_NILA_PRODUCTS.pureVolumeLeaveInCream);
     }
 
+    // Sebo dentro de los folículos (seborrea oleosa real detectada en la foto)
+    const fs = diagnosis.follicleSebum;
+    const fsLabel = fs && fs.label;
+    if (fsLabel === 'Alto' || fsLabel === 'Moderado') {
+        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
+        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseExfoliatingSerum);
+        recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseDetoxMasque);
+    }
+
     // Cuero cabelludo graso
     if (sebum > 65 || sebum === 'Alto' || (symptoms && symptoms.sebumSymptom === 'alto')) {
         recommendations.push(MARIA_NILA_PRODUCTS.purifyingCleanseShampoo);
@@ -4268,7 +4277,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     </div>
                     <button id="btn-change-client" class="secondary-btn btn-sm">Cambiar Cliente</button>
                 </div>
-                <iframe src="diagnosis/index.html?v=20260908g" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 240px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
+                <iframe src="diagnosis/index.html?v=20260908h" class="diagnosis-iframe" style="width:100%;height:calc(100vh - 240px);border:none;border-radius:12px;background:var(--bg-card);"></iframe>
             </div>
         `;
     }
@@ -5550,7 +5559,7 @@ window.addEventListener('message', async (event) => {
                             return v.toString(16);
                         });
 
-                        const notes = `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}, Eritema: ${results?.erythema || '--'}` + (results?.breakage && results.breakage.level !== 'Normal' ? `, Rotura/miniaturización: ${results.breakage.level}` : '');
+                        const notes = `Densidad: ${results?.density || '--'}, Grosor: ${results?.thickness || '--'}, Hidratación: ${results?.hydration || '--'}%, Sebo: ${results?.sebum || '--'}, Caspa: ${results?.dandruff || '--'}, Eritema: ${results?.erythema || '--'}` + (results?.breakage && results.breakage.level !== 'Normal' ? `, Rotura/miniaturización: ${results.breakage.level}` : '') + (results?.follicleSebum ? `, Sebo en folículos: ${results.follicleSebum.label} (${results.follicleSebum.withSebum}/${results.follicleSebum.total})` : '');
 
                         try {
                             const photoFile = new File([blob], `diagnosis_${Date.now()}.jpg`, { type: 'image/jpeg' });
@@ -5602,7 +5611,8 @@ window.addEventListener('message', async (event) => {
                         breakage: results.breakage,
                         symptoms: results.symptoms || {},
                         erythema: results.erythema,
-                        dandruff: results.dandruff
+                        dandruff: results.dandruff,
+                        follicleSebum: results.follicleSebum
                     };
                     const products = getMariaNilaRecommendations(diagnosis);
                     const treatments = getOlaplexRecommendations(diagnosis);
