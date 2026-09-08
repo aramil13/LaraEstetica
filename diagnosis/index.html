@@ -716,11 +716,13 @@
 
                     const density = detectHairDensity(img);
                     const thickness = detectHairThickness(img);
-                    const { hydration, sebumLevel, sebumLabel } = detectHydrationAndSebum(img);
+                    const { hydration, sebumLevel } = detectHydrationAndSebum(img);
                     const { value: dandruffValue, label: dandruffLabel } = detectDandruffLevel(img);
                     const erythemaRaw = detectErythemaLevel(img);
                     const breakage = detectBreakage(img);
                     const follicleSebum = detectFollicleSebum(img);
+                    const overallSebum = combineSebum(sebumLevel, follicleSebum);
+                    const sebumLabel = overallSebum.label;
 
                     let erythemaLevel = 'Normal';
                     if (erythemaRaw > 0 && erythemaRaw <= 3) erythemaLevel = 'Bajo';
@@ -733,6 +735,7 @@
                     document.getElementById('val-thickness').textContent = thickness + ' μm';
                     document.getElementById('val-hydration').textContent = hydration + '%';
                     document.getElementById('val-sebum').textContent = sebumLabel;
+                    document.getElementById('val-sebum').title = `Superficie: ${overallSebum.surface}/10 · Folicular: ${overallSebum.follicle}/10`;
                     document.getElementById('val-dandruff').textContent = dandruffLabel;
                     document.getElementById('val-erythema').textContent = erythemaLevel;
                     document.getElementById('val-follicle-sebum').textContent = follicleSebum.label;
@@ -1004,11 +1007,25 @@
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i], g = data[i+1], b = data[i+2];
                 const br = (r + g + b) / 3;
-                if (br > 240 && r > 220) shiny++;
+                // Brillo especular puro o gotita ambar (sebo) brillante
+                if ((br > 240 && r > 220) || (br >= 150 && br < 250 && (r - b) >= 18 && (r - g) >= 2)) shiny++;
                 if (br < 100) dry++;
             }
             const sebum = Math.min(10, Math.floor((shiny / 6400) * 15 + 2));
             return { hydration: 60, sebumLevel: sebum, sebumLabel: sebum > 7 ? 'Alto' : (sebum < 3 ? 'Bajo' : 'Medio') };
+        }
+
+        // Fusiona el sebo de la superficie (brillo) con el sebo DENTRO de los folículos
+        // en un único "Nivel de Sebo" coherente: el nivel general nunca resulta más
+        // bajo que lo que indican los folículos (evita contradicciones).
+        function combineSebum(surfaceLevel, fs) {
+            let follicleLevel = 0;
+            if (fs && fs.ok) follicleLevel = Math.min(10, Math.round(fs.ratio * 10));
+            const merged = Math.max(surfaceLevel || 0, follicleLevel);
+            let label = 'Bajo';
+            if (merged >= 8) label = 'Alto';
+            else if (merged >= 4) label = 'Medio';
+            return { surface: surfaceLevel || 0, follicle: follicleLevel, level: merged, label };
         }
 
         function detectDandruffLevel(img) {
