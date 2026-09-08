@@ -1981,9 +1981,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const detailApts = getAppointmentsForDate(detailDate);
 
         // Client combo search: upcoming appointments for the selected client
-        const searchClientId = State.appointmentClientId || '';
+        const scopeSalonActive = (State.activeSalonId && State.activeSalonId !== 'all');
+        let searchClientId = State.appointmentClientId || '';
+        if (scopeSalonActive) {
+            const sc = searchClientId ? State.clients.find(c => c.id === searchClientId) : null;
+            if (!sc || sc.salon_id !== State.activeSalonId) searchClientId = '';
+        }
         const searchClient = searchClientId ? State.clients.find(c => c.id === searchClientId) : null;
-        const clientOptions = State.clients
+        const scopeClients = scopeSalonActive
+            ? State.clients.filter(c => c.salon_id === State.activeSalonId)
+            : State.clients;
+        const clientOptions = scopeClients
             .slice()
             .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'))
             .map(c => `<option value="${c.id}"${c.id === searchClientId ? ' selected' : ''}>${c.name}</option>`)
@@ -2387,7 +2395,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:240px;justify-content:flex-end">
                     <div class="client-search-wrapper" style="position:relative;flex:1;max-width:340px">
                         <svg class="client-search-icon" width="18" height="18" fill="none" stroke="var(--text-secondary)" stroke-width="2" viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" id="clients-search-input" class="form-control" dir="ltr" placeholder="Buscar por nombre, teléfono, email, NIF o salón..." value="${searchTerm}" autocomplete="off" style="padding-left:34px;padding-right:30px">
+                        <input type="text" id="clients-search-input" class="form-control" dir="ltr" autocomplete="off" placeholder="Buscar por nombre, teléfono, email, NIF o salón..." value="${searchTerm}" style="padding-left:34px;padding-right:30px;direction:ltr!important;unicode-bidi:bidi-override!important;text-align:left!important">
                         ${searchTerm ? `<button id="clients-search-clear" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary);font-size:1.1rem;line-height:1;padding:2px" title="Limpiar búsqueda">&times;</button>` : ''}
                     </div>
                     <button class="btn btn-primary" id="btn-add-client">
