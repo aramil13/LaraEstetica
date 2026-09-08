@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda EstÃ©tica | Panel de Control</title>
-    <meta name="description" content="Sistema de gestiÃ³n y agenda para servicios de estÃ©tica.">
+    <title>Agenda Estética | Panel de Control</title>
+    <meta name="description" content="Sistema de gestión y agenda para servicios de estética.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,9 +14,9 @@
 </head>
 <body>
 
-    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    <!-- ════════════════════════════════════
          AUTH SCREEN (shown when logged out)
-         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+         ════════════════════════════════════ -->
     <div class="auth-screen" id="auth-screen">
         <div class="auth-bg-shapes">
             <div class="auth-shape auth-shape-1"></div>
@@ -25,8 +25,8 @@
         </div>
         <div class="auth-container">
             <div class="auth-brand" style="margin-bottom:0.75rem;">
-                <h1 style="font-size:1.5rem;margin-bottom:0.15rem;">EstÃ©tica y Bienestar <span class="highlight">Lara</span></h1>
-                <p style="font-size:0.85rem;">Sistema de gestiÃ³n y agenda profesional</p>
+                <h1 style="font-size:1.5rem;margin-bottom:0.15rem;">Estética y Bienestar <span class="highlight">Lara</span></h1>
+                <p style="font-size:0.85rem;">Sistema de gestión y agenda profesional</p>
             </div>
             <hr style="border:none;border-top:1px solid var(--border-color);margin:0 0 1.5rem 0;">
 
@@ -37,29 +37,29 @@
                     <button type="button" id="auth-tab-staff" class="auth-tab" style="flex:1;padding:0.7rem;border:none;background:transparent;color:var(--text-secondary);font-weight:600;font-family:var(--font-sans);cursor:pointer;font-size:0.9rem;transition:var(--transition);">Staff</button>
                 </div>
 
-                <h2 id="auth-form-title">Iniciar SesiÃ³n</h2>
+                <h2 id="auth-form-title">Iniciar Sesión</h2>
                 <p class="auth-subtitle" id="auth-form-subtitle">Accede a tu panel de control</p>
 
                 <div id="auth-error" class="auth-error" style="display:none"></div>
 
-                <!-- Campos ocultos para engaÃ±ar al autocompletado del navegador -->
+                <!-- Campos ocultos para engañar al autocompletado del navegador -->
                 <input type="text" name="fakeemail" style="display:none" aria-hidden="true">
                 <input type="password" name="fakepassword" style="display:none" aria-hidden="true">
 
                 <!-- Admin fields -->
                 <div id="auth-admin-fields">
                     <div class="form-group">
-                        <label for="auth-email">Correo electrÃ³nico</label>
+                        <label for="auth-email">Correo electrónico</label>
                         <div class="auth-input-wrapper">
                             <input type="email" class="form-control auth-input" id="auth-email" name="email_field_nocache" required placeholder="tu@email.com" autocomplete="off" value="">
                         </div>
                     </div>
 
                     <div class="form-group" id="auth-password-group">
-                        <label for="auth-password">ContraseÃ±a</label>
+                        <label for="auth-password">Contraseña</label>
                         <div class="auth-input-wrapper">
-                            <input type="password" class="form-control auth-input" id="auth-password" name="password_field_nocache" required placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="new-password" minlength="6" value="">
-                            <button type="button" class="password-toggle" data-toggle="auth-password" tabindex="-1" aria-label="Mostrar contraseÃ±a">
+                            <input type="password" class="form-control auth-input" id="auth-password" name="password_field_nocache" required placeholder="••••••••" autocomplete="new-password" minlength="6" value="">
+                            <button type="button" class="password-toggle" data-toggle="auth-password" tabindex="-1" aria-label="Mostrar contraseña">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                         </div>
@@ -75,10 +75,10 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="auth-staff-password">ContraseÃ±a de Staff</label>
+                        <label for="auth-staff-password">Contraseña de Staff</label>
                         <div class="auth-input-wrapper">
-                            <input type="password" class="form-control auth-input" id="auth-staff-password" placeholder="ContraseÃ±a del staff">
-                            <button type="button" class="password-toggle" data-toggle="auth-staff-password" tabindex="-1" aria-label="Mostrar contraseÃ±a">
+                            <input type="password" class="form-control auth-input" id="auth-staff-password" placeholder="Contraseña del staff">
+                            <button type="button" class="password-toggle" data-toggle="auth-staff-password" tabindex="-1" aria-label="Mostrar contraseña">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                         </div>
@@ -90,66 +90,66 @@
                     <div class="auth-spinner" id="auth-spinner" style="display:none"></div>
                 </button>
 
-                <button type="button" id="btn-forgot-password" style="background:none;border:none;color:var(--text-secondary);font-size:0.8rem;cursor:pointer;margin-top:0.75rem;width:100%;text-align:center;font-family:var(--font-sans);">Â¿ContraseÃ±a olvidada?</button>
+                <button type="button" id="btn-forgot-password" style="background:none;border:none;color:var(--text-secondary);font-size:0.8rem;cursor:pointer;margin-top:0.75rem;width:100%;text-align:center;font-family:var(--font-sans);">¿Contraseña olvidada?</button>
             </form>
 
             <!-- Password Reset Section -->
             <div id="auth-reset-section" style="display:none">
-                <h2 id="auth-reset-title">Restablecer ContraseÃ±a</h2>
-                <p class="auth-subtitle" id="auth-reset-subtitle">Te enviaremos un cÃ³digo de 6 dÃ­gitos a tu correo</p>
+                <h2 id="auth-reset-title">Restablecer Contraseña</h2>
+                <p class="auth-subtitle" id="auth-reset-subtitle">Te enviaremos un código de 6 dígitos a tu correo</p>
                 <div id="auth-reset-error" class="auth-error" style="display:none"></div>
-                <div id="auth-reset-success" style="display:none;color:var(--success-color, #10b981);text-align:center;padding:1rem 0;font-size:0.9rem;">âœ“ Revisa tu correo electrÃ³nico</div>
+                <div id="auth-reset-success" style="display:none;color:var(--success-color, #10b981);text-align:center;padding:1rem 0;font-size:0.9rem;">✓ Revisa tu correo electrónico</div>
                 <div id="auth-reset-email-group">
                     <div class="form-group">
-                        <label>Correo electrÃ³nico</label>
+                        <label>Correo electrónico</label>
                         <div class="auth-input-wrapper">
                             <input type="email" class="form-control auth-input" id="auth-reset-email" placeholder="tu@email.com">
                         </div>
                     </div>
                     <button type="button" class="btn btn-primary auth-submit" id="btn-send-reset" style="width:100%;">
-                        <span id="auth-reset-btn-text">Enviar cÃ³digo</span>
+                        <span id="auth-reset-btn-text">Enviar código</span>
                         <div class="auth-spinner" id="auth-reset-spinner" style="display:none"></div>
                     </button>
                 </div>
                 <div id="auth-reset-password-group" style="display:none">
                     <div class="form-group">
-                        <label>CÃ³digo de verificaciÃ³n</label>
+                        <label>Código de verificación</label>
                         <div class="auth-input-wrapper">
                             <input type="text" class="form-control auth-input" id="auth-reset-code" placeholder="123456" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Nueva contraseÃ±a</label>
+                        <label>Nueva contraseña</label>
                         <div class="auth-input-wrapper">
-                            <input type="password" class="form-control auth-input" id="auth-reset-new-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" minlength="6">
-                            <button type="button" class="password-toggle" data-toggle="auth-reset-new-password" tabindex="-1" aria-label="Mostrar contraseÃ±a">
+                            <input type="password" class="form-control auth-input" id="auth-reset-new-password" placeholder="••••••••" minlength="6">
+                            <button type="button" class="password-toggle" data-toggle="auth-reset-new-password" tabindex="-1" aria-label="Mostrar contraseña">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                         </div>
                     </div>
                     <button type="button" class="btn btn-primary auth-submit" id="btn-update-password" style="width:100%;">
-                        <span id="auth-update-btn-text">Actualizar ContraseÃ±a</span>
+                        <span id="auth-update-btn-text">Actualizar Contraseña</span>
                         <div class="auth-spinner" id="auth-update-spinner" style="display:none"></div>
                     </button>
                 </div>
-                <button type="button" id="btn-cancel-reset" style="background:none;border:none;color:var(--text-secondary);font-size:0.8rem;cursor:pointer;margin-top:0.75rem;width:100%;text-align:center;font-family:var(--font-sans);">Volver al inicio de sesiÃ³n</button>
+                <button type="button" id="btn-cancel-reset" style="background:none;border:none;color:var(--text-secondary);font-size:0.8rem;cursor:pointer;margin-top:0.75rem;width:100%;text-align:center;font-family:var(--font-sans);">Volver al inicio de sesión</button>
             </div>
         </div>
     </div>
 
-    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    <!-- ════════════════════════════════════
          APP (shown when logged in)
-         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+         ════════════════════════════════════ -->
     <div class="app-layout" id="app-layout" style="display:none">
         <!-- Mobile Sidebar Toggle -->
-        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Abrir menÃº">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Abrir menú">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
         <!-- Sidebar Navigation -->
         <aside class="sidebar" id="sidebar">
             <div class="brand">
-                <div class="brand-icon">âœ¨</div>
-                <h1>EstÃ©tica y Bienestar <span class="highlight">Lara</span></h1>
+                <div class="brand-icon">✨</div>
+                <h1>Estética y Bienestar <span class="highlight">Lara</span></h1>
             </div>
             <nav class="nav-menu">
                 <button class="nav-item active" data-target="agenda">
@@ -178,7 +178,7 @@
                 </button>
                 <button class="nav-item" data-target="diagnosis">
                     <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    <span>DiagnÃ³stico capilar</span>
+                    <span>Diagnóstico capilar</span>
                 </button>
                 <button class="nav-item" data-target="whatsapp">
                     <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
@@ -195,7 +195,7 @@
                         <span class="user-role">Administrador</span>
                     </div>
                 </div>
-                <button class="btn-logout" id="btn-logout" title="Cerrar sesiÃ³n">
+                <button class="btn-logout" id="btn-logout" title="Cerrar sesión">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 </button>
             </div>
@@ -214,7 +214,7 @@
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-container" id="modal-container">
             <div class="modal-header">
-                <h2 id="modal-title">TÃ­tulo Modal</h2>
+                <h2 id="modal-title">Título Modal</h2>
                 <button class="btn-close" id="btn-close-modal">&times;</button>
             </div>
             <div class="modal-body" id="modal-body">

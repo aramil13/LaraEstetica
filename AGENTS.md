@@ -15,6 +15,12 @@
 - **Siempre que se modifique código, se debe hacer commit y push a `origin/main`** para que GitHub Pages sirva la nueva versión.
 - Si se modifica el worker o la BD, además desplegar con wrangler.
 
+## Encoding (IMPORTANTE)
+- Todos los archivos (index.html, main.js, style.css, etc.) están en **UTF-8 sin BOM**.
+- **NUNCA** usar PowerShell `Get-Content`/`Set-Content`/`Out-File`/redirecciones para modificar archivos del proyecto: re-encodan y corrompen tildes y ñ (mojibake).
+- Los bumps de versión (p.ej. `main.js?v=...`) y cualquier edición de archivos se hacen SOLO con el editor de texto de opencode (conserva UTF-8).
+- Si un archivo se corrompe, restaurarlo desde el último commit bueno con `git checkout <commit> -- <archivo>` y reaplicar el cambio con el editor.
+
 ## Convenios
 - API del frontend: `main.js` usa `api.request` contra el worker (Cloudflare). Los campos se mapean de snake_case (DB) a camelCase (JS) en `loadAllData`.
 - Recordatorios WhatsApp: la cita permanece en la lista mientras su hora no haya pasado; `whatsapp_sent_count` cuenta los envíos.
