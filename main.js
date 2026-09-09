@@ -3594,7 +3594,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             if (group.items.length === 0) return;
             const salon = group.salon;
             if (!salon) return;
-            bills.push({ salonId: salon.id, salonName: salon.name || salon.id, items: group.items });
+            bills.push({ salonId: salon.id, salonName: salon.name || salon.id, day: targetStr, items: group.items });
         });
 
         if (bills.length === 0) {
@@ -3693,6 +3693,9 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             State.tpv.invoices.unshift(doc);
             // Si era una factura de salón pendiente del día, quitarla de la lista y actualizar el contador
             if (doc.doc_type === 'factura-salon' && State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
+                // Guardar el día de la factura pendiente que se está emitiendo (para la hoja de control)
+                const pend = State.tpv.pendingBills.find(b => b.salonId === doc.salon_id);
+                if (pend && pend.day) doc._billedDay = pend.day;
                 State.tpv.pendingBills = State.tpv.pendingBills.filter(b => b.salonId !== doc.salon_id);
             }
             // Para facturas de salón: generar hoja de control automáticamente e ir al Listado de Ventas
@@ -3729,7 +3732,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     async function tpvAutoGenerateControlSheet(invoiceDoc) {
         if (!invoiceDoc || invoiceDoc.doc_type !== 'factura-salon') return;
         const salonId = invoiceDoc.salon_id;
-        const invoiceDate = (invoiceDoc.created_at || '').substring(0, 10);
+        const invoiceDate = invoiceDoc._billedDay || (invoiceDoc.created_at || '').substring(0, 10);
         if (!salonId || !invoiceDate) return;
 
         // Verificar si ya existe una hoja de control para ese día y salón
