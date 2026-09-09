@@ -2404,6 +2404,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     function getClientsView() {
         const rows = buildClientsRows(State.clientSearch);
         return `
+            <div style="display:flex;justify-content:center;margin-bottom:0.75rem;">
+                <div style="display:flex;align-items:center;gap:8px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:999px;padding:0.4rem 1.2rem;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--accent-color)"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span style="font-weight:700;font-size:0.95rem;color:var(--text-color);">${getActiveSalonLabel()}</span>
+                </div>
+            </div>
             <div class="section-header" style="flex-wrap:wrap;gap:0.75rem">
                 <div style="flex:1;min-width:180px"><h1 class="section-title">Clientes</h1><p style="color:var(--text-secondary)">Base de datos de clientes · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
                 <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:240px;justify-content:flex-end">
@@ -2463,6 +2469,12 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         }
 
         return `
+            <div style="display:flex;justify-content:center;margin-bottom:0.75rem;">
+                <div style="display:flex;align-items:center;gap:8px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:999px;padding:0.4rem 1.2rem;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--accent-color)"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span style="font-weight:700;font-size:0.95rem;color:var(--text-color);">${getActiveSalonLabel()}</span>
+                </div>
+            </div>
             <div class="section-header">
                 <div><h1 class="section-title">Servicios</h1><p style="color:var(--text-secondary)">Catálogo de servicios · <span class="cloudflare-badge">⚡ Cloudflare</span></p></div>
                 <button class="btn btn-primary" id="btn-add-service">
@@ -4387,6 +4399,18 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
     /* ═══════════════════════════════════════
 DIAGNOSIS VIEW - FULLY INTEGRATED
         ═══════════════════════════════════════ */
+    function getActiveSalonLabel() {
+        const activeId = State.activeSalonId;
+        if (!activeId || activeId === 'all') return 'Todos los salones';
+        const salon = State.salons.find(s => s.id === activeId);
+        return salon ? salon.name : 'Todos los salones';
+    }
+
+    function getActiveSalonId() {
+        const activeId = State.activeSalonId;
+        return activeId && activeId !== 'all' ? activeId : null;
+    }
+
     let diagnosisImage = null;
     let diagnosisClientId = null;
     let diagnosisClientName = null;
@@ -4408,10 +4432,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const clientPhone = sessionStorage.getItem('nymara_diagnosis_client_phone') || '';
         
         return `
-            <div class="section-header">
+            <div class="section-header" style="justify-content:space-between;align-items:center;">
                 <div>
                     <h1 class="section-title">Diagnóstico Capilar</h1>
                     <p style="color:var(--text-secondary)">Análisis avanzado del cuero cabelludo · <span class="cloudflare-badge">⚡ IA Vision</span></p>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;background:var(--bg-surface);border:1px solid var(--border-color);border-radius:999px;padding:0.4rem 1rem;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--accent-color)"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span style="font-weight:700;font-size:0.95rem;color:var(--text-color);">${getActiveSalonLabel()}</span>
                 </div>
              </div>
              
@@ -4444,12 +4472,15 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         if (!list) return;
 
         const staffSalonId = (State.session && State.session.staff) ? State.session.staffSalonId : null;
-        const clients = staffSalonId
-            ? (State.clients || []).filter(c => c.salon_id === staffSalonId)
-            : (State.clients || []);
+        const scopeSalonId = getActiveSalonId();
+        const clients = (State.clients || []).filter(c => {
+            if (staffSalonId && c.salon_id !== staffSalonId) return false;
+            if (scopeSalonId && c.salon_id !== scopeSalonId) return false;
+            return true;
+        });
 
         if (!clients || clients.length === 0) {
-            list.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:1rem;">' + (staffSalonId ? 'No hay clientes registrados en tu salón.' : 'No hay clientes registrados.') + '</p>';
+            list.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:1rem;">' + (staffSalonId ? 'No hay clientes registrados en tu salón.' : (scopeSalonId ? 'No hay clientes registrados en este salón.' : 'No hay clientes registrados.')) + '</p>';
             return;
         }
 
@@ -5263,6 +5294,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
     async function selectClientForDiagnosis(client) {
         if (State.session && State.session.staff && State.session.staffSalonId && client.salon_id !== State.session.staffSalonId) {
             showToast('Solo puedes seleccionar clientes de tu salón.', 'error');
+            return;
+        }
+        const scopeSalonId = getActiveSalonId();
+        if (scopeSalonId && client.salon_id !== scopeSalonId) {
+            showToast('Solo puedes seleccionar clientes del salón en uso.', 'error');
             return;
         }
         const selClient = document.getElementById('diagnosis-client-selection');
