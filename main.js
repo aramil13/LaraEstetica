@@ -4045,7 +4045,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             const staffClass = apt.isStaffAppointment ? ' staff-apt' : '';
             const staffBadge = apt.isStaffAppointment ? ` <span class="staff-badge">Staff</span>${apt.staffModifiedBy ? ` <span style="color:var(--text-secondary);font-size:0.75rem;">· modificado por <strong>${apt.staffModifiedBy}</strong></span>` : ''}` : '';
             return `
-                <tr class="monthly-apt-row${staffClass}">
+                <tr class="monthly-apt-row${staffClass}" data-date="${apt.date}" data-apt-date="${apt.date}" style="${staffClass === '' ? 'cursor:pointer' : ''}">
                     <td class="monthly-time-cell">
                         <span class="monthly-time">${apt.time}</span>
                         <span class="monthly-time-end">– ${endStr}</span>
@@ -4898,6 +4898,20 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         const btnPrint = document.getElementById('btn-print-daily');
         if (btnPrint) btnPrint.addEventListener('click', () => {
             exportCurrentViewAsPdf(isMonthMode ? `Listado_Citas_${(State.listMonth || '').replace(/-/g, '')}` : `Listado_Citas_${(State.dailyDate || '').replace(/-/g, '')}`);
+        });
+
+        // Click a cita del listado (mes) para ir al día determinado de la agenda
+        document.querySelectorAll('.monthly-apt-row').forEach(row => {
+            row.addEventListener('click', e => {
+                if (e.target.closest('button')) return;
+                const date = row.dataset.date;
+                if (!date) return;
+                State.selectedDate = date;
+                const d = new Date(date + 'T00:00:00');
+                State.calYear = d.getFullYear();
+                State.calMonth = d.getMonth();
+                navigate('agenda');
+            });
         });
 
         // Calendar navigation
