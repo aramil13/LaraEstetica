@@ -3081,7 +3081,46 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             return;
         }
         const html = controls.map(tpvBuildControlSheetHtml).join('');
-        exportAreaAsPdf(html, `Hojas_de_Control_${formatDateEU(new Date())}`);
+        tpvOfferPrintChoice(html, `Hojas_de_Control_${formatDateEU(new Date())}`);
+    }
+
+    // Muestra un diálogo para elegir entre guardar PDF o imprimir a impresora
+    function tpvOfferPrintChoice(htmlContent, filename, printTitle) {
+        closeModal();
+        const choiceHtml = `
+            <div style="text-align:center;padding:0.5rem 0 0.25rem;">
+                <p style="color:var(--text-secondary);margin:0 0 1.25rem;">¿Cómo deseas obtener el documento?</p>
+                <div style="display:flex;flex-direction:column;gap:0.6rem;">
+                    <button type="button" class="btn btn-primary" id="print-choice-pdf" style="width:100%;padding:0.9rem 1rem;font-size:1rem;">
+                        💾 Guardar PDF
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="print-choice-printer" style="width:100%;padding:0.9rem 1rem;font-size:1rem;">
+                        🖨️ Imprimir a impresora
+                    </button>
+                </div>
+            </div>`;
+        openModal('Imprimir documento', choiceHtml, () => {
+            const pdfBtn = document.getElementById('print-choice-pdf');
+            const printerBtn = document.getElementById('print-choice-printer');
+            if (pdfBtn) pdfBtn.addEventListener('click', () => {
+                closeModal();
+                exportAreaAsPdf(htmlContent, filename);
+            });
+            if (printerBtn) printerBtn.addEventListener('click', () => {
+                closeModal();
+                const printArea = document.getElementById('print-area');
+                if (!printArea) return;
+                printArea.innerHTML = htmlContent;
+                printArea.classList.add('print-active');
+                const prevTitle = setPrintTitle(printTitle || filename);
+                window.print();
+                setPrintTitle(prevTitle);
+                setTimeout(() => {
+                    printArea.innerHTML = '';
+                    printArea.classList.remove('print-active');
+                }, 300);
+            });
+        });
     }
 
     function getSalesView() {
@@ -3106,7 +3145,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
                     <button type="button" class="btn btn-primary" id="btn-sales-print">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        ${tab === 'hojas-control' ? 'Imprimir Hoja de Control' : 'Imprimir'}
+                        ${tab === 'hojas-control' ? 'Imprimir Hojas de Control' : 'Imprimir Facturas'}
                     </button>
                     <button type="button" class="btn btn-secondary" id="btn-sales-back">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:0.4rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
@@ -3208,7 +3247,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
         const html = invoices.map(inv => tpvBuildDocHtml(inv, false)).join('');
         const nums = invoices.map(inv => tpvInvoiceNum(inv).replace(/\s/g, ''));
         const rangeLabel = nums.length === 1 ? nums[0] : `${nums[0]}_a_${nums[nums.length - 1]}`;
-        exportAreaAsPdf(html, `Facturas_${rangeLabel}`);
+        tpvOfferPrintChoice(html, `Facturas_${rangeLabel}`, 'Facturas');
     }
 
     function tpvPrintSales() {
@@ -3352,7 +3391,7 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
                     </div>
                 </div>
             </div>`;
-        exportAreaAsPdf(reportHtml, `Listado_Ventas_${(State.tpv.salesFrom || '').replace(/-/g, '')}_${(State.tpv.salesTo || '').replace(/-/g, '')}`);
+        tpvOfferPrintChoice(reportHtml, `Listado_Ventas_${(State.tpv.salesFrom || '').replace(/-/g, '')}_${(State.tpv.salesTo || '').replace(/-/g, '')}`, 'Listado de Ventas');
     }
 
     function tpvRenderCartPanel() {
@@ -3656,8 +3695,15 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             if (doc.doc_type === 'factura-salon' && State.tpv.pendingBills && State.tpv.pendingBills.length > 0) {
                 State.tpv.pendingBills = State.tpv.pendingBills.filter(b => b.salonId !== doc.salon_id);
             }
-            await tpvPrintDoc(doc);
-            renderRoute();
+            // Para facturas de salón: generar hoja de control automáticamente e ir al Listado de Ventas
+            if (doc.doc_type === 'factura-salon') {
+                await tpvAutoGenerateControlSheet(doc);
+                showToast('Factura emitida. Redirigiendo al Listado de Ventas...');
+                navigate('sales');
+            } else {
+                await tpvPrintDoc(doc);
+                renderRoute();
+            }
         } catch (err) {
             showToast('Error al emitir: ' + (err.message || 'error'), 'error');
         }
@@ -3677,6 +3723,79 @@ const aptSalonColor = aptSalon && aptSalon.color ? aptSalon.color : 'var(--accen
             showToast((doc.doc_type !== 'ticket' ? 'Factura' : 'Ticket') + ' emitida correctamente.');
             renderRoute();
         }, 300);
+    }
+
+    // Generar hoja de control automáticamente al emitir una factura de salón
+    async function tpvAutoGenerateControlSheet(invoiceDoc) {
+        if (!invoiceDoc || invoiceDoc.doc_type !== 'factura-salon') return;
+        const salonId = invoiceDoc.salon_id;
+        const invoiceDate = (invoiceDoc.created_at || '').substring(0, 10);
+        if (!salonId || !invoiceDate) return;
+
+        // Verificar si ya existe una hoja de control para ese día y salón
+        const existingControl = State.tpv.invoices.find(inv =>
+            inv.doc_type === 'hoja-control' &&
+            inv.status !== 'cancelled' &&
+            inv.salon_id === salonId &&
+            Array.isArray(inv.items) &&
+            inv.items.length > 0 &&
+            inv.items[0].date === invoiceDate
+        );
+        if (existingControl) return;
+
+        // Obtener citas del mismo día y salón
+        const dayApts = State.appointments
+            .filter(a => a.date === invoiceDate && a.salonId === salonId)
+            .sort((a, b) => a.time.localeCompare(b.time));
+        if (dayApts.length === 0) return;
+
+        const salon = State.salons.find(s => s.id === salonId);
+        const items = dayApts.map(apt => {
+            const client = State.clients.find(c => c.id === apt.clientId) || { name: 'Eliminado' };
+            const service = State.services.find(s => s.id === apt.serviceId) || { name: 'Servicio', price: 0 };
+            return {
+                name: `${client.name} → ${service.name}`,
+                price: Math.round((parseFloat(service.price) || 0) * 100) / 100,
+                qty: 1,
+                date: apt.date,
+                time: apt.time,
+                salon: salon ? salon.name : 'Sin salón',
+                salonId: salonId
+            };
+        });
+
+        const description = `Hoja de Control · ${formatDateEU(invoiceDate)} · ${salon ? salon.name : 'Sin salón'} · ${items.length} servicios`;
+        const t = tpvControlSheetTotals(items);
+        const payload = {
+            doc_type: 'hoja-control',
+            salon_id: salonId,
+            client_id: null,
+            client_name: description,
+            client_nif: null,
+            items: items,
+            base_amount: t.base,
+            commission_rate: 0,
+            commission_amount: t.commission,
+            tax_amount: t.tax,
+            retention_amount: t.retention,
+            total_amount: t.total,
+            payment_method: 'contado',
+            payment_cash: 0,
+            payment_card: 0
+        };
+        try {
+            const created = await api.addInvoice(payload);
+            const doc = {
+                ...payload,
+                id: created.id,
+                number: created.number,
+                doc_type: created.doc_type,
+                created_at: new Date().toISOString()
+            };
+            State.tpv.invoices.unshift(doc);
+        } catch (err) {
+            console.error('Error al generar hoja de control automática:', err);
+        }
     }
 
     function tpvBindCartEvents() {
