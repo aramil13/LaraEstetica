@@ -4411,6 +4411,14 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
         return activeId && activeId !== 'all' ? activeId : null;
     }
 
+    function clearDiagnosisSelection() {
+        sessionStorage.removeItem('nymara_diagnosis_client_id');
+        sessionStorage.removeItem('nymara_diagnosis_client_name');
+        sessionStorage.removeItem('nymara_diagnosis_client_phone');
+        diagnosisClientId = null;
+        diagnosisClientName = null;
+    }
+
     let diagnosisImage = null;
     let diagnosisClientId = null;
     let diagnosisClientName = null;
@@ -4418,10 +4426,11 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
 
     function getDiagnosisView() {
         const staffSalonId = (State.session && State.session.staff) ? State.session.staffSalonId : null;
+        const scopeSalonId = getActiveSalonId();
         let hasClient = sessionStorage.getItem('nymara_diagnosis_client_id');
-        if (hasClient && staffSalonId) {
+        if (hasClient && (staffSalonId || scopeSalonId)) {
             const stored = State.clients.find(c => c.id === hasClient);
-            if (!stored || stored.salon_id !== staffSalonId) {
+            if (!stored || (staffSalonId && stored.salon_id !== staffSalonId) || (scopeSalonId && stored.salon_id !== scopeSalonId)) {
                 sessionStorage.removeItem('nymara_diagnosis_client_id');
                 sessionStorage.removeItem('nymara_diagnosis_client_name');
                 sessionStorage.removeItem('nymara_diagnosis_client_phone');
@@ -4951,6 +4960,7 @@ DIAGNOSIS VIEW - FULLY INTEGRATED
                     State.activeSalonId = e.target.value;
                     localStorage.setItem('nymara_agenda_salon', e.target.value);
                     State.selectedDate = null; // Reset selected date when changing salon
+                    clearDiagnosisSelection(); // Al cambiar de salón, volver a ofrecer los clientes del nuevo salón en el diagnóstico
                     renderRoute();
                 });
             }
